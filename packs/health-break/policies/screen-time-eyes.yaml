@@ -1,0 +1,30 @@
+policy:
+  id: screen-time-eyes
+  version: 1
+  description: 周末长时间用眼时，提醒远眺 20 秒
+  priority: 78
+  trigger:
+    event: focus_block_ended
+  conditions:
+    all:
+      - duration_seconds: ">= 7200"
+      - day_of_week: [sat, sun]
+  decision: suggest
+  action:
+    type: eye_rest_reminder
+    scope: [body]
+    parameters:
+      duration_minutes: 1
+  safety:
+    requires_approval: false
+    rationale: 只弹一次本地气泡并给一个可忽略的建议，不读取屏幕内容也不改系统状态
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: thinking
+    bubble_text: 盯了两小时，看远处 20 秒？
+    actions:
+      - label: 好
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss

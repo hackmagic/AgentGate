@@ -1,0 +1,31 @@
+policy:
+  id: context-thrash-warning
+  version: 1
+  description: 反复来回切应用时，提醒先写下一句「我到底在等什么」
+  priority: 55
+  trigger:
+    event: app_switch
+  conditions:
+    all:
+      - any:
+          - duration_seconds: "< 120"
+          - time_window: "21:00-23:59"
+  decision: suggest
+  action:
+    type: write_down_blocker
+    scope: [attention]
+    parameters:
+      duration_minutes: 3
+  safety:
+    requires_approval: false
+    rationale: 只给一条可忽略的建议，不拦截任何切换、不改系统状态
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: thinking
+    bubble_text: 切得有点碎，卡在哪了？
+    actions:
+      - label: 好，我写一句
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss

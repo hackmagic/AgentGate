@@ -1,0 +1,33 @@
+policy:
+  id: late-night-work
+  version: 1
+  description: 深夜仍在写代码时，先问一句是否要收工
+  priority: 85
+  trigger:
+    event: focus_block_started
+    context:
+      app: [code, vscode, cursor, windsurf, terminal, iterm2, windows terminal]
+  conditions:
+    all:
+      - time_window: "23:00-04:00"
+  decision: require_approval
+  action:
+    type: suggest_wind_down
+    scope: [body]
+    parameters:
+      duration_minutes: 15
+  safety:
+    requires_approval: true
+    rationale: 深夜工作涉及作息，不该由机器替用户决定，必须先问
+    reversible: true
+    audit_level: full
+  presentation:
+    animation_hint: alert
+    bubble_text: 这个点了，还要继续吗？
+    actions:
+      - label: 再写一会儿
+        action_id: approve
+      - label: 收工
+        action_id: dismiss
+      - label: 今晚别问了
+        action_id: mute_1h

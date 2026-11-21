@@ -1,0 +1,30 @@
+policy:
+  id: no-break-warning
+  version: 1
+  description: 连续专注超过三小时且中途没休息，提醒这次该认真停一下
+  priority: 75
+  trigger:
+    event: focus_block_ended
+  conditions:
+    all:
+      - duration_seconds: "> 10800"
+      - day_of_week: [mon, tue, wed, thu, fri]
+  decision: require_approval
+  action:
+    type: mandatory_break_reminder
+    scope: [body]
+    parameters:
+      duration_minutes: 15
+  safety:
+    requires_approval: true
+    rationale: 三小时不休属于需要用户确认的高强度状态，提醒可以打断计划，因此要问
+    reversible: true
+    audit_level: full
+  presentation:
+    animation_hint: alert
+    bubble_text: 三小时没停了，休息 15 分钟？
+    actions:
+      - label: 好
+        action_id: approve
+      - label: 还不行
+        action_id: dismiss

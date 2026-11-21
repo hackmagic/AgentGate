@@ -34,7 +34,7 @@ Every bundle carries four metadata fields:
 | --- | --- |
 | `target` | `agents` / `skill` / `mcp` |
 | `engine_version` | The engine that produced it (`0.2.0`) |
-| `format_version` | The **rendering contract** version (currently `1`), decoupled from the engine version |
+| `format_version` | The **rendering contract** version (currently `2`), decoupled from the engine version |
 | `source_hash` | `sha256(stableStringify(sorted(policies)))` |
 
 Each file in `files[]` carries its own `sha256` covering the exact bytes. That answers "which artifact
@@ -68,7 +68,7 @@ appears in the emitted artifacts.
 
 ```
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.3.0 以编译格式 v1 从 5 条策略生成。…
+本文件由 agent-gate v0.4.0 以编译格式 v2 从 5 条策略生成。…
 ## 通用求值规则       ← the five semantic rules
 ## 边界               ← the executor is not the policy author
 ## {description}      ← one chapter per policy
@@ -181,8 +181,8 @@ Writes `out/compile-manifest.json`:
 
 ```json
 {
-  "engine_version": "0.3.0",
-  "format_version": "1",
+  "engine_version": "0.4.0",
+  "format_version": "2",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
   "policies": ["evening-quiet-hours", "…"],
@@ -196,7 +196,71 @@ Writes `out/compile-manifest.json`:
 `artifacts` lets a consumer tell **which specific artifact** is stale, instead of only knowing the whole
 bundle changed.
 
-## 6. Version compatibility promises
+## 6. Minimum usability standards per target
+
+Consistency (section 4) asks whether the artifacts agree. Usability asks a different question:
+**can a reader actually act on this artifact?** An artifact that loads but cannot be acted on is
+worse than a missing one, because the reader will invent the missing step.
+
+Each clause below is pinned by a named test. `tests/skill.test.ts` covers the skill target; the others
+are covered where indicated.
+
+### 6.1 Every target
+
+| Requirement | Why | Test |
+| --- | --- | --- |
+| States `engine_version` and `format_version` | A reader must be able to tell a stale artifact from an older compiler | `tests/parity.test.ts` |
+| Identifies each policy by id | "Which rule is this?" must be answerable without the source | `tests/skill.test.ts` |
+| Is deterministic for one input | Two compilations must be byte-identical, or `source_hash` means nothing | `tests/skill.test.ts` |
+| Changes `format_version` when its shape changes | Silent shape changes break readers that already parsed it | `tests/parity.test.ts` + review |
+
+### 6.2 `AGENTS.md`
+
+| Requirement | Why |
+| --- | --- |
+| One chapter per policy, headed by the policy description | A policy change must diff against the agent contract |
+| Carries the five semantic rules verbatim | The rules constrain *execution*, so they belong next to the instructions |
+| States `requires_approval` in the prohibitions section | This is the line the executor must not cross |
+
+### 6.3 `SKILL.md`
+
+The bar here is higher than the other two, because a skill is read by a model that will fill any gap
+with a plausible guess.
+
+| Requirement | Why | Consequence if missing |
+| --- | --- | --- |
+| Frontmatter `name` equals the directory name | Hosts index by directory; a mismatch orphans the skill | The skill is loaded but never matched |
+| `description` states decision **and** approval stance | A list view must be enough to triage ten skills | The reader discovers the gate only by tripping it |
+| The policy's own `decision` is stated explicitly | The model must not infer which branch it is on | The model applies the wrong branch |
+| Every offered `action_id` appears, and no other does | The user can only answer with an action the signal offered | The model invents an id the engine rejects |
+| The receipt path names a **real** endpoint | MCP is stateless and has no respond tool; only the pet bridge accepts a receipt | The model calls a tool that does not exist, or claims an approval |
+| States what to do when the bridge is absent | Silence here produces a fabricated "the user approved" | The audit trail records consent that never happened |
+
+The receipt clause is worth restating in plain terms: **the MCP surface has three tools
+(`gate/evaluate`, `gate/list-policies`, `gate/audit-query`) and none of them accepts a user response.**
+A skill that says "send the answer back through the tool you called" is describing a capability the
+system does not have. The skill therefore names `POST /v1/signals/{id}/respond`, and instructs the
+model to report "no receipt" rather than assume consent when no bridge is running.
+
+### 6.4 `MCP bundle`
+
+| Requirement | Why |
+| --- | --- |
+| `mcp.json` launches a command that exists after install | A config that cannot start is a broken integration |
+| Policy copies round-trip through the validator | The bundle must be reloadable, not just readable |
+| The README states the approval contract | The first thing an integrator reads |
+
+### 6.5 What is deliberately not required
+
+- **No fixed prose length.** A skill for a 3-condition policy and one for a 30-condition policy should
+  differ in length; pad to a target would be noise.
+- **No localization of skill bodies.** System nouns (`GateSignal`, `require_approval`, `action_id`)
+  are contract vocabulary and stay English in every language, per
+  [the documentation index](README.md#translations).
+- **No screenshot or animation assets.** Presentation is a contract, not an asset bundle; the
+  embodiment supplies its own art.
+
+## 7. Version compatibility promises
 
 | Promise | Meaning |
 | --- | --- |

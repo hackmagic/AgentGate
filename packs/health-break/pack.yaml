@@ -1,0 +1,18 @@
+name: health-break
+version: 1
+description: 久坐与用眼健康包：长专注后提醒活动、连续盯屏过久提示远眺、深夜工作劝阻
+author: agent-gate contributors
+policies:
+  - long-stretch-break
+  - screen-time-eyes
+  - late-night-work
+  - no-break-warning
+notes: |
+  这个包只做「照顾身体」这件事，不接管任何系统级权限，也不监控屏幕内容。
+
+  两条设计取舍：
+  - 提醒类策略一律 requires_approval: false，因为它们只弹一次本地气泡、不改任何状态；
+    每条都写了 rationale，且 audit_level 不为 none，否则人不该被一个看不见的规则打扰。
+  - 「长专注后提醒」与 deep-work 包的 long-focus-stretch 有意重叠：那个包关心的是
+    专注节奏，这个包关心的是身体。两者阈值不同（60 分钟 vs 90 分钟），
+    同时启用时由 priority 决定谁先说话。

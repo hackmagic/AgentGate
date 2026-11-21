@@ -1,0 +1,29 @@
+policy:
+  id: long-stretch-break
+  version: 1
+  description: 一次专注满 60 分钟后，提醒站起来活动两分钟
+  priority: 70
+  trigger:
+    event: focus_block_ended
+  conditions:
+    all:
+      - duration_seconds: ">= 3600"
+  decision: suggest
+  action:
+    type: stretch_reminder
+    scope: [body]
+    parameters:
+      duration_minutes: 2
+  safety:
+    requires_approval: false
+    rationale: 只弹一次本地气泡，不改动任何系统状态，用户可一键忽略
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: stretch
+    bubble_text: 坐满一小时了，伸个懒腰？
+    actions:
+      - label: 好
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss

@@ -1,0 +1,17 @@
+name: context-switch-guard
+version: 1
+description: 上下文切换保护包：拦住专注中的误切换、碎切换过多时提醒收敛、
+  返回时帮你接上刚才的活、别让 IM 打断深度块
+author: agent-gate contributors
+policies:
+  - focus-switch-ask
+  - context-thrash-warning
+  - return-to-focus
+  - notify-free-deep-block
+notes: |
+  这个包与 deep-work 的分工：deep-work 关心「什么时候别打扰我」，这个包关心
+  「我自己的切换行为有没有失控」。
+
+  「碎切换」是本包的核心概念：反复在两个应用之间跳，通常不是工作需要，
+  而是被待办焦虑或某个卡住的问题推着走。它比「切了很多次」更值得提醒，
+  所以用 any + 多条件近似表达，而不是简单计总数。

@@ -78,9 +78,12 @@ jobs:
 
       - name: Emitted artifacts carry their format version
         run: |
-          grep -q '编译格式 v1' out/AGENTS.md
-          grep -q '编译格式 v1' out/README.md
-          grep -q '编译格式 v1' out/skills/agent-gate-morning-focus-protection/SKILL.md
+          VERSION=$(node -e "console.log(require('./out/compile-manifest.json').format_version)")
+          test -n "$VERSION"
+          grep -q "编译格式 v$VERSION" out/AGENTS.md
+          grep -q "编译格式 v$VERSION" out/README.md
+          grep -q "编译格式 v$VERSION" out/skills/agent-gate-morning-focus-protection/SKILL.md
+          echo "artifacts carry format v$VERSION"
 
       - name: Policy lifecycle projects from audit history
         run: |

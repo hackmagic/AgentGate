@@ -1,0 +1,34 @@
+policy:
+  id: focus-switch-ask
+  version: 1
+  description: 专注不到 10 分钟就切走时，先确认是真的要换任务
+  priority: 80
+  trigger:
+    event: app_switch
+    context:
+      app: [slack, discord, mail, outlook, twitter, weibo]
+  conditions:
+    all:
+      - duration_seconds: "< 600"
+      - time_window: "09:00-18:00"
+  decision: require_approval
+  action:
+    type: confirm_switch
+    scope: [attention]
+    parameters:
+      duration_minutes: 1
+  safety:
+    requires_approval: true
+    rationale: 拦的是一次真实的应用切换行为，用户不在场时不该由机器决定放不放行
+    reversible: true
+    audit_level: full
+  presentation:
+    animation_hint: alert
+    bubble_text: 刚专注就切走？确认一下？
+    actions:
+      - label: 确实要切
+        action_id: approve
+      - label: 回去继续
+        action_id: dismiss
+      - label: 一小时别问
+        action_id: mute_1h

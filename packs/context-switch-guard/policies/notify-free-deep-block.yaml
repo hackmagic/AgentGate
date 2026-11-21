@@ -1,0 +1,34 @@
+policy:
+  id: notify-free-deep-block
+  version: 1
+  description: 进入深度块时把通知静音，但必须先经我批准
+  priority: 82
+  trigger:
+    event: focus_block_started
+    context:
+      app: [code, vscode, cursor, windsurf, terminal, iterm2, windows terminal]
+  conditions:
+    all:
+      - day_of_week: [mon, tue, wed, thu, fri]
+      - time_window: "10:00-17:00"
+  decision: suppress
+  action:
+    type: suppress_notifications
+    scope: [slack, mail, im, discord]
+    parameters:
+      duration_minutes: 90
+  safety:
+    requires_approval: true
+    rationale: 静音会影响别人找到你的速度，即使可逆也必须先问
+    reversible: true
+    audit_level: full
+  presentation:
+    animation_hint: alert
+    bubble_text: 进入深度块，静音 90 分钟？
+    actions:
+      - label: 批准
+        action_id: approve
+      - label: 不用
+        action_id: dismiss
+      - label: 静音 1 小时
+        action_id: mute_1h

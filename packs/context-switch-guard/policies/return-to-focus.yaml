@@ -1,0 +1,31 @@
+policy:
+  id: return-to-focus
+  version: 1
+  description: 晚上重新坐回电脑时，帮你接上白天那段活
+  priority: 45
+  trigger:
+    event: focus_block_started
+    context:
+      app: [code, vscode, cursor, windsurf, terminal, iterm2, windows terminal]
+  conditions:
+    all:
+      - time_window: "18:00-23:00"
+  decision: suggest
+  action:
+    type: restore_context
+    scope: [attention]
+    parameters:
+      duration_minutes: 1
+  safety:
+    requires_approval: false
+    rationale: 只显示一句提示帮用户接上上下文，不读文件内容也不改任何状态
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: idle_shift
+    bubble_text: 晚上好，接着白天那段？
+    actions:
+      - label: 好
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss

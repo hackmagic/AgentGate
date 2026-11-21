@@ -95,7 +95,7 @@
 
 待办：
 
-- ⬜ 更多策略包（`packs/late-night`、`packs/meeting-heavy`）
+- ✅ 又两个策略包：`packs/health-break`、`packs/context-switch-guard`
 - ⬜ npm 发布（`bin: gate`）
 - ⬜ 策略修订建议：连续 dismiss 后给出「是不是条件太宽」的具体改法
 
@@ -109,6 +109,24 @@
 做这个功能时修掉一个真实缺陷：引擎会累计否决次数，但**从不写 `reason: muted`**，于是引擎内部
 已静音的策略被投影成 `active`。`muted` 在 `AUDIT_REASONS` 和生命周期折叠里都有，却没有任何地方
 发出它。现在有一个回归测试，用真实 gate 构建真实日志。
+
+## M9 · 审计深度（已完成）
+
+- ✅ 又两个包：`packs/health-break`（4 条）、`packs/context-switch-guard`（4 条）
+- ✅ `npm run audit-schemas`：报告任何手写校验器未实现的 schema 关键字
+- ✅ `tests/schema.test.ts`：每个已实现关键字一条行为断言，让「支持」是被证明的
+- ✅ `docs/06-compiler-spec.md` §6 的 SKILL.md 最低可用性标准，由 `tests/skill.test.ts` 固定
+- ✅ `COMPILE_FORMAT_VERSION` 1 → 2，因为 skill 形状变了
+
+这一批暴露了三个缺陷，全在「看起来已经完成」的东西里：
+
+1. `return-to-focus` 被 `notify-free-deep-block` 永久遮蔽：同 trigger、优先级更高、窗口重叠。
+   一条永远触发不了的策略，看起来像功能，行为像注释。`tests/packs.test.ts` 现在按每条策略自身
+   的条件边界探测，确保它能真正开火。
+2. SKILL.md 让模型把用户回执「通过运行时」回传，但 MCP 面**没有回执工具**。这条指令描述的是
+   系统不具备的能力，模型要么失败，要么宣称一次从未发生的批准。skill 现在写真实宠物桥路由，
+   并说明没有桥时该怎么做。
+3. CI 里硬编码了 `编译格式 v1`；现在从 manifest 读 `format_version`，改格式不必动 workflow。
 
 ## 下一步优先级
 

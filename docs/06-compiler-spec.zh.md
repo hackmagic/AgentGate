@@ -30,7 +30,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 | --- | --- |
 | `target` | `agents` / `skill` / `mcp` |
 | `engine_version` | 生成它的引擎版本（`0.1.0`） |
-| `format_version` | **渲染契约版本**（当前 `1`），与引擎版本解耦 |
+| `format_version` | **渲染契约版本**（当前 `2`），与引擎版本解耦 |
 | `source_hash` | 策略集的 `sha256(stableStringify(sorted(policies)))` |
 
 `files[]` 里每个文件带自己的 `sha256`，覆盖确切字节。这让「哪个产物过期了」可以逐文件回答，
@@ -62,7 +62,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 
 ```
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.3.0 以编译格式 v1 从 5 条策略生成。…
+本文件由 agent-gate v0.4.0 以编译格式 v2 从 5 条策略生成。…
 ## 通用求值规则       ← 五条语义规则
 ## 边界               ← 执行者不是策略制定者
 ## {description}      ← 每条策略一章
@@ -172,8 +172,8 @@ gate compile --policy packs/deep-work --out out --target all
 
 ```json
 {
-  "engine_version": "0.3.0",
-  "format_version": "1",
+  "engine_version": "0.4.0",
+  "format_version": "2",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
   "policies": ["evening-quiet-hours", "…"],
@@ -186,7 +186,64 @@ gate compile --policy packs/deep-work --out out --target all
 
 `artifacts` 让消费方能判断**具体哪个产物**过期，而不是只知道整包变了。
 
-## 6. 版本兼容承诺
+## 6. 各目标的最低可用性标准
+
+一致性（第 4 节）问的是产物彼此是否相符。可用性问的是另一个问题：**读者能不能真的照着它行事**。
+一个能加载却无法照着做的产物，比没有更糟——读者会自己补上缺的那一步。
+
+下面每条都由具名测试固定。`tests/skill.test.ts` 覆盖 skill 目标，其余在括号里注明。
+
+### 6.1 所有目标
+
+| 要求 | 原因 | 测试 |
+| --- | --- | --- |
+| 写明 `engine_version` 与 `format_version` | 读者必须能区分「产物过期」和「编译器更老」 | `tests/parity.test.ts` |
+| 用 id 标识每条策略 | 不查源文件也能回答「这是哪条规则」 | `tests/skill.test.ts` |
+| 同一输入产出确定的字节 | 两次编译必须逐字节一致，否则 `source_hash` 没有意义 | `tests/skill.test.ts` |
+| 形状变化时 bump `format_version` | 静默的形状变更会破坏已经解析过它的读者 | `tests/parity.test.ts` + review |
+
+### 6.2 `AGENTS.md`
+
+| 要求 | 原因 |
+| --- | --- |
+| 一章一策略，标题用策略描述 | 策略变更必须能 diff 到 Agent 契约上 |
+| 原样带上五条语义规则 | 这些规则约束的是**执行**，必须和指令放在一起 |
+| 在禁止事项里写明 `requires_approval` | 这是执行者不能跨过的那条线 |
+
+### 6.3 `SKILL.md`
+
+这里门槛比另两个目标高，因为读 skill 的是一个模型——任何缺口它都会用一个看起来合理的猜测补上。
+
+| 要求 | 原因 | 缺了会怎样 |
+| --- | --- | --- |
+| frontmatter 的 `name` 等于目录名 | 宿主按目录索引，不一致会让 skill 变成孤儿 | 加载了但永远匹配不上 |
+| `description` 同时写明 decision 和审批立场 | 列表视图必须够判断十条 skill | 读者只有撞上才知道有门槛 |
+| 显式写出该策略自己的 `decision` | 模型不能靠猜自己在哪个分支 | 模型走错分支 |
+| 列出全部 `action_id`，且不多列 | 用户只能用信号提供的动作回答 | 模型自造一个引擎会拒的 id |
+| 回执路径指向**真实**端点 | MCP 无状态、没有回执工具；只有宠物桥接收回执 | 模型调用不存在的工具，或宣称已获批准 |
+| 写明没有桥时该怎么做 | 这里一沉默，就会凭空产出「用户已批准」 | 审计里记下一次从未发生的同意 |
+
+关于回执这条，值得用大白话再说一遍：**MCP 只有三个工具（`gate/evaluate`、`gate/list-policies`、
+`gate/audit-query`），没有一个接收用户回执。** 一条写着「把答案通过刚才调用的工具回传」的 skill，
+描述的是系统并不具备的能力。所以 skill 里写的是 `POST /v1/signals/{id}/respond`，并指示模型
+在没有桥时报告「未回执」，而不是假定用户同意了。
+
+### 6.4 `MCP bundle`
+
+| 要求 | 原因 |
+| --- | --- |
+| `mcp.json` 启动的命令在安装后真实存在 | 起不来的配置就是坏集成 |
+| 策略副本能通过校验器 round-trip | bundle 必须可重新加载，不只是可读 |
+| README 写明审批契约 | 集成方第一眼看到的就是它 |
+
+### 6.5 故意不要求的
+
+- **不规定散文长度。** 三条条件的策略和三十条条件的策略本就该长度不同，凑字数只会变成噪音。
+- **不本地化 skill 正文。** 系统名词（`GateSignal`、`require_approval`、`action_id`）是契约词汇，
+  在任何语言里都保持英文，见[文档索引](README.zh.md#翻译)。
+- **不要求截图或动画素材。** 呈现是契约不是素材包；美术由具现层自己提供。
+
+## 7. 版本兼容承诺
 
 | 承诺 | 含义 |
 | --- | --- |

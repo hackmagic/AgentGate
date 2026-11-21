@@ -100,7 +100,7 @@ Done:
 
 Remaining:
 
-- ⬜ More policy packs (`packs/late-night`, `packs/meeting-heavy`)
+- ✅ Two more packs: `packs/health-break`, `packs/context-switch-guard`
 - ⬜ npm release (`bin: gate`)
 - ⬜ Revision suggestions: after repeated dismissals, propose a concrete condition change
 
@@ -115,6 +115,26 @@ Remaining:
 Fixed while building it: the engine counted dismissals but **never wrote `reason: muted`**, so a policy
 the engine held muted projected as `active`. `muted` existed in `AUDIT_REASONS` and in the lifecycle
 fold with nothing emitting it. There is now a regression test that builds a real log through a real gate.
+## M9 · Audit depth (done)
+
+- ✅ Two more packs: `packs/health-break` (4 policies), `packs/context-switch-guard` (4 policies)
+- ✅ `npm run audit-schemas`: reports any schema keyword the hand-written validator does not implement
+- ✅ `tests/schema.test.ts`: one behavioural assertion per implemented keyword, so "supported" is proven
+- ✅ SKILL.md minimum usability standards in `docs/06-compiler-spec.md` §6, pinned by `tests/skill.test.ts`
+- ✅ `COMPILE_FORMAT_VERSION` 1 → 2, because the skill shape changed
+
+Three defects this batch surfaced, all in things that looked finished:
+
+1. `return-to-focus` was shadowed forever by `notify-free-deep-block`: same trigger, higher priority,
+   overlapping window. A policy that can never fire looks like a feature and behaves like a comment.
+   `tests/packs.test.ts` now probes every shipped policy at the edge of its own condition window.
+2. SKILL.md told the model to send the user's answer back "through the runtime", but the MCP surface
+   has **no respond tool**. The instruction described a capability that does not exist, so a model would
+   either fail or claim an approval that never happened. The skill now names the real pet-bridge route
+   and says what to do when no bridge is running.
+3. CI hardcoded `编译格式 v1`; it now reads `format_version` from the manifest, so bumping the format
+   does not require editing the workflow.
+
 ## Next priorities
 
 Ordered by "can the community contribute", not by technical interest:

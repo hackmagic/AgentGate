@@ -42,6 +42,22 @@ policy:
         action_id: dismiss
 ```
 
+### Adding a whole pack
+
+A pack is a directory under `packs/` with a `pack.yaml` manifest listing its policy ids. The manifest
+and the files must agree; `validate-specs` checks that, and `tests/packs.test.ts` additionally drives
+every shipped policy to prove it can actually fire.
+
+Two rules learned from building the bundled packs:
+
+- **No policy may be permanently shadowed.** Two policies on the same trigger with overlapping
+  conditions means the lower-priority one never runs; it looks like a feature and behaves like a
+  comment. The test suite probes each policy at the edge of its own condition window and fails if a
+  sibling always wins. Give them disjoint conditions (different day, hour, or duration floor) or delete
+  the dead one.
+- **A pack states its own boundary in `notes:`.** If it overlaps another pack, say which and why, so a
+  reader enabling both knows which one speaks first.
+
 ### Policy review criteria
 
 | Check | Requirement |

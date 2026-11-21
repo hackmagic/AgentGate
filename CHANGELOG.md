@@ -11,6 +11,31 @@
 - npm 发布（`bin: gate`）
 - 策略修订建议：连续 dismiss 后给出可采纳的条件改写
 
+## [0.4.0] — 2026-11-22
+
+### 新增
+
+- **两个策略包**：`packs/health-break`（久坐、用眼、深夜工作）、`packs/context-switch-guard`
+  （误切换拦截、碎切换提示、上下文接续、深度块免打扰），各 4 条策略。
+- **`npm run audit-schemas`**：审计 `schemas/*.schema.json` 用到的关键字与手写校验器的实现是否一致。
+  手写子集的静默风险是「schema 用了没实现的关键字，那条约束就什么都不校验，而且没有任何测试会红」。
+- **`tests/schema.test.ts`**：每个已实现关键字一条行为断言，让「支持」从声明变成证明。
+- **SKILL.md 最低可用性标准**（`docs/06-compiler-spec.md` §6），由 `tests/skill.test.ts` 固定 11 项。
+- **`tests/packs.test.ts`**：把每个包里的每条策略真的驱动一遍，含「不被永久遮蔽」的探测。
+
+### 变更
+
+- `COMPILE_FORMAT_VERSION` 1 → 2：SKILL.md 增加了回执路由一节，形状变了。
+- CI 的格式版本检查改为从 manifest 读取，不再硬编码。
+
+### 修复
+
+- **SKILL.md 指示了一句做不到的事。** 它让模型把用户回执「回传给 `gate/evaluate` 所在运行时」，
+  但 MCP 只有 `gate/evaluate`、`gate/list-policies`、`gate/audit-query` 三个工具，**没有回执入口**。
+  模型要么调用不存在的工具，要么凭空宣称用户已批准——后者会写进审计，成为一次从未发生的同意。
+  现在 skill 写明真实路由 `POST /v1/signals/{id}/respond`，并规定无桥时报告「未回执」。
+- **`return-to-focus` 是条死策略。** 它与 `notify-free-deep-block` 同 trigger、优先级更低、窗口重叠，
+  永远轮不到它。已把条件改到夜间窗口，并用探测测试防止同类问题复发。
 ## [0.3.0] — 2026-11-22
 
 ### 新增
