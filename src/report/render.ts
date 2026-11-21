@@ -80,6 +80,21 @@ export function renderText(report: Report, options: TextOptions = {}): string {
   }
   lines.push('');
 
+  if (report.suggestions.length > 0) {
+    lines.push('Suggestions');
+    for (const suggestion of report.suggestions) {
+      lines.push(`  ${suggestion.policy_id}: ${suggestion.summary}`);
+      if (suggestion.proposed_change !== null) {
+        const change = suggestion.proposed_change;
+        lines.push(`    ${change.field}: ${change.from ?? '(none)'} -> ${change.to}`);
+      } else {
+        lines.push('    no concrete change proposed; see the caveats');
+      }
+      for (const caveat of suggestion.caveats) lines.push(`    - ${caveat}`);
+    }
+    lines.push('');
+  }
+
   return lines.join('\n');
 }
 
@@ -153,6 +168,28 @@ export function renderMarkdown(report: Report, options: MarkdownOptions = {}): s
       );
     }
     lines.push('');
+  }
+
+  if (report.suggestions.length > 0) {
+    lines.push('## Suggestions');
+    lines.push('');
+    for (const suggestion of report.suggestions) {
+      lines.push(`### \`${suggestion.policy_id}\``);
+      lines.push('');
+      lines.push(suggestion.summary);
+      lines.push('');
+      if (suggestion.proposed_change !== null) {
+        const change = suggestion.proposed_change;
+        lines.push('```yaml');
+        lines.push(`${change.field}: ${JSON.stringify(change.to)}   # was: ${change.from ?? 'absent'}`);
+        lines.push('```');
+        lines.push('');
+      }
+      lines.push('Caveats:');
+      lines.push('');
+      for (const caveat of suggestion.caveats) lines.push(`- ${caveat}`);
+      lines.push('');
+    }
   }
 
   lines.push('## Findings');

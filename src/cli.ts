@@ -31,7 +31,7 @@ const HELP = `agent-gate v${ENGINE_VERSION}
   gate verify --policy <path>... [--target agents|skill|mcp|all]
   gate lifecycle --policy <path>... --audit <file> [--now <iso>] [--archive <id>:<reason>]
   gate report --policy <path>... [--audit <file>] [--format markdown|text|json] [--out <file>]
-                                                     [--title <heading>] [--now <iso>] [--no-policies]
+                                                     [--title <heading>] [--now <iso>] [--timezone <tz>] [--no-policies]
   gate mcp --policy <path>... [--audit <file>]
   gate pet --policy <path>... [--port 3778] [--host 127.0.0.1] [--audit <file>]
   gate audit --audit <file> [--since <iso>] [--policy-id <id>] [--limit <n>]
@@ -353,6 +353,9 @@ function commandReport(parsed: ParsedArgs): number {
   const report = buildReport(policies, records, {
     now,
     archives: parseArchives(parsed),
+    // Suggestions bucket dismissal times, so the zone must be the one the
+    // policy windows are written in, not the host's.
+    ...(flag(parsed, 'timezone') === undefined ? {} : { timezone: String(flag(parsed, 'timezone')) }),
     ...(flag(parsed, 'rejection-threshold') === undefined
       ? {}
       : { rejection_threshold: Number(flag(parsed, 'rejection-threshold')) }),

@@ -102,7 +102,7 @@ Remaining:
 
 - ✅ Two more packs: `packs/health-break`, `packs/context-switch-guard`
 - ⬜ npm release (`bin: gate`)
-- ⬜ Revision suggestions: after repeated dismissals, propose a concrete condition change
+- ✅ Revision suggestions: after repeated dismissals, propose a concrete `time_window` narrowing, with the\n  evidence and the caveats that limit it (see `docs/10-report-spec.md` §6)
 
 ## M8 · Reporting (done)
 
@@ -145,7 +145,7 @@ Ordered by "can the community contribute", not by technical interest:
 
 1. **Grow the policy template library** — contributing one YAML policy is far cheaper than contributing a capture engine;
 2. **A real pet adapter** — get the first chain running on a real desktop;
-3. **Revision suggestions** — turn lifecycle data into an actionable change after three dismissals.
+3. ~~**Revision suggestions**~~ — delivered; the remaining idea is suggestions for a scattered pattern,\n   which would need audit data the whitelist does not carry.
 
 ## Acceptance checklist (copy into a pull request)
 

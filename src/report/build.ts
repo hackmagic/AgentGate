@@ -1,6 +1,7 @@
 import type { AuditRecord } from '../audit/store.js';
 import type { Policy } from '../policy/types.js';
 import { projectLifecycle, type ArchiveRequest, type LifecycleState, type PolicyLifecycle } from '../policy/lifecycle.js';
+import { suggestRevisions, type PolicySuggestion } from './suggest.js';
 
 /**
  * Aggregation for `gate report`.
@@ -86,6 +87,14 @@ export interface Report {
   lifecycle: ReportLifecycleCounts;
   policies: PolicyReport[];
   findings: ReportFinding[];
+  /**
+   * Concrete revisions to consider, one per repeatedly-dismissed policy.
+   *
+   * Separate from indings on purpose: a finding says something is wrong,
+   * a suggestion says what to change. They carry different evidence and a
+   * reader should be able to act on one without reading the other.
+   */
+  suggestions: PolicySuggestion[];
 }
 
 export interface BuildReportOptions {
@@ -97,6 +106,8 @@ export interface BuildReportOptions {
   rejection_threshold?: number;
   /** A policy is flagged after this many throttle records. */
   throttle_threshold?: number;
+  /** IANA zone used to bucket dismissal times for suggestions. */
+  timezone?: string;
 }
 
 const DEFAULT_REJECTION_THRESHOLD = 0.5;
@@ -187,6 +198,10 @@ export function buildReport(
     lifecycle: countLifecycle(lifecycles),
     policies: reports,
     findings: deriveFindings(reports, active.length, rejectionThreshold, throttleThreshold),
+    suggestions: suggestRevisions(policies, audit, {
+      ...(options.timezone === undefined ? {} : { timezone: options.timezone }),
+      now,
+    }),
   };
 }
 

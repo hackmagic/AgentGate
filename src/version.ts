@@ -1,5 +1,5 @@
 /** Keep in sync with package.json; tests/contract.test.ts asserts equality. */
-export const ENGINE_VERSION = '0.7.0';
+export const ENGINE_VERSION = '0.8.0';
 
 /**
  * Compiler format version, independent of the package version.

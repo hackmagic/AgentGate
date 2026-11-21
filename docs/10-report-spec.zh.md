@@ -32,6 +32,7 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 | `--archive <id>:<reason>` | 报告前应用一次操作者归档。 |
 | `--rejection-threshold <0..1>` | 何时报 `high_rejection_rate`，默认 `0.5`。 |
 | `--throttle-threshold <n>` | 何时报 `heavily_throttled`，默认 `3`。 |
+| `--timezone <tz>` | IANA 时区，用于把否决时间分桶以生成修订建议。 |
 
 只要生成了报告，退出码就是 `0`。**发现项是信息，不是失败**：某条策略被静音是用户的事实，
 不是构建坏了。参数写错是 `2`；审计文件读不了才是错误。
@@ -130,7 +131,89 @@ rejection_rate = dismissed / (approved + dismissed)
 2. **报告能吐出的每个 code 都必须声明在 `FINDING_CODES`**，且 `validate-specs` 会断言它出现在
    本文档里。新发现项不可能不带文档上线。
 
-## 6. JSON 形状
+## 6. 修订建议
+
+**发现项**说哪里不对；**修订建议**说该改什么。两者分开，因为它们依据的证据不同，读者应当能只读其一就采取行动。
+
+### 证据边界——在相信任何建议之前先读这段
+
+`AUDIT_FIELD_WHITELIST` 是：`event_id`、`policy_id`、`decision`、`signal_id`、`user_response`、
+`timestamp`、`engine_version`、`degraded`、`reason`。
+
+它**不含事件上下文，也不含触发条件**。所以系统并不知道某次否决发生在开会时、在某个应用里、还是某个项目上。
+任何暗示它知道的建议都是编的，而编出来的理由用户无法证伪。
+
+日志里确实有的是——**什么时候**，而且很精确。这让一条主张站得住：
+
+> **这些否决集中在策略当前覆盖的某个时段内。**
+
+于是提出一个收窄 `time_window` 的方案。其他情况一律不给建议，因为诚实的回答是「证据不足以支持改动」，
+而不是一个听起来合理的猜测。
+
+### 窗口是怎么选出来的
+
+| 步骤 | 规则 |
+| --- | --- |
+| 阈值 | 至少 3 次否决（可配置）才值得给建议 |
+| 分桶 | 按 `--timezone` 时区把否决时间装进 2 小时桶，桶从整点 `00` 开始 |
+| 锚点 | 桶不会在不同运行之间漂移，同一份日志的两次报告结论一致 |
+| 窗口 | 取连续桶里覆盖最多的一段，只有严格变好才扩张 |
+| 集中度 | 胜出的窗口必须容纳至少 60% 的否决，否则不给建议 |
+| 收窄 | 打平时取更窄的窗口，因为建议的方向就是收窄 |
+
+分散的否决（比如 03:00、10:00、15:00、21:00）**不会**产生建议。这种形态没有基于时间的改法，
+硬给一个只会让用户去收窄一个改了也没用的窗口。
+
+### 一条建议包含什么
+
+```json
+{
+  "policy_id": "morning-focus-protection",
+  "kind": "narrow_time_window",
+  "summary": "3 of 3 answers were dismissals, 3 of them inside 10:00-12:00",
+  "evidence": {
+    "dismissals": 3,
+    "approvals": 0,
+    "buckets": [{ "window": "10:00-12:00", "dismissals": 3 }],
+    "concentration": 1
+  },
+  "proposed_change": { "field": "time_window", "from": "09:00-12:00", "to": "10:00-12:00" },
+  "caveats": ["…"]
+}
+```
+
+策略没有声明 `time_window` 时 `proposed_change` 为 `null`：没有东西可收窄，所以只陈列证据、不给改法。
+一个永远都有方案的建议器，等于一个不会说「不」的建议器。
+
+`caveats` **永远非空**，且必定包含最要紧的那条：*日志记录的是否决发生在何时，不是为什么*。
+小样本提示只在少于 5 次否决时出现——永远出现的提示等于没人看。
+
+### Markdown 呈现
+
+方案渲染成可直接套用的 diff，因为那才是用户能采取行动的形式：
+
+````markdown
+### `morning-focus-protection`
+
+3 of 3 answers were dismissals, 3 of them inside 10:00-12:00
+
+```yaml
+time_window: "10:00-12:00"   # was: 09:00-12:00
+```
+
+Caveats:
+
+- The audit log records when a decision was dismissed, not why. …
+````
+
+### 建议故意不做的事
+
+- **从不自动套用。** 建议是文本；改策略仍然是人的编辑。
+- **从不使用白名单之外的数据。** 如果将来某个字段能让建议更好，那是
+  [08](08-security-and-audit.zh.md) 里的审计契约决策，不是这里的编译器决策。
+- **从不冒充发现项。** 「采纳建议」和「消除发现项」是两个不同后果的动作。
+
+## 7. JSON 形状
 
 `--format json` 打印一个对象。消费方可以依赖下面的键，以及 `policies` 的顺序（与 `--policy`
 加载顺序一致），但不要依赖对象内部的字段顺序。
@@ -174,13 +257,28 @@ rejection_rate = dismissed / (approved + dismissed)
       "policy_id": "morning-focus-protection",
       "message": "3 of 3 answers were dismissals; the condition is probably too broad"
     }
+  ],
+  "suggestions": [
+    {
+      "policy_id": "morning-focus-protection",
+      "kind": "narrow_time_window",
+      "summary": "3 of 3 answers were dismissals, 3 of them inside 10:00-12:00",
+      "evidence": {
+        "dismissals": 3,
+        "approvals": 0,
+        "buckets": [{ "window": "10:00-12:00", "dismissals": 3 }],
+        "concentration": 1
+      },
+      "proposed_change": { "field": "time_window", "from": "09:00-12:00", "to": "10:00-12:00" },
+      "caveats": ["…"]
+    }
   ]
 }
 ```
 
 空日志时 `window` 为 `null`。没有记录的策略，`first_seen` / `last_seen` 为 `null`。
 
-## 7. 稳定性承诺
+## 8. 稳定性承诺
 
 | 承诺 | 含义 |
 | --- | --- |
@@ -191,7 +289,7 @@ rejection_rate = dismissed / (approved + dismissed)
 
 不承诺：对象内部字段**顺序**，以及 `message` 的措辞。请解析稳定的 `code`，而不是用来给人读的散文。
 
-## 8. 这份报告不是什么
+## 9. 这份报告不是什么
 
 - **不是健康检查。** 带发现项的报告就是一份正常报告。
 - **不是隐私面。** 它只读九字段审计白名单，所以从结构上就无法泄露屏幕内容——靠的是设计，不是小心。

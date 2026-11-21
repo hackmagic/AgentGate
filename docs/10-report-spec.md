@@ -33,6 +33,7 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 | `--archive <id>:<reason>` | Apply an operator archive before reporting. |
 | `--rejection-threshold <0..1>` | When to raise `high_rejection_rate`. Default `0.5`. |
 | `--throttle-threshold <n>` | When to raise `heavily_throttled`. Default `3`. |
+| `--timezone <tz>` | IANA zone used to bucket dismissal times for suggestions. |
 
 Exit code is `0` whenever a report is produced. **Findings are information, not failures**: a policy
 being muted is a fact about the user, not a broken build. A malformed flag is `2`; an unreadable audit
@@ -138,7 +139,95 @@ Two rules the implementation follows, both learned the hard way:
 2. **Every code the report can emit is declared in `FINDING_CODES`**, and `validate-specs` asserts that
    each one appears in this document. A new finding cannot ship undocumented.
 
-## 6. The JSON shape
+## 6. Suggestions
+
+A **finding** says something is wrong. A **suggestion** says what to change. They are separate because
+they carry different evidence, and a reader should be able to act on one without reading the other.
+
+### The evidence boundary — read this before trusting a suggestion
+
+`AUDIT_FIELD_WHITELIST` is: `event_id`, `policy_id`, `decision`, `signal_id`, `user_response`,
+`timestamp`, `engine_version`, `degraded`, `reason`.
+
+It contains **no event context and no trigger conditions.** The system therefore does not know that a
+dismissal happened during a meeting, in a particular app, or on a project. Any suggestion implying that
+would be invented, and a user cannot falsify an invented reason.
+
+What the log does contain is *when*, exactly. That makes one claim defensible:
+
+> **The dismissals cluster in a time range the policy currently covers.**
+
+So a `time_window` narrowing is proposed. Everything else returns no suggestion, because the honest
+answer is "the evidence does not support a change" rather than a plausible guess.
+
+### How the window is chosen
+
+| Step | Rule |
+| --- | --- |
+| Threshold | At least 3 dismissals (configurable) before a suggestion is worth making |
+| Bucketing | Dismissals grouped into 2-hour buckets, anchored at hour `00`, in the `--timezone` zone |
+| Anchor | Buckets do not shift between runs, so two reports of the same log agree |
+| Window | The best contiguous run of buckets, grown only when it strictly increases coverage |
+| Concentration | The winning window must hold at least 60% of dismissals, or nothing is proposed |
+| Narrowness | On a tie the narrower window wins, because the proposal is to narrow |
+
+Scattered dismissals (say 03:00, 10:00, 15:00, 21:00) produce **no** suggestion. There is no
+time-based fix for that pattern, and pretending otherwise would send the user narrowing a window that
+changes nothing.
+
+### What a suggestion carries
+
+```json
+{
+  "policy_id": "morning-focus-protection",
+  "kind": "narrow_time_window",
+  "summary": "3 of 3 answers were dismissals, 3 of them inside 10:00-12:00",
+  "evidence": {
+    "dismissals": 3,
+    "approvals": 0,
+    "buckets": [{ "window": "10:00-12:00", "dismissals": 3 }],
+    "concentration": 1
+  },
+  "proposed_change": { "field": "time_window", "from": "09:00-12:00", "to": "10:00-12:00" },
+  "caveats": ["…"]
+}
+```
+
+`proposed_change` is `null` when the policy declares no `time_window`: there is nothing to narrow, so
+the evidence is shown without a fix. A suggestion that always proposes something would be a
+suggestion engine that cannot say "no".
+
+`caveats` is **always non-empty**, and always includes the one that matters: *the log records when a
+dismissal happened, not why*. The small-sample caveat appears only below 5 dismissals — a caveat that
+always appears stops being read.
+
+### Markdown rendering
+
+The proposal is rendered as an applicable diff, because that is the form a user can act on:
+
+````markdown
+### `morning-focus-protection`
+
+3 of 3 answers were dismissals, 3 of them inside 10:00-12:00
+
+```yaml
+time_window: "10:00-12:00"   # was: 09:00-12:00
+```
+
+Caveats:
+
+- The audit log records when a decision was dismissed, not why. …
+````
+
+### What suggestions deliberately do not do
+
+- **They never apply themselves.** A suggestion is text; changing a policy stays a human edit.
+- **They never use data outside the whitelist.** If a future field would enable a better suggestion,
+  that is an audit-contract decision in [08](08-security-and-audit.md), not a compiler decision here.
+- **They never appear as findings.** Acting on a suggestion and clearing a finding are different
+  actions with different consequences.
+
+## 7. The JSON shape
 
 `--format json` prints one object. Consumers may rely on the keys below and on the ordering of
 `policies` (matching the `--policy` load order), but not on field order within an object.
@@ -182,13 +271,28 @@ Two rules the implementation follows, both learned the hard way:
       "policy_id": "morning-focus-protection",
       "message": "3 of 3 answers were dismissals; the condition is probably too broad"
     }
+  ],
+  "suggestions": [
+    {
+      "policy_id": "morning-focus-protection",
+      "kind": "narrow_time_window",
+      "summary": "3 of 3 answers were dismissals, 3 of them inside 10:00-12:00",
+      "evidence": {
+        "dismissals": 3,
+        "approvals": 0,
+        "buckets": [{ "window": "10:00-12:00", "dismissals": 3 }],
+        "concentration": 1
+      },
+      "proposed_change": { "field": "time_window", "from": "09:00-12:00", "to": "10:00-12:00" },
+      "caveats": ["…"]
+    }
   ]
 }
 ```
 
 `window` is `null` for an empty log. `first_seen` / `last_seen` are `null` for a policy with no records.
 
-## 7. Stability promise
+## 8. Stability promise
 
 | Promise | Meaning |
 | --- | --- |
@@ -200,7 +304,7 @@ Two rules the implementation follows, both learned the hard way:
 Not promised: field **order** inside an object, and the wording of `message`. Parse `code`, which is
 stable, not the prose, which is meant to be read.
 
-## 8. What this report is not
+## 9. What this report is not
 
 - **Not a health check.** A report with findings is a normal report.
 - **Not a privacy surface.** It reads only the nine-field audit whitelist, so it cannot leak screen
