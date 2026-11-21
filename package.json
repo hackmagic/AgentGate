@@ -1,6 +1,6 @@
 {
   "name": "agent-gate",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": false,
   "description": "AgentGate — compile your personal boundaries into portable, auditable policy for any AI agent (AGENTS.md / SKILL.md / MCP).",
   "keywords": [
@@ -46,7 +46,7 @@
     "packs",
     "docs",
     "README.md",
-    "README.zh.md",
+    "README.en.md",
     "CHANGELOG.md"
   ],
   "scripts": {

@@ -9,7 +9,7 @@ translation_status: complete
 
 # 00 · Project brief
 
-English | [中文](../zh-cn/00-project-brief.md)
+[中文](/00-project-brief) | English
 
 ## What we are building
 

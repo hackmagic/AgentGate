@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 00 · 一页纸立项
 
-[English](../en/00-project-brief.md) | 中文
+中文 | [English](/en/00-project-brief)
 
 ## 做什么
 

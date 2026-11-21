@@ -9,7 +9,7 @@ translation_status: complete
 
 # 08 · Security and audit
 
-English | [中文](../zh-cn/08-security-and-audit.md)
+[中文](/08-security-and-audit) | English
 
 ## Permission levels (four, defaulting to the most conservative)
 

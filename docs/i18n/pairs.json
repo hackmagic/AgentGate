@@ -3,44 +3,44 @@
   "pairs": {
     "README.md": {
       "0:h1": {
-        "en": "a84ca7505458258c",
-        "zh": "631dfe1cccaa1295"
+        "en": "63033954f0a8b594",
+        "zh": "e2b4a5c29ef6a3f2"
       },
       "1:h2": {
-        "en": "96f8641d6f4ec1b5",
-        "zh": "c25307f353187292"
+        "en": "c25307f353187292",
+        "zh": "96f8641d6f4ec1b5"
       },
       "2:h2": {
-        "en": "1ac7c9dbe9267da8",
-        "zh": "e36aaa51630fccd4"
+        "en": "e36aaa51630fccd4",
+        "zh": "1ac7c9dbe9267da8"
       },
       "3:h2": {
-        "en": "5629e1ae246b65ff",
-        "zh": "01b7be2f18b2cb4c"
+        "en": "01b7be2f18b2cb4c",
+        "zh": "5629e1ae246b65ff"
       },
       "4:h2": {
-        "en": "a77734302df14a40",
-        "zh": "cc7478c427c863c9"
+        "en": "cc7478c427c863c9",
+        "zh": "a77734302df14a40"
       },
       "5:h2": {
-        "en": "1fdc22ee5f94290b",
-        "zh": "3e8cd7a387b3f103"
+        "en": "3e8cd7a387b3f103",
+        "zh": "1fdc22ee5f94290b"
       },
       "6:h2": {
-        "en": "bc435faf3bb9017d",
-        "zh": "2a7d0bac7b33d273"
+        "en": "2a7d0bac7b33d273",
+        "zh": "bc435faf3bb9017d"
       },
       "7:h2": {
-        "en": "a7690f3d5fa1003e",
-        "zh": "e18e9b00c1fbb104"
+        "en": "e18e9b00c1fbb104",
+        "zh": "a7690f3d5fa1003e"
       },
       "8:h2": {
-        "en": "a084319d22df6dd5",
-        "zh": "5a5b07b2f97263b5"
+        "en": "5a5b07b2f97263b5",
+        "zh": "a084319d22df6dd5"
       },
       "9:h2": {
-        "en": "219ff78ee89cdb7d",
-        "zh": "8c97a303018754d4"
+        "en": "8c97a303018754d4",
+        "zh": "219ff78ee89cdb7d"
       },
       "10:h2": {
         "en": "e5dcffe836b6ec8a",
@@ -49,44 +49,44 @@
     },
     "CONTRIBUTING.md": {
       "0:h1": {
-        "en": "a3f796c1a16def35",
-        "zh": "347be4fb50f6443f"
+        "en": "f772114fb7b9fc50",
+        "zh": "1bed867ff56b9959"
       },
       "1:h2": {
-        "en": "eeeb11ee7f6ce4fb",
-        "zh": "7f9d97d60f94e540"
+        "en": "7f9d97d60f94e540",
+        "zh": "eeeb11ee7f6ce4fb"
       },
       "2:h3": {
-        "en": "48589b82523dbeca",
-        "zh": "5df8b33bb2d3735e"
+        "en": "5df8b33bb2d3735e",
+        "zh": "48589b82523dbeca"
       },
       "3:h3": {
-        "en": "6493fc64204e978f",
-        "zh": "ef6ad34919373924"
+        "en": "ef6ad34919373924",
+        "zh": "6493fc64204e978f"
       },
       "4:h2": {
-        "en": "9982cc3697b6c1c0",
-        "zh": "ddbd8b765afc7039"
+        "en": "ddbd8b765afc7039",
+        "zh": "9982cc3697b6c1c0"
       },
       "5:h3": {
-        "en": "4616197068d6fec2",
-        "zh": "fe24ed44303e4d3e"
+        "en": "fe24ed44303e4d3e",
+        "zh": "4616197068d6fec2"
       },
       "6:h3": {
-        "en": "4b15ce0d43a8b474",
-        "zh": "0f89e6e0184452b3"
+        "en": "0f89e6e0184452b3",
+        "zh": "4b15ce0d43a8b474"
       },
       "7:h2": {
-        "en": "4ec2faf3f635d5c8",
-        "zh": "9445a7c7e075fb97"
+        "en": "9445a7c7e075fb97",
+        "zh": "4ec2faf3f635d5c8"
       },
       "8:h2": {
-        "en": "18d5eccf4e6bb6aa",
-        "zh": "19b13b1ec0fb4721"
+        "en": "19b13b1ec0fb4721",
+        "zh": "18d5eccf4e6bb6aa"
       },
       "9:h2": {
-        "en": "617711627f3e1835",
-        "zh": "f0c6c1adfb4fe368"
+        "en": "f0c6c1adfb4fe368",
+        "zh": "617711627f3e1835"
       }
     },
     "docs/zh-cn/00-project-brief.md": {
@@ -95,8 +95,8 @@
         "zh": "f811d3d52c30f55a"
       },
       "1:h1": {
-        "en": "e3b0c44298fc1c14",
-        "zh": "e3b0c44298fc1c14"
+        "en": "7f38facbdf773d7c",
+        "zh": "bce2e23e3d37a2e6"
       },
       "2:h2": {
         "en": "acc4c7a4910a24e1",
@@ -133,8 +133,8 @@
         "zh": "30115e2ec7a07d1b"
       },
       "1:h1": {
-        "en": "e3b0c44298fc1c14",
-        "zh": "e3b0c44298fc1c14"
+        "en": "5d04f473de79d7f4",
+        "zh": "5992c1b42b699968"
       },
       "2:h2": {
         "en": "0ccc449dc59a8a43",
@@ -171,8 +171,8 @@
         "zh": "90772e64b6f653a0"
       },
       "1:h1": {
-        "en": "01a5f067fd976ded",
-        "zh": "cdfa465e111f64f6"
+        "en": "ffa9a52887e55070",
+        "zh": "5591080d5bf727f9"
       },
       "2:h2": {
         "en": "d55bba3a6c3f12b4",
@@ -213,8 +213,8 @@
         "zh": "ac129699dc51578d"
       },
       "1:h1": {
-        "en": "c76e7dc8247a1c09",
-        "zh": "2a3a0d02f1fa51c3"
+        "en": "317798c6ce1e1c97",
+        "zh": "1250b12f635bbafa"
       },
       "2:h2": {
         "en": "589ff4271807d4b6",
@@ -251,8 +251,8 @@
         "zh": "1a994d2eb36f19e0"
       },
       "1:h1": {
-        "en": "283aca4b0210274b",
-        "zh": "eb1d889b406dfb8d"
+        "en": "813a64f5dea05205",
+        "zh": "0820faad1b825cd9"
       },
       "2:h2": {
         "en": "bbcdd1c04126bfb8",
@@ -301,8 +301,8 @@
         "zh": "ea2fddadca9ecc8e"
       },
       "1:h1": {
-        "en": "8bdfedb81251220f",
-        "zh": "93a466a21a0d50af"
+        "en": "c5ef7fb3f7caac94",
+        "zh": "72468f915fd29aba"
       },
       "2:h2": {
         "en": "714c110cd89d567d",
@@ -335,8 +335,8 @@
         "zh": "19b6bf077bb1c95b"
       },
       "1:h1": {
-        "en": "bab645229c15cd59",
-        "zh": "389f7fbf4a803f30"
+        "en": "e8d407eeeaddb4b2",
+        "zh": "1faf87dd32261e1b"
       },
       "2:h2": {
         "en": "7dd0dc2dca250c6c",
@@ -355,8 +355,8 @@
         "zh": "07286185795f0f1c"
       },
       "6:h3": {
-        "en": "632b11f91e84060a",
-        "zh": "4708e83fbffcfe11"
+        "en": "4b438c13425a6754",
+        "zh": "7e0c6b3dc7d57e81"
       },
       "7:h2": {
         "en": "fd2ac4684ceca553",
@@ -379,8 +379,8 @@
         "zh": "80245dcc23ae278b"
       },
       "12:h2": {
-        "en": "b03d0102030a666d",
-        "zh": "d1d7bc55def896ef"
+        "en": "85348ed53157d0a8",
+        "zh": "9bdfaa8e13dc1555"
       },
       "13:h2": {
         "en": "a3c1dbb385c6b61d",
@@ -415,8 +415,8 @@
         "zh": "c715fcec97cfc659"
       },
       "21:h3": {
-        "en": "d7c55ccf4e262731",
-        "zh": "86400c106f9e7c21"
+        "en": "fec166bb90594594",
+        "zh": "9a99c6f24238ebb1"
       },
       "22:h2": {
         "en": "745363a625d5b5c2",
@@ -429,8 +429,8 @@
         "zh": "262e180b37fa8b4e"
       },
       "1:h1": {
-        "en": "139c0b06224796df",
-        "zh": "a922748b0167726b"
+        "en": "47ad65a2d460acb6",
+        "zh": "62b3efc3f8eb78cd"
       },
       "2:h2": {
         "en": "dc277e615ec7a4c8",
@@ -471,8 +471,8 @@
         "zh": "2a230d116fd19392"
       },
       "1:h1": {
-        "en": "e3b0c44298fc1c14",
-        "zh": "e3b0c44298fc1c14"
+        "en": "0622a21bf87d0eaa",
+        "zh": "25669b31127bf45b"
       },
       "2:h2": {
         "en": "c81349dcf3de6937",
@@ -505,8 +505,8 @@
         "zh": "d5d279a549e4c774"
       },
       "1:h1": {
-        "en": "1fdc8367b16e58d0",
-        "zh": "3ac12e5809e36cef"
+        "en": "d79e06529efb2f3b",
+        "zh": "4645256ac444ac2d"
       },
       "2:h2": {
         "en": "a233a43a95515426",
@@ -563,8 +563,8 @@
         "zh": "5afa652f4919cad2"
       },
       "1:h1": {
-        "en": "a1cb23889dc57c8e",
-        "zh": "8ee6f14f142586af"
+        "en": "1ec91c450b6b2852",
+        "zh": "378aa4be0dc9482f"
       },
       "2:h2": {
         "en": "8430bdf165a5cc2c",
@@ -637,12 +637,12 @@
     },
     "docs/zh-cn/README.md": {
       "0:h0": {
-        "en": "ba884ccf51c25306",
-        "zh": "4c328b3307c1eb76"
+        "en": "385a9fac1007e0a8",
+        "zh": "a8d7e7be0cd87aee"
       },
       "1:h1": {
-        "en": "10e8ef023a48735d",
-        "zh": "63f59dde8a9a17db"
+        "en": "851b983179f4bdc5",
+        "zh": "ed97317aa8235e60"
       },
       "2:h2": {
         "en": "c9a12f2db005ed06",
@@ -661,14 +661,56 @@
         "zh": "ef0c6a5f6f75f2e8"
       }
     },
+    "docs/zh-cn/contributing/review-checklist.md": {
+      "0:h0": {
+        "en": "b5238e0a6a5f39cc",
+        "zh": "d96294f20d3cae6a"
+      },
+      "1:h1": {
+        "en": "0d1bb352496b87e9",
+        "zh": "49041264f86798ad"
+      },
+      "2:h2": {
+        "en": "4a8fe125b94bd219",
+        "zh": "9fb038bee864502b"
+      },
+      "3:h2": {
+        "en": "a5b90f02a3261037",
+        "zh": "3ed0fb7b9ece4919"
+      },
+      "4:h2": {
+        "en": "2361eecc96af7f75",
+        "zh": "a993579a04dcacd8"
+      },
+      "5:h2": {
+        "en": "462358797472683d",
+        "zh": "cab5365840014dbc"
+      },
+      "6:h2": {
+        "en": "06c3ec8f6f8fb0c2",
+        "zh": "b07c3a2a0e86c63c"
+      },
+      "7:h2": {
+        "en": "058e7d071ff81b96",
+        "zh": "87d40bfb5d0ed7d4"
+      },
+      "8:h2": {
+        "en": "87f8c8a029378e9d",
+        "zh": "87c0d9df33cd3a34"
+      },
+      "9:h2": {
+        "en": "6e93bba9f64728fa",
+        "zh": "0e80afe4b79db6da"
+      }
+    },
     "docs/zh-cn/contributing/translations.md": {
       "0:h0": {
         "en": "2c5cabf2ce841c9d",
         "zh": "c531cff63b0fb127"
       },
       "1:h1": {
-        "en": "fbfebc762c463ef4",
-        "zh": "cf41900b39887092"
+        "en": "6f552b38dac5d999",
+        "zh": "7f7daef422e2e5b1"
       },
       "2:h2": {
         "en": "798377259cf235c5",
@@ -721,8 +763,8 @@
         "zh": "8869ed3f0e4f05e1"
       },
       "1:h1": {
-        "en": "907107764cb30a31",
-        "zh": "df9574e4a6006d9e"
+        "en": "daaa542f4579833a",
+        "zh": "b93d8b3a78494882"
       },
       "2:h2": {
         "en": "77eaad302e09dfd9",

@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 06 · 编译器规范
 
-[English](../en/06-compiler-spec.md) | 中文
+中文 | [English](/en/06-compiler-spec)
 
 > 本文件回答一个问题：**一条策略凭什么能到处运行**。
 > 运行时架构见 [02-architecture](02-architecture.md)；生命周期见 [03-policy-lifecycle](03-policy-lifecycle.md)。
@@ -70,7 +70,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 
 ```text
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.10.0 以编译格式 v3 从 5 条策略生成。…
+本文件由 agent-gate v0.11.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← 五条语义规则
 ## 边界               ← 执行者不是策略制定者
 ## {description}      ← 每条策略一章
@@ -180,7 +180,7 @@ gate compile --policy packs/deep-work --out out --target all
 
 ```json
 {
-  "engine_version": "0.10.0",
+  "engine_version": "0.11.0",
   "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
@@ -282,7 +282,7 @@ gate compile --policy packs/deep-work --out out --target all
 
 - **不规定散文长度。** 三条条件的策略和三十条条件的策略本就该长度不同，凑字数只会变成噪音。
 - **不本地化 skill 正文。** 系统名词（`GateSignal`、`require_approval`、`action_id`）是契约词汇，
-  在任何语言里都保持英文，见[文档索引](README.md#翻译)。
+  在任何语言里都保持英文，见[文档索引](/index#翻译)。
 - **不要求截图或动画素材。** 呈现是契约不是素材包；美术由具现层自己提供。
 
 ## 7. 版本兼容承诺

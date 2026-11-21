@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 02 · 运行时架构
 
-[English](../en/02-architecture.md) | 中文
+中文 | [English](/en/02-architecture)
 
 > 本文件回答一个问题：**系统怎么跑**。策略语义见 [04-policy-dsl](04-policy-dsl.md) 与
 > [03-policy-lifecycle](03-policy-lifecycle.md)；编译产物见 [06-compiler-spec](06-compiler-spec.md)。

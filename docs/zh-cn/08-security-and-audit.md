@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 08 · 安全与审计
 
-[English](../en/08-security-and-audit.md) | 中文
+中文 | [English](/en/08-security-and-audit)
 
 ## 权限分级（四级，默认最保守）
 

@@ -9,7 +9,7 @@ translation_status: complete
 
 # 05 · Behavioural event specification
 
-English | [中文](../zh-cn/05-event-spec.md)
+[中文](/05-event-spec) | English
 
 This is the contract for the source-data layer. It does not invent a new capture format; it defines a
 semantic superset that stays compatible with existing ActivityWatch and screenpipe fields.

@@ -9,7 +9,7 @@ translation_status: complete
 
 # 09 · Roadmap and acceptance
 
-English | [中文](../zh-cn/09-mvp-roadmap.md)
+[中文](/09-mvp-roadmap) | English
 
 Status: the **kernel** of M0–M6 has landed (v0.3.0). The table marks real progress with ✅ / ⬜, not
 aspiration.

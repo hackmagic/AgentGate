@@ -2,14 +2,14 @@
 title: "Documentation index"
 sidebar_position: 0
 tags: [index]
-description: "English | 中文(README.md)"
+description: "Entry point for the AgentGate documentation: what each page answers and who it is for."
 last_updated: 2026-11-22
 translation_status: complete
 ---
 
 # Documentation index
 
-English | [中文](../zh-cn/README.md)
+[中文](/index) | English
 
 Three documents each answer one question; the rest are contract appendices.
 
@@ -28,6 +28,7 @@ Three documents each answer one question; the rest are contract appendices.
 | [10 · Report specification](10-report-spec.md) | What `gate report` computes and what a consumer may rely on | Building on the report output |
 | [Glossary](glossary.md) | Canonical spelling and meaning of every project term | Writing any page, or translating one |
 | [Contributing translations](contributing/translations.md) | Translation workflow, boundaries, and review criteria | Changing a translated page |
+| [Docs PR review checklist](contributing/review-checklist.md) | The verdict checklist for a documentation PR | Opening or reviewing a docs PR |
 
 ## Why three documents are bold
 

@@ -1,25 +1,24 @@
 # Contributing
 
-English | [中文](CONTRIBUTING.zh.md)
+中文 | [English](CONTRIBUTING.en.md)
 
-The shortest and most effective contribution is **adding a policy**. Fixing the implementation comes
-second.
+最短、最有效的贡献方式是**加一条策略**。其次是修实现。
 
-## Add a policy (recommended)
+## 加一条策略（推荐）
 
-1. Create `<your-policy-id>.yaml` under `packs/<pack>/policies/`;
-2. Register it in the `policies:` list of `packs/<pack>/pack.yaml` (`validate-specs` checks that the manifest and the files agree);
-3. Run `npm run validate-specs`;
-4. Open a pull request stating: **what real irritation it solves**, and **why this `requires_approval` value is right**.
+1. 在 `packs/<pack>/policies/` 新建 `<your-policy-id>.yaml`；
+2. 在 `packs/<pack>/pack.yaml` 的 `policies:` 列表里登记它（`validate-specs` 会检查清单与文件是否一致）；
+3. 跑 `npm run validate-specs`；
+4. 提 PR，描述里写清：**它解决什么真实困扰**、**为什么这个 `requires_approval` 取值是对的**。
 
-Template:
+模板：
 
 ```yaml
 policy:
-  id: your-policy-id              # lowercase, hyphens
+  id: your-policy-id              # 小写、短横线
   version: 1
-  description: One sentence on when it helps the user and with what
-  priority: 50                    # higher wins; evaluated first when policies conflict
+  description: 一句话说清它在什么情况下帮用户做什么
+  priority: 50                    # 越大越优先；与其他策略冲突时先求值
   trigger:
     event: focus_block_started
   conditions:
@@ -29,105 +28,99 @@ policy:
   action:
     type: your_action_type
   safety:
-    requires_approval: true       # should be true by default
+    requires_approval: true       # 默认就该是 true
     reversible: true
     audit_level: summary
   presentation:
     animation_hint: stretch
-    bubble_text: One line under 30 characters
+    bubble_text: 一句不超过 30 字的话
     actions:
-      - label: OK
+      - label: 好
         action_id: approve
-      - label: Ignore
+      - label: 忽略
         action_id: dismiss
 ```
 
-### Adding a whole pack
+### 贡献一整个策略包
 
-A pack is a directory under `packs/` with a `pack.yaml` manifest listing its policy ids. The manifest
-and the files must agree; `validate-specs` checks that, and `tests/packs.test.ts` additionally drives
-every shipped policy to prove it can actually fire.
+包就是 `packs/` 下的一个目录，带一个 `pack.yaml` 清单列出它的策略 id。清单与文件必须一致，
+`validate-specs` 会查；`tests/packs.test.ts` 还会把每条已发布策略真的驱动一遍，证明它能触发。
 
-Two rules learned from building the bundled packs:
+这两条规则是写内置包时踩出来的：
 
-- **No policy may be permanently shadowed.** Two policies on the same trigger with overlapping
-  conditions means the lower-priority one never runs; it looks like a feature and behaves like a
-  comment. The test suite probes each policy at the edge of its own condition window and fails if a
-  sibling always wins. Give them disjoint conditions (different day, hour, or duration floor) or delete
-  the dead one.
-- **A pack states its own boundary in `notes:`.** If it overlaps another pack, say which and why, so a
-  reader enabling both knows which one speaks first.
+- **任何策略都不许被永久遮蔽。** 两条策略同一个 trigger、条件又重叠时，优先级低的那条永远不会运行：
+  它看起来是个功能，行为像个注释。测试会按每条策略自身的条件边界去探测，只要有兄弟策略总能抢先就失败。
+  要么把条件岔开（不同日期、时段或时长下限），要么删掉死的那条。
+- **包要在 `notes:` 里说清自己的边界。** 与别的包重叠时写明是哪个、为什么，这样同时启用的人知道谁先说话。
 
-### Policy review criteria
+### 策略评审标准
 
-| Check | Requirement |
+| 检查 | 要求 |
 | --- | --- |
-| Conservative by default | Prefer `require_approval` over `suppress` |
-| Justify skipped approval | `requires_approval: false` needs a `rationale`, and cannot use `audit_level: none` |
-| Refusal must be possible | A `require_approval` signal needs at least one non-`approve` action |
-| Restrained copy | `bubble_text` ≤ 30 characters, plain language, no exclamation-mark cheerleading |
-| No content reads | A policy must not depend on window title content, clipboard or keystrokes — the schema has no such fields |
+| 默认保守 | 能 `require_approval` 就不要 `suppress` |
+| 免审批要说明 | `requires_approval: false` 必须写 `rationale`，且不能 `audit_level: none` |
+| 一定可拒绝 | `require_approval` 的信号至少有一个非 `approve` 动作 |
+| 文案克制 | `bubble_text` ≤ 30 字，说人话，不用感叹号堆情绪 |
+| 不读内容 | 策略不得依赖窗口标题内容、剪贴板、按键——schema 里也没有这些字段 |
 
-## Change the implementation
+## 改实现
 
 ```bash
 npm ci
-npm run check      # typecheck + architecture + tests + spec validation + build
+npm run check      # typecheck + 架构检查 + 测试 + 规范校验 + 构建
 ```
 
-Conventions:
+约定：
 
-- **Tests first**: the five semantic rules in `docs/04-policy-dsl.md` are hard constraints; changing the engine must keep their tests green;
-- The pure core (`policy/conditions`, `policy/evaluate`, `signal/build`) performs no I/O and reads no system clock;
-- New side effects in the composition layer belong in a `GateStage`, not inside `AgentGate.evaluate()`;
-- Changing an artifact's shape requires bumping `COMPILE_FORMAT_VERSION` and updating `docs/06-compiler-spec.md`;
-- A new enum value must change both `schemas/*.schema.json` and `src/**/types.ts` — `validate-specs` blocks changing only one;
-- Do not edit a spec under `docs/` to make tests pass.
+- **先写测试**：`docs/04-policy-dsl.md` 的五条语义规则是硬约束，改引擎必须让对应测试继续绿；
+- 纯函数核心（`policy/conditions`、`policy/evaluate`、`signal/build`）不许做 I/O、不许读系统时钟；
+- 组合层新增副作用要做成 `GateStage`，不要塞回 `AgentGate.evaluate()`；
+- 改编译产物形状必须 bump `COMPILE_FORMAT_VERSION`，并同步 `docs/06-compiler-spec.md`；
+- 新枚举值必须同时改 `schemas/*.schema.json` 和 `src/**/types.ts`——`validate-specs` 会拦住只改一边的情况；
+- 不要为了通过测试去改 `docs/` 里的 spec。
 
-### Which layer does your change belong to
+### 改动落在哪一层
 
-Decide the layer before writing code (`docs/02-architecture.md` has the four-layer table):
+改之前先确认代码属于哪一层（`docs/02-architecture.md` 有四层对照表）：
 
-| You want to change | Go to | Do not touch |
+| 你想改 | 去哪 | 别碰 |
 | --- | --- | --- |
-| Decision semantics | `src/policy/` | Do not import `gate/` |
-| Rate limiting / queue / audit | `src/gate/` | Do not move decision logic in |
-| Artifact rendering | `src/compile/` | Do not forget the fact readers in `verify.ts` |
-| Presentation protocol | `src/pet/`, `src/mcp/` | Do not bypass composition to read events |
+| 决策语义 | `src/policy/` | 不要 import `gate/` |
+| 限流 / 队列 / 审计 | `src/gate/` | 不要把决策逻辑搬进来 |
+| 产物渲染 | `src/compile/` | 不要忘了 `verify.ts` 的事实读取器 |
+| 呈现协议 | `src/pet/`、`src/mcp/` | 不要绕过组合层直接读事件 |
 
-`npm run lint` rejects reverse dependencies, so this table is enforced rather than advised.
+`npm run lint` 会拒绝反向依赖，所以这条表是强制的，不是建议。
 
-### Documentation changes are bilingual
+### 文档改动必须双语
 
-Every document is a pair: `foo.md` (English) and `foo.zh.md` (Chinese). If you change one side, change
-the other in the same pull request, then re-record:
+每份文档都是一对：`foo.md`（英文）和 `foo.zh.md`（中文）。改了一边，就在同一个 PR 里改另一边，然后重新记录：
 
 ```bash
-npm run verify-i18n            # check
-npm run verify-i18n -- --write # re-record after a deliberate edit
+npm run verify-i18n            # 检查
+npm run verify-i18n -- --write # 有意修改后重新记录
 ```
 
-CI runs the check, so a one-sided edit fails instead of leaving a half-translated page. Section
-headings must stay one-for-one; a translation does not get to drop a section.
+CI 会跑这项检查，所以单边修改会直接失败，而不是留下一个只翻了一半的页面。章节标题必须一一对应：
+翻译不能悄悄少一节。
 
-## Commit messages
+## 提交信息
 
 ```
 <type>(<scope>): <summary>
 
 feat(policy): add late-night quiet pack
-fix(gate): keep mute state across restarts
+fix(engine): keep mute state across restarts
 docs(spec): clarify time_window boundary
 ```
 
-`type` ∈ `feat` / `fix` / `docs` / `test` / `refactor` / `chore`.
+`type` ∈ `feat` / `fix` / `docs` / `test` / `refactor` / `chore`。
 
-## Reporting a problem
+## 报告问题
 
-Include: the policy YAML, the full `gate evaluate` output, and `node --version`.
-Do **not** include real window titles or screenshot content — substitute placeholders when needed
-(for example `a.docx — App` instead of `secret.docx — Word`).
+请附上：策略 YAML、`gate evaluate` 的完整输出、`node --version`。
+**不要**附真实窗口标题或截图内容——需要时用占位符（如 `secret.docx — Word` 替成 `a.docx — App`）。
 
 ## License
 
-By contributing you agree to publish under the MIT license.
+提交即同意以 MIT 许可发布。

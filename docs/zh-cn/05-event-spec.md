@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 05 · 行为事件规范
 
-[English](../en/05-event-spec.md) | 中文
+中文 | [English](/en/05-event-spec)
 
 这是源数据层的契约。不发明新捕获格式，只定义语义超集，兼容 ActivityWatch 和 screenpipe 的现有字段。
 

@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 07 · 具身交互接口规范
 
-[English](../en/07-pet-bridge.md) | 中文
+中文 | [English](/en/07-pet-bridge)
 
 宠物不是 Agent 的皮肤，是 `GateSignal` 的具身呈现层。接口定义在引擎和宠物运行时之间，与具体宠物实现（dsh-pet / OpenPets / 其他）解耦。
 

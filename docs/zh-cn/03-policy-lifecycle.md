@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 03 · 策略生命周期
 
-[English](../en/03-policy-lifecycle.md) | 中文
+中文 | [English](/en/03-policy-lifecycle)
 
 > 本文件回答一个问题：**一条策略从写到死，经历什么**。
 > 语义规则见 [04-policy-dsl](04-policy-dsl.md)；编译产物见 [06-compiler-spec](06-compiler-spec.md)。

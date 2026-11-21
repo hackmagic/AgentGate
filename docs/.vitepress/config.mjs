@@ -13,15 +13,44 @@ import { defineConfig } from 'vitepress';
  * audiences, and this configuration only governs the former.
  */
 export default defineConfig({
+  /**
+   * GitHub Pages project sites are served from `/<repo>/`, so assets must be
+   * requested under that prefix. The repository name is `AgentGate`, and Pages
+   * paths are case-sensitive on the CDN — a lowercase `base` produces a site
+   * whose CSS 404s while the HTML itself looks fine.
+   *
+   * `DOCS_BASE` lets a custom domain or a user site override this without
+   * editing the config.
+   */
+  base: process.env.DOCS_BASE ?? '/AgentGate/',
+  // Deployed at https://hackmagic.github.io/AgentGate/ — the path segment keeps
+  // the repository's own casing, which Pages treats literally.
   title: 'AgentGate',
   description: '把「AI 什么时候可以介入我电脑操作」写成可执行、可审计的边界策略。',
   lang: 'zh-CN',
   cleanUrls: true,
   lastUpdated: true,
 
-  // Pages are authored in `docs/<lang>/`, which is also the VitePress source
-  // root, so no extra `srcDir` mapping is needed beyond the language split.
   srcDir: '.',
+
+  /**
+   * Chinese is served at the site root, English under `/en/`.
+   *
+   * The files stay in `docs/zh-cn/` — that mirror layout is what the translation
+   * platforms and the pairing gate rely on — and this rewrite maps them to the
+   * root at build time. Without it the root URL has no page at all: every
+   * Chinese page would live under `/zh-cn/` and `/AgentGate/` would 404.
+   *
+   * Only the Chinese tree is rewritten. `en/` already maps to `/en/`.
+   */
+  rewrites: {
+    // Specific rules first: VitePress applies the first pattern that matches, so
+    // a general `zh-cn/:rest*` rule ahead of these would swallow `README.md` and
+    // leave the site root without a page.
+    'zh-cn/README.md': 'index.md',
+    'en/README.md': 'en/index.md',
+    'zh-cn/:rest*': ':rest*',
+  },
 
   head: [
     ['meta', { name: 'theme-color', content: '#2f6feb' }],
@@ -75,6 +104,7 @@ export default defineConfig({
           items: [
             { text: '路线图', link: '/09-mvp-roadmap' },
             { text: '参与翻译', link: '/contributing/translations' },
+            { text: '文档 PR 审核清单', link: '/contributing/review-checklist' },
           ],
         },
       ],
@@ -111,6 +141,7 @@ export default defineConfig({
           items: [
             { text: 'Roadmap', link: '/en/09-mvp-roadmap' },
             { text: 'Contributing translations', link: '/en/contributing/translations' },
+            { text: 'Docs PR review checklist', link: '/en/contributing/review-checklist' },
           ],
         },
       ],

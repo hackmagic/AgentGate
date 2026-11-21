@@ -9,7 +9,7 @@ translation_status: complete
 
 # 01 · Product requirements
 
-English | [中文](../zh-cn/01-prd.md)
+[中文](/01-prd) | English
 
 ## Target user
 

@@ -35,10 +35,10 @@ const WRITE = process.argv.includes('--write');
  * per language is still the right shape — translation platforms and docs sites
  * both expect it — but the direction of authorship is Chinese-first.
  *
- * Repository-root pages keep the sibling form (`README.md` in English,
- * `README.zh.md` in Chinese) because tools and hosts read them from the root.
- * There the Chinese copy is still the translation, for the same reason: the
- * repository's public face on GitHub is English and is read by more people.
+ * Repository-root pages keep the sibling form because tools and hosts read them
+ * from the root rather than from `docs/`. The source language is still Chinese,
+ * so the base name (`README.md`) is Chinese and the English copy carries the
+ * language suffix (`README.en.md`) — the same direction as everywhere else.
  */
 const ROOTS = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md'];
 const SOURCE_DIR = path.join(ROOT, 'docs', 'zh-cn');
@@ -90,7 +90,7 @@ const counterpartOf = (absolute) => {
     // tree at the same subdirectory rather than collapsing to the root.
     return path.join(TRANSLATION_DIR, path.relative(SOURCE_DIR, resolved));
   }
-  return absolute.replace(/\.md$/, '.zh.md');
+  return absolute.replace(/\.md$/, '.en.md');
 };
 
 /** Source documents: the Chinese tree plus the English root pages. */
@@ -183,11 +183,19 @@ for (const primary of primaryDocs) {
   const expectedOnTranslation = `(${up}/zh-cn/${pageRelative})`;
 
   const inSourceDocs = path.resolve(primary).startsWith(path.resolve(SOURCE_DIR) + path.sep);
+  // The docs site serves the source language at the root and the translation
+  // under `/en/`, so the link between them is site-absolute. Accept either form:
+  // a filesystem-relative path (used by the repository-root pages) or a
+  // site-absolute URL (used under `docs/` where `rewrites` apply).
+  const sourceSlug = pageRelative.replace(/\.md$/, '');
+  const absoluteOnSource = `(/en/${sourceSlug === 'README' ? 'index' : sourceSlug})`;
+  const absoluteOnTranslation = `(/${sourceSlug === 'README' ? 'index' : sourceSlug})`;
+
   if (inSourceDocs) {
-    if (!enText.includes(expectedOnSource)) {
+    if (!enText.includes(expectedOnSource) && !enText.includes(absoluteOnSource)) {
       problems.push(`${primaryRel}: does not link to ${expectedOnSource.slice(1, -1)}`);
     }
-    if (!zhText.includes(expectedOnTranslation)) {
+    if (!zhText.includes(expectedOnTranslation) && !zhText.includes(absoluteOnTranslation)) {
       problems.push(`${rel(zh)}: does not link to ${expectedOnTranslation.slice(1, -1)}`);
     }
   } else {
@@ -205,6 +213,13 @@ for (const primary of primaryDocs) {
     for (const match of text.matchAll(/\]\(([^)#\s]+)(#[^)]*)?\)/g)) {
       const target = match[1];
       if (/^(https?:|mailto:)/.test(target)) continue;
+
+      // Site-absolute links are correct under the docs site's `rewrites`: the
+      // file path and the served path intentionally differ, so `/02-architecture`
+      // is a real page while `02-architecture.md` is only its source. Resolving
+      // them against the filesystem would report a working site as broken.
+      if (target.startsWith('/')) continue;
+
       if (!existsSync(path.resolve(path.dirname(file), target))) {
         problems.push(`${file}: link target does not exist: ${target}`);
       }

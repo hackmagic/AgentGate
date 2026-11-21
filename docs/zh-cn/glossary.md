@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 术语表
 
-[English](../en/glossary.md) | 中文
+中文 | [English](/en/glossary)
 
 项目专有名词的权威释义。**所有页面与所有翻译都使用这些写法。** 当两个词在这里可能指同一件事时，
 其中一个是错的。

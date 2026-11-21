@@ -1,0 +1,76 @@
+name: Deploy docs
+
+# Publishes the documentation site to GitHub Pages.
+#
+# The build is the same `npm run docs:build` CI already runs, so a page that
+# cannot render fails on the pull request rather than on `main` after merge.
+# Deployment only happens from `main`, because a Pages site has exactly one
+# live version and a branch preview would silently overwrite it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One live site: never cancel a running deployment, and never run two.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Documentation gates
+        # The site is one of three gates. Running the other two here means a
+        # translation that drifted fails the deploy, not only the PR check.
+        run: |
+          npm run verify-i18n
+          npm run lint-docs
+
+      - name: Build site
+        run: npm run docs:build
+
+      - name: Disable Jekyll
+        # Pages runs Jekyll by default, which ignores paths beginning with an
+        # underscore — including VitePress's `assets/` sibling files and every
+        # hashed chunk. Without this, styles and scripts 404 on the live site.
+        run: touch docs/.vitepress/dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

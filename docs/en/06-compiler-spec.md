@@ -9,7 +9,7 @@ translation_status: complete
 
 # 06 · Compiler specification
 
-English | [中文](../zh-cn/06-compiler-spec.md)
+[中文](/06-compiler-spec) | English
 
 > This document answers one question: **what makes one policy runnable everywhere**.
 > Runtime architecture is in [02-architecture](02-architecture.md); lifecycle is in
@@ -77,7 +77,7 @@ appears in the emitted artifacts.
 
 ```text
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.10.0 以编译格式 v3 从 5 条策略生成。…
+本文件由 agent-gate v0.11.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← the five semantic rules
 ## 边界               ← the executor is not the policy author
 ## {description}      ← one chapter per policy
@@ -190,7 +190,7 @@ Writes `out/compile-manifest.json`:
 
 ```json
 {
-  "engine_version": "0.10.0",
+  "engine_version": "0.11.0",
   "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
@@ -301,7 +301,7 @@ An artifact is only as trustworthy as the input that produced it is *not* the on
   differ in length; pad to a target would be noise.
 - **No localization of skill bodies.** System nouns (`GateSignal`, `require_approval`, `action_id`)
   are contract vocabulary and stay English in every language, per
-  [the documentation index](README.md#translations).
+  [the documentation index](/en/index#translations).
 - **No screenshot or animation assets.** Presentation is a contract, not an asset bundle; the
   embodiment supplies its own art.
 

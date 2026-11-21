@@ -9,7 +9,7 @@ translation_status: complete
 
 # 02 · Runtime architecture
 
-English | [中文](../zh-cn/02-architecture.md)
+[中文](/02-architecture) | English
 
 > This document answers one question: **how does the system run**. Policy semantics live in
 > [04-policy-dsl](04-policy-dsl.md) and [03-policy-lifecycle](03-policy-lifecycle.md); compiled

@@ -9,7 +9,7 @@ translation_status: complete
 
 # 04 · Policy DSL specification
 
-English | [中文](../zh-cn/04-policy-dsl.md)
+[中文](/04-policy-dsl) | English
 
 > This document is a contract. Implementations must obey it; tests must pin these rules.
 

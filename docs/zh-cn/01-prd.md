@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 01 · 产品需求
 
-[English](../en/01-prd.md) | 中文
+中文 | [English](/en/01-prd)
 
 ## 目标用户
 

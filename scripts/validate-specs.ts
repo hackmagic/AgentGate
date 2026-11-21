@@ -292,6 +292,7 @@ const EXPECTED_DOCS = [
   '10-report-spec',
   'glossary',
   'contributing/translations',
+  'contributing/review-checklist',
   'README',
 ];
 /** Every `.md` under a tree, as paths relative to that tree. Nested pages keep their subdirectory. */

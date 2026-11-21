@@ -9,7 +9,7 @@ translation_status: complete
 
 # 10 · Report specification
 
-English | [中文](../zh-cn/10-report-spec.md)
+[中文](/10-report-spec) | English
 
 > This document answers one question: **what does `gate report` compute, and what may a consumer rely on**.
 > The audit trail it reads is specified in [08-security-and-audit](08-security-and-audit.md); lifecycle

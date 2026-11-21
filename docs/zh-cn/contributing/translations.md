@@ -8,12 +8,12 @@ last_updated: 2026-11-22
 
 # 参与翻译
 
-[English](../../en/contributing/translations.md) | 中文
+中文 | [English](/en/contributing/translations)
 
 **中文是唯一真值源**，包括英文在内的其他语言都是对它的本地化。本页讲清流程、边界，以及评审者会检查什么。
 
-仓库的对外门面仍然是英文：`README.md` 是英文、`README.zh.md` 是它的中文副本，因为 GitHub 访客先读英文。
-`docs/` 内部的顺序相反——先写中文。
+仓库根目录的页面遵循同一方向：`README.md` 与 `CONTRIBUTING.md` 是中文，英文副本是
+`README.en.md` 与 `CONTRIBUTING.en.md`。
 
 ## 目录结构
 

@@ -11,6 +11,29 @@
 - npm 发布（`bin: gate`）
 - 策略修订建议：连续 dismiss 后给出可采纳的条件改写
 
+## [0.11.0] — 2026-11-22
+
+### 变更（破坏性：根目录文件名）
+
+- **根目录文档也改为中文优先。** `README.md` 与 `CONTRIBUTING.md` 现在是中文，英文副本为
+  `README.en.md` 与 `CONTRIBUTING.en.md`。至此全仓库方向一致：中文是唯一真值源。
+  外部引用 `README.zh.md` / `CONTRIBUTING.zh.md` 的链接需要更新。
+
+### 新增
+
+- **GitHub Pages 部署**（`.github/workflows/docs.yml`）：`main` 上 `docs/**` 变更即构建并发布到
+  https://hackmagic.github.io/AgentGate/ 。构建前跑 `verify-i18n` 与 `lint-docs`，翻译漂移会拦住部署
+  而不只是拦住 PR。写入 `.nojekyll`，否则以 `_` 与 `.` 开头的资源会被 Jekyll 吞掉。
+- **站点根路径可达**：中文树通过 `rewrites` 挂在站点根，`README` 映射为 `index`，因此
+  `/AgentGate/` 有首页而不是 404。跨语言切换改用站点绝对路径，因为 rewrite 后文件路径与访问路径
+  本就不同。
+- `docs/*/contributing/review-checklist.md`（中英）：审核清单并入文档树，取代根目录的
+  `docs-checklist.md`。该文件不再重复翻译规则，只做索引与判定。
+
+### 修复
+
+- `base` 设为 `/AgentGate/`，与 Pages 实际地址一致（仓库名大小写被 Pages 原样处理）。
+- 两份 docs 索引的 `description` 曾被语言切换行污染，已改为实际描述。
 ## [0.10.0] — 2026-11-22
 
 ### 变更（方向反转）

@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 09 · 路线图与验收
 
-[English](../en/09-mvp-roadmap.md) | 中文
+中文 | [English](/en/09-mvp-roadmap)
 
 状态：M0–M6 的**内核部分已落地**（v0.3.0）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
 

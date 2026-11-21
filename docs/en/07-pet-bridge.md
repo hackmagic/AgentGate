@@ -9,7 +9,7 @@ translation_status: complete
 
 # 07 · Embodiment interface specification
 
-English | [中文](../zh-cn/07-pet-bridge.md)
+[中文](/07-pet-bridge) | English
 
 The pet is not the agent's skin. It is the embodiment layer for a `GateSignal`. The interface is
 defined between the engine and the pet runtime, decoupled from any specific implementation

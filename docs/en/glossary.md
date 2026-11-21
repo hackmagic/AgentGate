@@ -9,7 +9,7 @@ translation_status: complete
 
 # Glossary
 
-English | [中文](../zh-cn/glossary.md)
+[中文](/glossary) | English
 
 Canonical definitions for every project-specific term. **Every page and every translation uses these
 spellings.** When two words could mean the same thing here, one of them is wrong.

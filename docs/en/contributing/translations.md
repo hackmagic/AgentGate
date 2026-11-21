@@ -9,14 +9,13 @@ translation_status: complete
 
 # Contributing translations
 
-English | [中文](../../zh-cn/contributing/translations.md)
+[中文](/contributing/translations) | English
 
 **Chinese is the single source of truth.** Every other language, English included, is a localization of it.
 This page covers the workflow, the boundaries, and what a reviewer checks.
 
-The repository's public face is still English: `README.md` is English and `README.zh.md` is its Chinese
-copy, because GitHub visitors read English first. Inside `docs/`, the direction is reversed — Chinese is
-authored first.
+The repository-root pages follow the same direction: `README.md` and `CONTRIBUTING.md` are Chinese, and
+their English copies are `README.en.md` and `CONTRIBUTING.en.md`.
 
 ## Layout
 

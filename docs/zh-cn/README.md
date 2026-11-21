@@ -2,13 +2,13 @@
 title: "文档索引"
 sidebar_position: 0
 tags: [index]
-description: "English(README.md) | 中文"
+description: "AgentGate 文档入口：每页回答什么问题、写给谁看。"
 last_updated: 2026-11-22
 ---
 
 # 文档索引
 
-[English](../en/README.md) | 中文
+中文 | [English](/en/index)
 
 三份主文档各回答一个问题，其余是契约附件。
 
@@ -27,6 +27,7 @@ last_updated: 2026-11-22
 | [10 · 报告规范](10-report-spec.md) | `gate report` 算了什么、消费方能依赖什么 | 基于报告输出做集成 |
 | [术语表](glossary.md) | 项目术语的权威写法与含义 | 写任何页面，或翻译一页 |
 | [参与翻译](contributing/translations.md) | 翻译流程、边界与评审标准 | 改动已翻译的页面 |
+| [文档 PR 审核清单](contributing/review-checklist.md) | 审核文档 PR 的判定清单 | 提 PR 或评审 PR |
 
 ## 加粗的三份为什么单独存在
 

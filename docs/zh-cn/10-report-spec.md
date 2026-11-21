@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 10 · 报告规范
 
-[English](../en/10-report-spec.md) | 中文
+中文 | [English](/en/10-report-spec)
 
 > 本文件回答一个问题：**`gate report` 到底算了什么，消费方可以依赖什么**。
 > 它读取的审计日志见 [08-security-and-audit](08-security-and-audit.md)；生命周期状态见

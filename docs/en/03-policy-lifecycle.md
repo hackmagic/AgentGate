@@ -9,7 +9,7 @@ translation_status: complete
 
 # 03 · Policy lifecycle
 
-English | [中文](../zh-cn/03-policy-lifecycle.md)
+[中文](/03-policy-lifecycle) | English
 
 > This document answers one question: **what happens to a policy from first write to retirement**.
 > Semantic rules live in [04-policy-dsl](04-policy-dsl.md); compiled artifacts live in
