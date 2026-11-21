@@ -118,6 +118,8 @@
 - ✅ `npm run audit-schemas`：报告任何手写校验器未实现的 schema 关键字
 - ✅ `tests/schema.test.ts`：每个已实现关键字一条行为断言，让「支持」是被证明的
 - ✅ `docs/06-compiler-spec.md` §6 的 SKILL.md 最低可用性标准，由 `tests/skill.test.ts` 固定
+- ✅ 宿主 frontmatter 限制（name ≤ 64、description ≤ 1024）写进 §6.3，并按 schema 自身极值强制——
+  起因是一个合法的 64 字符 id 生成了 75 字符的名字
 - ✅ `COMPILE_FORMAT_VERSION` 1 → 2，因为 skill 形状变了
 
 这一批暴露了三个缺陷，全在「看起来已经完成」的东西里：

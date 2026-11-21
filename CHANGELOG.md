@@ -11,6 +11,26 @@
 - npm 发布（`bin: gate`）
 - 策略修订建议：连续 dismiss 后给出可采纳的条件改写
 
+## [0.7.0] — 2026-11-22
+
+### 新增
+
+- **SKILL.md 宿主契约校验**（`docs/06-compiler-spec.md` §6.3）。两类宿主（Agent Skills / OpenPets
+  agent 集成）的硬限制现已写明并强制：`name` ≤ 64 字符、kebab-case、等于目录名、无保留字；
+  `description` 1–1024 字符、无 XML 标签。
+- `tests/skill.test.ts` 增加 6 项，直接用 schema 自己的极值构造策略来验证产物。
+
+### 修复
+
+- **合法策略会生成宿主拒绝加载的 skill 名。** 策略 id 上限 64 字符，`agent-gate-` 前缀占 11，
+  于是 schema 认定的合法 id 生成 75 字符的名字——超出宿主 64 字符硬上限，任何宿主都不会加载。
+  现在超长 id 截断并附**原始 id** 的 8 字符摘要，保证两个共享前缀的长 id 不会塌缩成同一个 skill。
+- **frontmatter description 重复陈述审批立场。** `decisionText('require_approval')` 本身已以
+  「必须先取得用户批准」开头，代码又拼了一次，输出成「…必须先取得用户批准，必须先取得用户批准」。
+
+### 变更
+
+- `COMPILE_FORMAT_VERSION` 2 → 3：SKILL.md 的 name 与 description 形状已变。
 ## [0.6.0] — 2026-11-22
 
 ### 新增

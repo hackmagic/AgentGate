@@ -4,6 +4,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import { compilePolicies } from '../src/compile/index.js';
+import { SKILL_DESCRIPTION_MAX_LENGTH, SKILL_NAME_MAX_LENGTH } from '../src/compile/skill-md.js';
 import { loadPolicyDirectory } from '../src/policy/load.js';
 import { TOOL_NAMES } from '../src/mcp/server.js';
 import { validatePolicyDocument } from '../src/policy/validate.js';
@@ -178,4 +179,95 @@ test('a policy recovered from a skill bundle is still a valid policy', () => {
     const result = validatePolicyDocument({ policy });
     assert.equal(result.valid, true, `${policy.id}: ${result.issues.map((issue) => issue.code).join(',')}`);
   }
+});
+
+console.log('\n== clause 7: host frontmatter limits ==');
+
+/** A legal policy with the given id: the schema permits up to 64 characters. */
+function policyWithId(id: string): Policy {
+  return {
+    id,
+    version: 1,
+    description: 'x',
+    priority: 1,
+    trigger: { event: 'focus_block_started' },
+    decision: 'suggest',
+    safety: { requires_approval: false, rationale: 'local bubble only', reversible: true, audit_level: 'summary' },
+  };
+}
+
+function nameOf(policy: Policy): string {
+  const { frontmatter } = splitFrontmatter(compilePolicies([policy], 'skill').files[0]!.content);
+  return /^name: (.+)$/m.exec(frontmatter)?.[1]?.trim() ?? '';
+}
+
+test('a schema-legal maximum-length id still yields a host-legal skill name', () => {
+  // The schema allows a 64-character id; the "agent-gate-" prefix makes that
+  // 75, and every Agent Skills host rejects a name over 64. This was a real
+  // defect: valid input, invalid artifact.
+  const name = nameOf(policyWithId('a'.repeat(64)));
+  assert.ok(name.length <= SKILL_NAME_MAX_LENGTH, `name is ${name.length} characters, limit is ${SKILL_NAME_MAX_LENGTH}`);
+  assert.match(name, /^[a-z0-9]+(-[a-z0-9]+)*$/, 'a host rejects anything but lowercase kebab-case');
+});
+
+test('two long ids sharing a prefix stay distinct after truncation', () => {
+  const base = 'x'.repeat(40);
+  const first = nameOf(policyWithId(`${base}-one`));
+  const second = nameOf(policyWithId(`${base}-two`));
+  // Both are short enough here, but a longer shared prefix must not collide.
+  const longBase = 'y'.repeat(60);
+  const third = nameOf(policyWithId(`${longBase}-one`));
+  const fourth = nameOf(policyWithId(`${longBase}-two`));
+  assert.notEqual(third, fourth, 'truncation must not merge two different policies into one skill');
+  assert.notEqual(first, second);
+});
+
+test('every name is kebab-case, within the limit, and matches its directory', () => {
+  for (const pack of ALL_PACKS) {
+    const bundle = compilePolicies(policiesOf(pack), 'skill');
+    for (const file of bundle.files) {
+      const { frontmatter } = splitFrontmatter(file.content);
+      const name = /^name: (.+)$/m.exec(frontmatter)?.[1]?.trim() ?? '';
+      assert.ok(name.length > 0 && name.length <= SKILL_NAME_MAX_LENGTH, `${file.path}: name length ${name.length}`);
+      assert.match(name, /^[a-z0-9]+(-[a-z0-9]+)*$/, `${file.path}: not kebab-case`);
+      assert.equal(name, path.basename(path.dirname(file.path)), `${file.path}: name must equal its directory`);
+      assert.equal(/(claude|anthropic)/.test(name), false, `${file.path}: reserved word in name`);
+    }
+  }
+});
+
+test('descriptions stay inside the host limit and carry no XML tags', () => {
+  for (const pack of ALL_PACKS) {
+    const bundle = compilePolicies(policiesOf(pack), 'skill');
+    for (const file of bundle.files) {
+      const { frontmatter } = splitFrontmatter(file.content);
+      const description = /^description: (.+)$/m.exec(frontmatter)?.[1]?.trim() ?? '';
+      assert.ok(description.length > 0, `${file.path}: empty description`);
+      assert.ok(
+        [...description].length <= SKILL_DESCRIPTION_MAX_LENGTH,
+        `${file.path}: description exceeds ${SKILL_DESCRIPTION_MAX_LENGTH} characters`,
+      );
+      assert.equal(/<|>/.test(description), false, `${file.path}: XML tags make some hosts reject the skill`);
+    }
+  }
+});
+
+test('the description never repeats the approval stance', () => {
+  // `decisionText('require_approval')` already starts with the approval
+  // sentence; appending it again produced "...，必须先取得用户批准" twice.
+  for (const { policy } of everyPolicy) {
+    const { frontmatter } = splitFrontmatter(compilePolicies([policy], 'skill').files[0]!.content);
+    const description = /^description: (.+)$/m.exec(frontmatter)?.[1] ?? '';
+    const occurrences = description.split('必须先取得用户批准').length - 1;
+    assert.ok(occurrences <= 1, `${policy.id}: approval stance stated ${occurrences} times`);
+  }
+});
+
+test('an approval-required policy says so even when its decision is suggest', () => {
+  // The stance comes from safety, not from the decision word.
+  const policy = { ...policyWithId('gated-suggest'), decision: 'suggest' as const };
+  policy.safety = { requires_approval: true, reversible: true, audit_level: 'full' };
+  const { frontmatter } = splitFrontmatter(compilePolicies([policy], 'skill').files[0]!.content);
+  const description = /^description: (.+)$/m.exec(frontmatter)?.[1] ?? '';
+  assert.ok(description.includes('必须先取得用户批准'), 'a gated suggestion must still advertise the gate');
 });

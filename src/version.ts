@@ -1,5 +1,5 @@
 /** Keep in sync with package.json; tests/contract.test.ts asserts equality. */
-export const ENGINE_VERSION = '0.6.0';
+export const ENGINE_VERSION = '0.7.0';
 
 /**
  * Compiler format version, independent of the package version.
@@ -11,4 +11,4 @@ export const ENGINE_VERSION = '0.6.0';
  *
  * Contract: docs/06-compiler-spec.md.
  */
-export const COMPILE_FORMAT_VERSION = '2';
+export const COMPILE_FORMAT_VERSION = '3';

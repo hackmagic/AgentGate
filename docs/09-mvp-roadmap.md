@@ -123,6 +123,8 @@ fold with nothing emitting it. There is now a regression test that builds a real
 - ✅ `npm run audit-schemas`: reports any schema keyword the hand-written validator does not implement
 - ✅ `tests/schema.test.ts`: one behavioural assertion per implemented keyword, so "supported" is proven
 - ✅ SKILL.md minimum usability standards in `docs/06-compiler-spec.md` §6, pinned by `tests/skill.test.ts`
+- ✅ Host frontmatter limits (name ≤ 64, description ≤ 1024) written into §6.3 and enforced at the
+  schema's own extremes, after a legal 64-character id produced a 75-character name
 - ✅ `COMPILE_FORMAT_VERSION` 1 → 2, because the skill shape changed
 
 Three defects this batch surfaced, all in things that looked finished:

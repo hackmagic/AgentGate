@@ -30,7 +30,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 | --- | --- |
 | `target` | `agents` / `skill` / `mcp` |
 | `engine_version` | 生成它的引擎版本（`0.1.0`） |
-| `format_version` | **渲染契约版本**（当前 `2`），与引擎版本解耦 |
+| `format_version` | **渲染契约版本**（当前 `3`），与引擎版本解耦 |
 | `source_hash` | 策略集的 `sha256(stableStringify(sorted(policies)))` |
 
 `files[]` 里每个文件带自己的 `sha256`，覆盖确切字节。这让「哪个产物过期了」可以逐文件回答，
@@ -62,7 +62,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 
 ```
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.6.0 以编译格式 v2 从 5 条策略生成。…
+本文件由 agent-gate v0.7.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← 五条语义规则
 ## 边界               ← 执行者不是策略制定者
 ## {description}      ← 每条策略一章
@@ -172,8 +172,8 @@ gate compile --policy packs/deep-work --out out --target all
 
 ```json
 {
-  "engine_version": "0.6.0",
-  "format_version": "2",
+  "engine_version": "0.7.0",
+  "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
   "policies": ["evening-quiet-hours", "…"],
@@ -214,10 +214,34 @@ gate compile --policy packs/deep-work --out out --target all
 
 这里门槛比另两个目标高，因为读 skill 的是一个模型——任何缺口它都会用一个看起来合理的猜测补上。
 
+#### 宿主契约
+
+读这个产物的是两类宿主：Agent Skills（Claude Code 及兼容宿主）与 OpenPets 的 agent 集成。
+下面的限制取两者中更严的那一份。它们是硬限制：名字多一个字不是警告，是宿主直接拒绝加载。
+
+| 字段 | 限制 | 由谁强制 |
+| --- | --- | --- |
+| `name` | ≤ **64** 字符，`^[a-z0-9]+(-[a-z0-9]+)*$`，且等于目录名 | `tests/skill.test.ts` |
+| `name` | 不得含保留字（`claude`、`anthropic`） | `tests/skill.test.ts` |
+| `description` | 1–**1024** 字符，非空，不得含 XML 标签 | `tests/skill.test.ts` |
+| 正文 | 调用时才加载；短到能一口气读完 | review |
+
+**名字上限与策略 schema 会撞车，而撞车处正是出问题的地方。** 策略 id 最长 64 字符。`agent-gate-`
+前缀占 11 个，于是**一个 schema 认定的合法 id 生成了 75 字符的名字**——产物没有任何宿主愿意加载，
+而输入在 schema 看来完全合法。
+
+修复在 `skillName()` 里：超长 id 会被截断，并附上**原始 id** 的 8 字符摘要。摘要正是用来防止
+两个共享前缀的长 id 塌缩成同一个 skill。`SKILL_NAME_MAX_LENGTH` 放在必须遵守它的代码旁边，
+而不是藏在注释里。
+
+#### 读者必须能做什么
+
 | 要求 | 原因 | 缺了会怎样 |
 | --- | --- | --- |
-| frontmatter 的 `name` 等于目录名 | 宿主按目录索引，不一致会让 skill 变成孤儿 | 加载了但永远匹配不上 |
-| `description` 同时写明 decision 和审批立场 | 列表视图必须够判断十条 skill | 读者只有撞上才知道有门槛 |
+| `name` 等于目录名 | 宿主按目录索引，不一致会让 skill 变成孤儿 | 加载了但永远匹配不上 |
+| `description` 同时写明 decision 与审批立场 | 列表视图必须够判断十条 skill | 读者只有撞上才知道有门槛 |
+| 审批立场取自 `safety.requires_approval`，不取自 decision 词 | `suggest` 策略也可能需要审批 | 带门控的建议读起来像纯建议，就被那样对待了 |
+| 立场只陈述**一次** | `decisionText('require_approval')` 本身已以审批句开头 | 两段拼起来像口吃，看起来像机器凑的 |
 | 显式写出该策略自己的 `decision` | 模型不能靠猜自己在哪个分支 | 模型走错分支 |
 | 列出全部 `action_id`，且不多列 | 用户只能用信号提供的动作回答 | 模型自造一个引擎会拒的 id |
 | 回执路径指向**真实**端点 | MCP 无状态、没有回执工具；只有宠物桥接收回执 | 模型调用不存在的工具，或宣称已获批准 |
@@ -228,6 +252,16 @@ gate compile --policy packs/deep-work --out out --target all
 描述的是系统并不具备的能力。所以 skill 里写的是 `POST /v1/signals/{id}/respond`，并指示模型
 在没有桥时报告「未回执」，而不是假定用户同意了。
 
+#### 如何对照宿主契约验证
+
+这些限制由 `tests/skill.test.ts` 固定，不靠 review。因为坏产物来自合法输入，测试直接用 schema
+自己的极值来构造策略：
+
+- 一个达到最大长度的策略 id；
+- 两个共享前缀的长 id；
+- 一条仍然要求审批的 `suggest` 策略。
+
+产物的可信度，取决于我们**不只**检查了输入。
 ### 6.4 `MCP bundle`
 
 | 要求 | 原因 |

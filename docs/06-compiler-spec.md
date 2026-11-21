@@ -34,7 +34,7 @@ Every bundle carries four metadata fields:
 | --- | --- |
 | `target` | `agents` / `skill` / `mcp` |
 | `engine_version` | The engine that produced it (`0.2.0`) |
-| `format_version` | The **rendering contract** version (currently `2`), decoupled from the engine version |
+| `format_version` | The **rendering contract** version (currently `3`), decoupled from the engine version |
 | `source_hash` | `sha256(stableStringify(sorted(policies)))` |
 
 Each file in `files[]` carries its own `sha256` covering the exact bytes. That answers "which artifact
@@ -68,7 +68,7 @@ appears in the emitted artifacts.
 
 ```
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.6.0 以编译格式 v2 从 5 条策略生成。…
+本文件由 agent-gate v0.7.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← the five semantic rules
 ## 边界               ← the executor is not the policy author
 ## {description}      ← one chapter per policy
@@ -181,8 +181,8 @@ Writes `out/compile-manifest.json`:
 
 ```json
 {
-  "engine_version": "0.6.0",
-  "format_version": "2",
+  "engine_version": "0.7.0",
+  "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
   "policies": ["evening-quiet-hours", "…"],
@@ -227,10 +227,35 @@ are covered where indicated.
 The bar here is higher than the other two, because a skill is read by a model that will fill any gap
 with a plausible guess.
 
+#### The host contract
+
+Two host families read this artifact — Agent Skills (Claude Code and compatible hosts) and the
+OpenPets agent integrations — and the limits below are the stricter of the two. They are hard limits:
+a name one character too long is not a warning, it is a skill the host refuses to load.
+
+| Field | Limit | Enforced by |
+| --- | --- | --- |
+| `name` | ≤ **64** characters, `^[a-z0-9]+(-[a-z0-9]+)*$`, equal to the directory name | `tests/skill.test.ts` |
+| `name` | no reserved word (`claude`, `anthropic`) | `tests/skill.test.ts` |
+| `description` | 1–**1024** characters, non-empty, no XML tags | `tests/skill.test.ts` |
+| Body | loads on invocation; keep it short enough to read in one pass | review |
+
+**The name limit interacts with the policy schema, and that is where it breaks.** A policy id may be
+up to 64 characters. The `agent-gate-` prefix is 11, so a schema-legal id produced a 75-character
+name — an artifact no host would load, from input the schema called valid.
+
+The fix is in `skillName()`: over-long ids are truncated and given an 8-character digest of the
+**original** id. The digest is what keeps two long ids that share a prefix from collapsing into one
+skill. `SKILL_NAME_MAX_LENGTH` lives next to the code that must respect it, rather than in a comment.
+
+#### What the reader must be able to do
+
 | Requirement | Why | Consequence if missing |
 | --- | --- | --- |
-| Frontmatter `name` equals the directory name | Hosts index by directory; a mismatch orphans the skill | The skill is loaded but never matched |
+| `name` equals the directory name | Hosts index by directory; a mismatch orphans the skill | The skill is loaded but never matched |
 | `description` states decision **and** approval stance | A list view must be enough to triage ten skills | The reader discovers the gate only by tripping it |
+| The approval stance comes from `safety.requires_approval`, not from the decision word | A `suggest` policy may still be gated | A gated suggestion reads as advisory and gets treated that way |
+| The stance is stated **once** | `decisionText('require_approval')` already begins with the approval sentence | Concatenating both reads as a stutter and looks machine-generated |
 | The policy's own `decision` is stated explicitly | The model must not infer which branch it is on | The model applies the wrong branch |
 | Every offered `action_id` appears, and no other does | The user can only answer with an action the signal offered | The model invents an id the engine rejects |
 | The receipt path names a **real** endpoint | MCP is stateless and has no respond tool; only the pet bridge accepts a receipt | The model calls a tool that does not exist, or claims an approval |
@@ -241,6 +266,17 @@ The receipt clause is worth restating in plain terms: **the MCP surface has thre
 A skill that says "send the answer back through the tool you called" is describing a capability the
 system does not have. The skill therefore names `POST /v1/signals/{id}/respond`, and instructs the
 model to report "no receipt" rather than assume consent when no bridge is running.
+
+#### Verifying against the host contract
+
+The limits are pinned by `tests/skill.test.ts`, not by review. Because a broken artifact comes from
+valid input, the tests build policies at the schema's own extremes:
+
+- a maximum-length policy id;
+- two long ids sharing a prefix;
+- a `suggest` policy that still requires approval.
+
+An artifact is only as trustworthy as the input that produced it is *not* the only thing checked.
 
 ### 6.4 `MCP bundle`
 

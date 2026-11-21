@@ -1,4 +1,5 @@
 import type { Policy } from '../policy/types.js';
+import { sha256 } from '../util/hash.js';
 import { COMPILE_FORMAT_VERSION } from '../version.js';
 import {
   actionLines,
@@ -17,14 +18,14 @@ export interface CompiledSkill {
 /**
  * Compile one policy into an Agent Skill (SKILL.md).
  *
- * Shape is governed by docs/06-compiler-spec.md §7, which states the minimum
+ * Shape is governed by docs/06-compiler-spec.md §6, which states the minimum
  * for a *usable* skill: a reader must be able to discover it, know when it
  * applies, parse every offered action id, and know what to do when the tool is
  * unreachable. See that section before changing any line here — several of the
  * lines look redundant until you know which requirement they satisfy.
  */
 export function compileSkillMd(policy: Policy): CompiledSkill {
-  const name = `agent-gate-${policy.id.replace(/[^a-z0-9-]+/g, '-')}`;
+  const name = skillName(policy);
   const description = buildDescription(policy);
   const actionIds = (policy.presentation?.actions ?? []).map((action) => action.action_id);
 
@@ -101,15 +102,63 @@ export function compileSkillMd(policy: Policy): CompiledSkill {
 }
 
 /**
+ * The skill name, constrained to what hosts actually accept.
+ *
+ * Two contracts apply here, and they disagree on the limit:
+ *
+ * - `schemas/policy.schema.json` allows a policy id of up to 64 characters.
+ * - Agent Skills hosts require a name of at most **64 characters** matching
+ *   `^[a-z0-9]+(-[a-z0-9]+)*$`, equal to the directory, with no reserved word.
+ *
+ * The `agent-gate-` prefix is 11 characters, so a legal 64-character policy id
+ * produced a 75-character name — a skill every host would reject. Validating
+ * the artifact, rather than trusting the inputs, is what caught it.
+ *
+ * Over-long ids are truncated and given a short digest of the **original** id,
+ * so two long ids that share a prefix stay distinct. The digest covers the id,
+ * not the truncated text, which is what makes it a disambiguator.
+ */
+function skillName(policy: Policy): string {
+  const prefix = 'agent-gate-';
+  const slug = policy.id.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const candidate = `${prefix}${slug}`;
+
+  if (candidate.length <= SKILL_NAME_MAX_LENGTH) return candidate;
+
+  const digest = sha256(policy.id).slice(0, 8);
+  // Reserve the separator plus the digest, and trim trailing hyphens so the
+  // kebab-case pattern still holds.
+  const room = SKILL_NAME_MAX_LENGTH - prefix.length - digest.length - 1;
+  const head = slug.slice(0, room).replace(/-+$/g, '');
+  return `${prefix}${head}-${digest}`;
+}
+
+/** Host limit, kept next to the code that must respect it. */
+export const SKILL_NAME_MAX_LENGTH = 64;
+
+/** Frontmatter description limit (1-1024, no XML tags). */
+export const SKILL_DESCRIPTION_MAX_LENGTH = 1024;
+
+/**
  * Frontmatter description.
  *
  * Hosts show this string in a skill list before anything else, so it has to
  * carry the decision *and* the approval stance: a reader scanning ten skills
  * needs to know which one will stop them, without opening any of them.
+ *
+ * The approval stance is derived from `safety.requires_approval`, not from
+ * `decision`: a `suggest` policy that happens to require approval must still
+ * say so. It is also not appended when the decision text already states it —
+ * `decisionText('require_approval')` begins with exactly that sentence, and
+ * concatenating both produced "必须先取得用户批准…，必须先取得用户批准".
  */
 function buildDescription(policy: Policy): string {
+  const decision = decisionText(policy.decision);
   const approval = policy.safety.requires_approval ? '必须先取得用户批准' : '不需要逐次批准';
-  return `${policy.description}（个人引导策略 ${policy.id}：${decisionText(policy.decision)}，${approval}）`.slice(0, 1000);
+  const stance = decision.includes(approval) ? decision : `${decision}，${approval}`;
+  const description = `${policy.description}（个人引导策略 ${policy.id}：${stance}）`;
+  // Truncate on a code-point boundary so a surrogate pair is never split.
+  return [...description].slice(0, SKILL_DESCRIPTION_MAX_LENGTH).join('');
 }
 
 /** Expand multiple policies into one skill per policy. */
