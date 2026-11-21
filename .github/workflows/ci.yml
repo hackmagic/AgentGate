@@ -54,8 +54,25 @@ jobs:
       - name: Contract / spec validation
         run: npm run validate-specs
 
+      - name: CI runs every gate that `npm run check` runs
+        run: npm run verify-ci-coverage
+
+      - name: Schema / validator agreement
+        # The hand-written validator's failure mode is silent: a schema keyword
+        # nobody implemented validates everything while every test stays green.
+        run: npm run audit-schemas
+
+      - name: Skill artifacts carry every required field
+        run: npm run verify-skill-fields
+
+      - name: Example sequences still produce their documented outcome
+        run: npm run verify-examples
+
       - name: Build
         run: npm run build
+
+      - name: Host integration contracts
+        run: npm run verify-integrations
 
       - name: Smoke test the built CLI
         run: |

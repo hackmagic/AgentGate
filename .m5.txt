@@ -1,0 +1,24 @@
+ci: run every gate the local check runs, and prove it stays that way
+
+`validate-specs` was already in CI. Four gates added since then were not:
+`audit-schemas`, `verify-skill-fields`, `verify-examples` and
+`verify-integrations` only ever ran on Windows, through `npm run check`. So the
+three-version Linux matrix ran a weaker suite than the single Windows job, and
+a schema or artifact regression would have passed on Node 20, 22 and 24.
+
+Fixing the list once would only postpone the next drift, because the matrix job
+lists steps individually — which is worth keeping, since a named step is what
+makes a failure readable. So `verify-ci-coverage` compares the two: it extracts
+the `run:` lines of the matrix job and fails if any script inside
+`npm run check` is absent.
+
+Getting that check right took two corrections worth recording:
+
+- it first accepted `npm test` under a rule looking for `npm run test`, which
+  reported a gate as missing that was present;
+- it then read the whole job text, so a step *named* "runs every gate that
+  `npm run check` runs" was mistaken for an invocation and the check silently
+  turned itself off. It now inspects `run:` lines only.
+
+Verified by deleting `audit-schemas`, then also `verify-examples`, and watching
+the check name each one.
