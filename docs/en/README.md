@@ -9,7 +9,7 @@ translation_status: complete
 
 # Documentation index
 
-[中文](/index) | English
+[中文](/) | English
 
 Three documents each answer one question; the rest are contract appendices.
 

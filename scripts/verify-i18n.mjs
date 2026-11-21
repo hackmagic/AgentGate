@@ -161,44 +161,62 @@ for (const primary of primaryDocs) {
 
   // 2. Each side must link to the other.
   //
-  // Under `docs/en/` + `docs/zh-cn/` the two files share a filename, so the
-  // link must be a path into the other tree. A bare filename would resolve to
-  // the page itself, which looks like a switcher and goes nowhere.
+  // Three kinds of page exist, and each links back differently:
+  //
+  //   docs source page   `docs/zh-cn/x.md`  -> `/en/x`   (served at the root)
+  //   docs translated    `docs/en/x.md`     -> `/x`
+  //   repository root    `README.md`        -> `README.en.md` (sibling file)
+  //
+  // The docs index is special: `rewrites` serves `README.md` as the directory
+  // root, so its counterpart is the other locale's root rather than `/index`.
   const enBase = path.basename(primary);
   const zhBase = path.basename(zh);
-  // Path of this page relative to its own language tree, which is the same
-  // string in both trees because they mirror each other.
-  const pageRelative = path.resolve(primary).startsWith(path.resolve(SOURCE_DIR) + path.sep)
-    ? path.relative(SOURCE_DIR, path.resolve(primary)).split(path.sep).join('/')
-    : path.basename(primary);
 
-  // The switcher goes from this page's directory to the same page in the other
-  // tree. A nested page needs one more `../` than a top-level page, so the
-  // prefix is computed from the actual depth rather than assumed.
-  const depth = pageRelative.split('/').length - 1;
-  const up = depth === 0 ? '..' : Array.from({ length: depth + 1 }, () => '..').join('/');
-  // The source page links forward to the translation; the translation links
-  // back to the source. Both name the sibling tree explicitly.
-  const expectedOnSource = `(${up}/en/${pageRelative})`;
-  const expectedOnTranslation = `(${up}/zh-cn/${pageRelative})`;
+  const resolvedPrimary = path.resolve(primary);
+  const inSourceDocs = resolvedPrimary.startsWith(path.resolve(SOURCE_DIR) + path.sep);
+  const inTranslationDocs = resolvedPrimary.startsWith(path.resolve(TRANSLATION_DIR) + path.sep);
 
-  const inSourceDocs = path.resolve(primary).startsWith(path.resolve(SOURCE_DIR) + path.sep);
-  // The docs site serves the source language at the root and the translation
-  // under `/en/`, so the link between them is site-absolute. Accept either form:
-  // a filesystem-relative path (used by the repository-root pages) or a
-  // site-absolute URL (used under `docs/` where `rewrites` apply).
-  const sourceSlug = pageRelative.replace(/\.md$/, '');
-  const absoluteOnSource = `(/en/${sourceSlug === 'README' ? 'index' : sourceSlug})`;
-  const absoluteOnTranslation = `(/${sourceSlug === 'README' ? 'index' : sourceSlug})`;
+  /** This page's path inside its own language tree, e.g. `contributing/x.md`. */
+  const pageRelative = inSourceDocs
+    ? path.relative(SOURCE_DIR, resolvedPrimary).split(path.sep).join('/')
+    : inTranslationDocs
+      ? path.relative(TRANSLATION_DIR, resolvedPrimary).split(path.sep).join('/')
+      : null;
 
-  if (inSourceDocs) {
-    if (!enText.includes(expectedOnSource) && !enText.includes(absoluteOnSource)) {
-      problems.push(`${primaryRel}: does not link to ${expectedOnSource.slice(1, -1)}`);
+  if (pageRelative !== null) {
+    const slug = pageRelative.replace(/\.md$/, '');
+    const isIndexPage = slug === 'README' || slug.endsWith('/README');
+
+    // Direction, stated once so it cannot be inverted again:
+    //
+    //   the source page (Chinese) links to the TRANSLATION
+    //   the translation page (English) links back to the SOURCE
+    //
+    // For a normal page those are `/en/x` and `/x`. For the index they are the
+    // two locale roots, `/en/` and `/`.
+    const absoluteOnSource = isIndexPage ? '(/en/)' : `(/en/${slug})`;
+    const absoluteOnTranslation = isIndexPage ? '(/)' : `(/${slug})`;
+
+    const depth = pageRelative.split('/').length - 1;
+    const up = depth === 0 ? '..' : Array.from({ length: depth + 1 }, () => '..').join('/');
+    const relativeOnSource = `(${up}/en/${pageRelative})`;
+    const relativeOnTranslation = `(${up}/zh-cn/${pageRelative})`;
+
+    // `enText` reads `primary` (the source page); `zhText` reads its counterpart
+    // (the translation). The names are historical; the mapping is:
+    //   source page      -> must link to the translation
+    //   translation page -> must link back to the source
+    const expectedOnSourceText = absoluteOnSource;
+    const expectedOnTranslationText = absoluteOnTranslation;
+
+    if (!enText.includes(expectedOnSourceText) && !enText.includes(relativeOnSource)) {
+      problems.push(`${primaryRel}: does not link to ${expectedOnSourceText.slice(1, -1)}`);
     }
-    if (!zhText.includes(expectedOnTranslation) && !zhText.includes(absoluteOnTranslation)) {
-      problems.push(`${rel(zh)}: does not link to ${expectedOnTranslation.slice(1, -1)}`);
+    if (!zhText.includes(expectedOnTranslationText) && !zhText.includes(relativeOnTranslation)) {
+      problems.push(`${rel(zh)}: does not link to ${expectedOnTranslationText.slice(1, -1)}`);
     }
   } else {
+    // Repository-root pages pair as siblings: `README.md` <-> `README.en.md`.
     if (!enText.includes(`(${zhBase})`)) problems.push(`${primaryRel}: does not link to ${zhBase}`);
     if (!zhText.includes(`(${enBase})`)) problems.push(`${rel(zh)}: does not link to ${enBase}`);
   }

@@ -8,7 +8,7 @@ last_updated: 2026-11-22
 
 # 文档索引
 
-中文 | [English](/en/index)
+中文 | [English](/en/)
 
 三份主文档各回答一个问题，其余是契约附件。
 
