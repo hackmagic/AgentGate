@@ -1,0 +1,14 @@
+{
+  "agent-gate-pet.name": "AgentGate 提示",
+  "agent-gate-pet.pending": "待处理的引导",
+  "agent-gate-pet.unconfigured": "AgentGate：尚未配置 bridge 地址",
+  "agent-gate-pet.unreachable": "AgentGate: {code}",
+  "agent-gate-pet.approve": "批准",
+  "agent-gate-pet.dismiss": "忽略",
+  "agent-gate-pet.settings.title": "AgentGate",
+  "agent-gate-pet.settings.enabled": "显示引导提示",
+  "agent-gate-pet.settings.bridgeBase": "Bridge 地址",
+  "agent-gate-pet.settings.bridgeHint": "例如 http://127.0.0.1:3778；留空表示不连接",
+  "agent-gate-pet.settings.pollInterval": "轮询间隔（毫秒）",
+  "agent-gate-pet.settings.placement": "停靠位置"
+}

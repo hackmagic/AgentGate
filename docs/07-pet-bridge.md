@@ -90,31 +90,49 @@ reproducible.
 
 ## Wiring a pet host
 
-Use the host's `apply` entry point and HTTP routing table to map the engine's `gate_signal` onto the
-pet's existing bubble and animation pool. Do not modify the pet core; write an adapter plugin.
-
-Minimal adapter shape:
+The engine exports a client so an adapter does not re-implement the protocol:
 
 ```ts
-// Pseudo-code: a plugin on the pet side
-import { apply } from 'dsh-pet/host';
 import { PetBridgeClient } from 'agent-gate/pet';
 
-apply((host) => {
-  const client = new PetBridgeClient({ baseUrl: 'http://127.0.0.1:3778' });
+const client = new PetBridgeClient({ baseUrl: 'http://127.0.0.1:3778' });
 
-  client.onSignal((signal) => {
-    host.bubble.show(signal.presentation.bubble_text);
-    host.animation.play(signal.presentation.animation_hint);
-    host.buttons.render(signal.presentation.actions, async (actionId) => {
-      await client.respond(signal.id, actionId);   // report only, never execute
-    });
-  });
+// Fires once per signal id, even though the bridge returns the same pending
+// signal on every poll.
+const poller = client.onSignal({
+  interval_ms: 1000,
+  onSignal: (signal) => {
+    show(signal.presentation.bubble_text);       // policy copy, verbatim
+    render(signal.presentation.actions, (actionId) => client.respond(signal.id, actionId));
+  },
 });
+
+// later: poller.stop()
 ```
 
-The key point: **the pet never silences notifications itself.** It sends the `action_id` back, and a
-user-space adapter (or the agent host) performs the action — the engine only records the decision and
+The client refuses a non-loopback `baseUrl` unless you pass `allow_remote: true`.
+That default matters: the bridge dispenses approval prompts, so pointing an
+adapter at someone else's host should be a deliberate act, not a typo in a port.
+
+### A shipped adapter
+
+`integrations/dsh-agent-gate-pet/` is a working DeepSeek Harness bundle that does
+the above: a host half that proxies the bridge through loopback-only routes, and
+a browser half that renders each signal in the composer dock. It is a separate
+bundle and shares no code with any pet plugin.
+
+It is deliberately *not* grafted onto `dsh-hackmagic-pets`: that package renders a
+3D pet and exposes no bubble or animation hook, so an adapter inside it would have
+meant editing its prebuilt client bundle — the host kernel by another name.
+
+```bash
+node integrations/dsh-agent-gate-pet/test/verify-host.mjs
+node integrations/dsh-agent-gate-pet/test/verify-client.mjs
+```
+
+The key point stands in both the sketch and the shipped bundle: **the embodiment
+never silences notifications itself.** It sends the `action_id` back, and a
+user-space adapter performs the action — the engine only records the decision and
 the response.
 
 ## Acceptance criteria
@@ -122,9 +140,11 @@ the response.
 > Trigger a `require_approval` policy by hand; the pet shows the prompt, and after the user approves,
 > the audit log records the whole chain.
 
-Location: `tests/pet.test.ts`
+Location: `tests/pet.test.ts`, `tests/pet-client.test.ts`, and
+`integrations/dsh-agent-gate-pet/test/`
 
 - Initial `healthz` / `pending` state
 - Event → signal → visible in `pending` → `approve` → `pending` empty
 - After `dismiss`, the same policy does not retry (`throttled: true`)
 - Unknown signal 404, bad JSON 400, rate limit 429
+- The shipped adapter: loopback fence on every route, an invented action refused before it reaches the engine, an unreachable bridge rendered as a state rather than a crash

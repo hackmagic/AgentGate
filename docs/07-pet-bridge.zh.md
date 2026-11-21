@@ -80,39 +80,56 @@ responded_at: ISO8601
 
 测试用 `X-Agent-Gate-Now` 头覆盖服务端时钟：它同时决定求值时刻（`time_window` / `day_of_week`）、速率闸与过期判定，因此回放历史事件是可复现的。
 
-## 接入 dsh-pet 的方式
+## 接入宠物宿主
 
-利用其插件宿主的 `apply` 入口和 HTTP 路由表，把引擎的 `gate_signal` 映射到宠物已有的气泡和动画池；不修改 dsh-pet 内核，只写适配插件。
-
-最小适配器形状：
+引擎自带客户端，适配器不必重新实现协议：
 
 ```ts
-// 伪代码：dsh-pet 侧插件
-import { apply } from 'dsh-pet/host';
 import { PetBridgeClient } from 'agent-gate/pet';
 
-apply((host) => {
-  const client = new PetBridgeClient({ baseUrl: 'http://127.0.0.1:3778' });
+const client = new PetBridgeClient({ baseUrl: 'http://127.0.0.1:3778' });
 
-  client.onSignal((signal) => {
-    host.bubble.show(signal.presentation.bubble_text);
-    host.animation.play(signal.presentation.animation_hint);
-    host.buttons.render(signal.presentation.actions, async (actionId) => {
-      await client.respond(signal.id, actionId);   // 只回传，不自行执行
-    });
-  });
+// 每个 signal id 只触发一次，即使 bridge 每次轮询都返回同一条待处理信号。
+const poller = client.onSignal({
+  interval_ms: 1000,
+  onSignal: (signal) => {
+    show(signal.presentation.bubble_text);       // 策略文案，原样呈现
+    render(signal.presentation.actions, (actionId) => client.respond(signal.id, actionId));
+  },
 });
+
+// 稍后：poller.stop()
 ```
 
-关键点：**宠物不会自己去静音通知**。它把 `action_id` 回传，由用户态适配器（或 Agent 宿主）执行——引擎只记录决策与回执。
+除非显式传 `allow_remote: true`，客户端拒绝非回环的 `baseUrl`。这个默认值是有意义的：
+bridge 会下发审批请求，把适配器指向别人的主机应该是刻意行为，而不是端口打错。
+
+### 已经交付的适配器
+
+`integrations/dsh-agent-gate-pet/` 是一个可用的 DSH bundle，做的正是上面这件事：宿主半边把
+bridge 代理成仅回环可访问的路由，浏览器半边在输入区停靠位渲染每条信号。它是独立 bundle，
+不与任何宠物插件共享代码。
+
+它**故意没有**塞进 `dsh-hackmagic-pets`：那个包渲染 3D 宠物，且不暴露气泡或动画钩子，
+把适配器写进去意味着改动它预编译的 client bundle——那换个名字就是改宿主内核。
+
+```bash
+node integrations/dsh-agent-gate-pet/test/verify-host.mjs
+node integrations/dsh-agent-gate-pet/test/verify-client.mjs
+```
+
+示意代码与已交付的 bundle 都守着同一条关键点：**呈现层不会自己去静音通知**。它把
+`action_id` 回传，由用户态适配器执行——引擎只记录决策与回执。
 
 ## 验收标准
 
 > 手工触发一条 `require_approval` 策略，宠物弹出引导，用户批准后审计日志记录完整链路。
 
-落点：`tests/pet.test.ts`
+落点：`tests/pet.test.ts`、`tests/pet-client.test.ts`，以及
+`integrations/dsh-agent-gate-pet/test/`
 
 - `healthz` / `pending` 初始状态；
 - 事件 → 信号 → `pending` 可见 → `approve` → `pending` 清空；
 - `dismiss` 后同一策略不再重试（`throttled: true`）；
-- 未知信号 404、坏 JSON 400、限流 429。
+- 未知信号 404、坏 JSON 400、限流 429；
+- 已交付适配器：每条路由都有回环栅栏、伪造的 action 在到达引擎之前就被拒绝、不可达的 bridge 渲染成状态而不是崩溃。

@@ -110,6 +110,17 @@ export {
 
 export { createPetServer, errorStatus, listen, type PetServer, type PetServerOptions } from './pet/http.js';
 export { PET_ENGINE_NAME, PetBridge, RateLimitError, type PetBridgeOptions } from './pet/bridge.js';
+export {
+  PetBridgeClient,
+  RemoteBridgeError,
+  isLoopbackUrl,
+  type OnSignalOptions,
+  type PetBridgeClientOptions,
+  type PetEventOutcome,
+  type PetHealth,
+  type PetRespondOutcome,
+  type SignalPoller,
+} from './pet/client.js';
 
 export {
   MCP_PROTOCOL_VERSION,

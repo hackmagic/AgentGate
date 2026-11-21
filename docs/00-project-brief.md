@@ -35,7 +35,7 @@ Where the four criteria live in the repository:
 | --- | --- |
 | 1 | `src/events/activitywatch.ts` + `packs/deep-work/policies/*.yaml` + `tests/adapters.test.ts` |
 | 2 | `src/compile/` + `tests/compile.test.ts` + `tests/parity.test.ts` |
-| 3 | `src/pet/` + `tests/pet.test.ts` |
+| 3 | `src/pet/` + `integrations/dsh-agent-gate-pet/` + `tests/pet.test.ts`、`tests/pet-client.test.ts` |
 | 4 | `src/audit/store.ts` + `tests/gate.test.ts`, `tests/contract.test.ts` |
 
 ## Trade-offs against the initial vision
@@ -59,7 +59,7 @@ These are gaps, not decisions. Listing them here keeps [09-mvp-roadmap](09-mvp-r
 
 | Vision | Reality today | What is missing |
 | --- | --- | --- |
-| Success criterion 3: "the pet completes propose → approve → execute end to end" | The protocol, the HTTP bridge and the contract tests exist; **no real pet plugin does** | A pet-side adapter (P0-1) |
+| Success criterion 3: "the pet completes propose → approve → execute end to end" | The protocol, the HTTP bridge, a client and a shipped DSH adapter all exist; **the execute step is still the adapter owner's job**, and nothing has been visually verified in a real host | A desktop-notification surface and a rendered walkthrough in a live host |
 | Success criterion 1: "a **real** ActivityWatch event" | The adapter consumes an **export** (a JSON file); it never talks to a live ActivityWatch instance | A live collector, which [we deliberately do not build](05-event-spec.md) — but then "real" needs saying precisely |
 | The `draft` and `archived` lifecycle states | Both are documented and both are reachable from the library API, but **no CLI command reaches them**: `authoringState()` has no caller and nothing supplies `archives` | A `gate lifecycle --archive` path, otherwise two of the five states are documentation |
 | Distributable via `npx agent-gate` | The MCP bundle's `mcp.json` already emits `npx -y agent-gate`, but the package is **not published** to npm | A release step; until then the emitted config is aspirational |

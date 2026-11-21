@@ -99,16 +99,16 @@
         "zh": "e99bac3d626b414d"
       },
       "3:h2": {
-        "en": "e6f2a31522eb81f0",
-        "zh": "945eb0454aaf4ec3"
+        "en": "b5c248ec53743e9c",
+        "zh": "ed19cef8587e0e65"
       },
       "4:h2": {
         "en": "347094ed13406669",
         "zh": "12516d1257351915"
       },
       "5:h3": {
-        "en": "3ead74945c59fc2e",
-        "zh": "451331cd7d054ef1"
+        "en": "271c5f5c6bf193c6",
+        "zh": "46f617aac6952ee5"
       },
       "6:h2": {
         "en": "4ab79f5025b849a7",
@@ -377,12 +377,16 @@
         "zh": "d85d4389fd4df276"
       },
       "5:h2": {
-        "en": "4c94dc656281c3a3",
-        "zh": "76c2b97f9d52edc4"
+        "en": "5456dfc12fc56d52",
+        "zh": "2cab9f3c8f3dd6d1"
       },
-      "6:h2": {
-        "en": "a4f4e95dcd683962",
-        "zh": "e10e7082501b5ee4"
+      "6:h3": {
+        "en": "c4d3ecf5b6de1f0b",
+        "zh": "d00aa8a6fc5effdb"
+      },
+      "7:h2": {
+        "en": "ff48e7e99832d7a0",
+        "zh": "b5f58bd27e5abfb4"
       }
     },
     "docs/08-security-and-audit.md": {

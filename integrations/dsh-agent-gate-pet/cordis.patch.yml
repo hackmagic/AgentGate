@@ -1,0 +1,9 @@
+# dsh-agent-gate-pet: inserts the adapter row.
+#
+# The adapter is a *consumer* of a running AgentGate bridge; it does not embed
+# the engine and it does not touch any other plugin. Configuration lives in
+# $DSH_HOME/.dsh-agent-gate-pet.json, written by the host half.
+- insert:
+    - id: dsh-agent-gate-pet
+      name: 'dsh-agent-gate-pet'
+      config: {}

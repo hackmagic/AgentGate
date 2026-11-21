@@ -1,0 +1,14 @@
+{
+  "agent-gate-pet.name": "AgentGate prompts",
+  "agent-gate-pet.pending": "Pending guidance",
+  "agent-gate-pet.unconfigured": "AgentGate: no bridge configured",
+  "agent-gate-pet.unreachable": "AgentGate: {code}",
+  "agent-gate-pet.approve": "Approve",
+  "agent-gate-pet.dismiss": "Dismiss",
+  "agent-gate-pet.settings.title": "AgentGate",
+  "agent-gate-pet.settings.enabled": "Show guidance prompts",
+  "agent-gate-pet.settings.bridgeBase": "Bridge URL",
+  "agent-gate-pet.settings.bridgeHint": "For example http://127.0.0.1:3778; leave empty to stay disconnected",
+  "agent-gate-pet.settings.pollInterval": "Poll interval (milliseconds)",
+  "agent-gate-pet.settings.placement": "Dock placement"
+}
