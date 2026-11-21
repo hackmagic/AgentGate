@@ -1,4 +1,4 @@
-# 07 · 安全与审计
+# 08 · 安全与审计
 
 ## 权限分级（四级，默认最保守）
 
@@ -34,12 +34,19 @@ timestamp  engine_version  degraded  reason
 2. **写入前断言**：`JsonlAuditStore.append()` 调 `assertAuditRecordSafe()`，越界字段抛 `unsafe_audit_record`；
 3. **测试固定**：`tests/contract.test.ts` 主动注入 `screenshot` / `window_title` / `clipboard` 并断言被剥离。
 
+写入路径只有一个：`src/gate/audit-stage.ts` 的 `append()`。审计是中间件链的最后一环，
+它观察的是**降级之后**的最终决策——所以「被限流」和「被静音」也各有一行，不会因为
+走了另一条代码路径而漏记。
+
 ## 用户否决权是核心安全机制
 
 否决数据必须回流到策略引擎，用于：
 
 - 自动 `mute`（连续 3 次 `dismiss`）；
 - 向用户建议修订条件。
+
+否决还会投影成策略的**生命周期状态**（[03-policy-lifecycle](03-policy-lifecycle.md)）：
+用户一次点击不仅否决了这一次，还改变了这条策略之后的可见性与审计解释。
 
 这是「AI 引导」区别于「AI 监控」的关键分界线：监控只收集行为，引导允许用户用一次点击否掉整个规则。
 

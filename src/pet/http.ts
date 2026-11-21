@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 
-import { ContractError, errorMessage, GuidanceError } from '../errors.js';
+import { ContractError, errorMessage, AgentGateError } from '../errors.js';
 import { PetBridge, RateLimitError, type PetBridgeOptions } from './bridge.js';
 
 export interface PetServerOptions extends PetBridgeOptions {
@@ -52,14 +52,50 @@ export function createPetServer(options: PetServerOptions): PetServer {
 }
 
 export async function listen(server: Server, host = '127.0.0.1', port = DEFAULT_PET_PORT): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(port, host, () => {
-      server.off('error', reject);
-      resolve();
+  // Port 0 asks the OS for any free port, and it may hand back one that the
+  // fetch standard blocks (4000, 6666, …). Node's own `fetch` then refuses to
+  // reach the bridge, so retry until we land on a usable one — otherwise the
+  // failure surfaces later as an inscrutable "bad port".
+  const attempts = port === 0 ? MAX_EPHEMERAL_ATTEMPTS : 1;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    await new Promise<void>((resolve, reject) => {
+      server.once('error', reject);
+      server.listen(port, host, () => {
+        server.off('error', reject);
+        resolve();
+      });
     });
-  });
+
+    const address = server.address();
+    if (address === null || typeof address === 'string') return;
+    if (!isFetchBlockedPort(address.port)) return;
+
+    await new Promise<void>((resolve, reject) => {
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+
+  throw new Error(`could not obtain an ephemeral port reachable by fetch after ${attempts} attempts`);
 }
+
+/**
+ * Ports the WHATWG fetch standard forbids client requests to, mirrored from
+ * undici's `badPorts`. A bridge bound to one of these is unreachable from
+ * every standards-compliant HTTP client, including Node's own.
+ */
+const FETCH_BLOCKED_PORTS: ReadonlySet<number> = new Set([
+  1, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 69, 77, 79, 87, 95, 101, 102, 103, 104, 109, 110,
+  111, 113, 115, 117, 119, 123, 135, 137, 139, 143, 161, 179, 389, 427, 465, 512, 513, 514, 515, 526, 530, 531, 532,
+  540, 548, 554, 556, 563, 587, 601, 636, 989, 990, 993, 995, 1719, 1720, 1723, 2049, 3659, 4045, 4190, 5060, 5061,
+  6000, 6566, 6665, 6666, 6667, 6668, 6669, 6679, 6697, 10080,
+]);
+
+export function isFetchBlockedPort(port: number): boolean {
+  return FETCH_BLOCKED_PORTS.has(port);
+}
+
+const MAX_EPHEMERAL_ATTEMPTS = 16;
 
 async function handle(bridge: PetBridge, request: IncomingMessage, response: ServerResponse, maxBody: number) {
   const url = new URL(request.url ?? '/', 'http://localhost');
@@ -77,7 +113,7 @@ async function handle(bridge: PetBridge, request: IncomingMessage, response: Ser
 
   if (method === 'POST' && url.pathname === '/v1/events') {
     const body = await readJsonBody(request, maxBody);
-    const now = parseOptionalInstant(request.headers['x-guidance-now']);
+    const now = parseOptionalInstant(request.headers['x-agent-gate-now']);
     writeJson(response, 200, bridge.handleEvent(body, now));
     return;
   }
@@ -123,7 +159,7 @@ function parseOptionalInstant(header: string | string[] | undefined): Date {
 export function errorStatus(error: unknown): number {
   if (error instanceof RateLimitError) return 429;
   if (error instanceof ContractError) return 400;
-  if (error instanceof GuidanceError) {
+  if (error instanceof AgentGateError) {
     return error.code === 'unknown_signal' || error.code === 'invalid_action' ? 404 : 400;
   }
   return 500;
@@ -132,7 +168,7 @@ export function errorStatus(error: unknown): number {
 function writeError(response: ServerResponse, error: unknown): void {
   const body: { error: { code: string; message: string; retry_after_seconds?: number } } = {
     error: {
-      code: error instanceof GuidanceError ? error.code : 'internal_error',
+      code: error instanceof AgentGateError ? error.code : 'internal_error',
       message: errorMessage(error),
     },
   };

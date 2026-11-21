@@ -14,8 +14,10 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 
 import { AUDIT_FIELD_WHITELIST } from '../src/audit/store.js';
-import { EVENT_SOURCES, EVENT_TYPES, type GuidanceEvent } from '../src/events/types.js';
+import { COMPILE_FORMAT_VERSION } from '../src/version.js';
+import { EVENT_SOURCES, EVENT_TYPES, type AgentEvent } from '../src/events/types.js';
 import { matchesTimeWindow } from '../src/policy/conditions.js';
+import { LIFECYCLE_STATES } from '../src/policy/lifecycle.js';
 import { loadPolicies } from '../src/policy/load.js';
 import {
   ACTION_IDS,
@@ -187,7 +189,7 @@ check(
 );
 
 // The time_window grammar lives in the evaluator, so it gets an explicit check.
-const probeEvent: GuidanceEvent = {
+const probeEvent: AgentEvent = {
   id: 'probe',
   type: 'app_switch',
   timestamp: new Date().toISOString(),
@@ -254,7 +256,75 @@ for (const pack of packs) {
 }
 check('the bundled packs ship policies', totalPolicies > 0);
 
-// ------------------------------------------------------------------ result ---
+// ------------------------------------------------------- docs ↔ code gates ----
+/**
+ * Documentation is a contract, so it gets a gate too. These checks are
+ * deliberately narrow: they verify that the *facts* docs claim about the
+ * system are still true, not that prose is unchanged.
+ */
+const docsDirectory = path.join(ROOT, 'docs');
+const readDoc = (name: string): string => readFileSync(path.join(docsDirectory, name), 'utf8');
+
+const EXPECTED_DOCS = [
+  '00-project-brief.md',
+  '01-prd.md',
+  '02-architecture.md',
+  '03-policy-lifecycle.md',
+  '04-policy-dsl.md',
+  '05-event-spec.md',
+  '06-compiler-spec.md',
+  '07-pet-bridge.md',
+  '08-security-and-audit.md',
+  '09-mvp-roadmap.md',
+  'README.md',
+];
+const presentDocs = readdirSync(docsDirectory).filter((name) => name.endsWith('.md')).sort();
+check(
+  'docs/ contains exactly the indexed document set',
+  JSON.stringify(presentDocs) === JSON.stringify([...EXPECTED_DOCS].sort()),
+  `found=${JSON.stringify(presentDocs)}`,
+);
+
+// The architecture doc must name every layer the boundary checker enforces.
+const architecture = readDoc('02-architecture.md');
+for (const layer of ['events', 'policy', 'signal', 'audit', 'gate', 'pet', 'mcp', 'compile']) {
+  check(`02-architecture documents the "${layer}" layer`, architecture.includes(`src/${layer}/`) || architecture.includes(`\`${layer}\``));
+}
+check(
+  '02-architecture names the middleware stages in execution order',
+  /throttleStage\([\s\S]*?inboxStage\([\s\S]*?auditStage\(/.test(architecture),
+);
+
+// The lifecycle doc's state list must match LIFECYCLE_STATES exactly.
+const lifecycleDoc = readDoc('03-policy-lifecycle.md');
+for (const state of LIFECYCLE_STATES) {
+  check(`03-policy-lifecycle documents state "${state}"`, lifecycleDoc.includes(`\`${state}\``));
+}
+
+// The compiler spec must document the format version actually emitted.
+const compilerDoc = readDoc('06-compiler-spec.md');
+check(
+  '06-compiler-spec documents the shipped COMPILE_FORMAT_VERSION',
+  compilerDoc.includes(`\`${COMPILE_FORMAT_VERSION}\``),
+  `COMPILE_FORMAT_VERSION=${COMPILE_FORMAT_VERSION}`,
+);
+
+// Every parity issue code in src/compile/verify.ts must be documented, so a
+// new failure mode cannot ship without a reader-facing explanation.
+const verifySource = readFileSync(path.join(ROOT, 'src', 'compile', 'verify.ts'), 'utf8');
+const issuedCodes = [...new Set([...verifySource.matchAll(/code: '([a-z_]+)'/g)].map((match) => match[1]))];
+check('compiler parity defines at least one issue code', issuedCodes.length > 0);
+for (const code of issuedCodes) {
+  check(`06-compiler-spec documents parity code "${code}"`, compilerDoc.includes(`\`${code}\``));
+}
+
+// AGENTS.md is the contributor contract; it must point at the live doc names.
+const agentsMd = readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8');
+for (const reference of ['docs/02-architecture.md', 'docs/04-policy-dsl.md', 'docs/06-compiler-spec.md']) {
+  check(`AGENTS.md links ${reference}`, agentsMd.includes(reference));
+}
+
+// ------------------------------------------------------------ result ---
 if (failures.length > 0) {
   console.error(`spec validation failed (${failures.length}/${checks}):\n`);
   for (const failure of failures) console.error(`  ✖ ${failure}`);

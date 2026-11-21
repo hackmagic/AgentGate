@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guidance-runtime.dev/schemas/pet-contract.schema.json",
+  "$id": "https://agent-gate.dev/schemas/pet-contract.schema.json",
   "title": "PetBridgeContract",
-  "description": "Wire contract between the guidance engine and a pet/embodiment adapter. Any of the documented request/response bodies validates here.",
+  "description": "Wire contract between the gate engine and a pet/embodiment adapter. Any of the documented request/response bodies validates here.",
   "anyOf": [
     { "$ref": "#/$defs/eventRequest" },
     { "$ref": "#/$defs/responseRequest" },

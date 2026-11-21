@@ -8,7 +8,7 @@ export const EVENT_TYPES = [
   'notification_received',
 ] as const;
 
-export type GuidanceEventType = (typeof EVENT_TYPES)[number];
+export type AgentEventType = (typeof EVENT_TYPES)[number];
 
 export const EVENT_SOURCES = ['activitywatch', 'screenpipe', 'manual'] as const;
 export type EventSource = (typeof EVENT_SOURCES)[number];
@@ -23,9 +23,9 @@ export interface EventContext {
  * Semantic superset of ActivityWatch / screenpipe events. `metadata` exists so
  * adapters can keep raw producer fields, but the engine must never read it.
  */
-export interface GuidanceEvent {
+export interface AgentEvent {
   id: string;
-  type: GuidanceEventType;
+  type: AgentEventType;
   /** ISO 8601 instant. */
   timestamp: string;
   source: EventSource;
@@ -36,7 +36,7 @@ export interface GuidanceEvent {
   metadata: Record<string, unknown>;
 }
 
-export function isGuidanceEventType(value: unknown): value is GuidanceEventType {
+export function isAgentEventType(value: unknown): value is AgentEventType {
   return typeof value === 'string' && (EVENT_TYPES as readonly string[]).includes(value);
 }
 

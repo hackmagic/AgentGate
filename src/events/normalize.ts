@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ContractError } from '../errors.js';
 import { loadSchema } from '../schema/load.js';
 import { validateSchema } from '../schema/validator.js';
-import type { EventContext, EventSource, GuidanceEvent, GuidanceEventType } from './types.js';
+import type { EventContext, EventSource, AgentEvent, AgentEventType } from './types.js';
 
 export interface NormalizeEventOptions {
   /** Override id generation, mainly for deterministic fixtures. */
@@ -11,7 +11,7 @@ export interface NormalizeEventOptions {
 }
 
 /** Validate an untrusted payload and fill in optional fields with defaults. */
-export function normalizeEvent(raw: unknown, options: NormalizeEventOptions = {}): GuidanceEvent {
+export function normalizeEvent(raw: unknown, options: NormalizeEventOptions = {}): AgentEvent {
   const result = validateSchema(raw, loadSchema('event'));
   if (!result.valid) {
     throw new ContractError('invalid_event', 'event does not satisfy schemas/event.schema.json', result.issues);
@@ -23,7 +23,7 @@ export function normalizeEvent(raw: unknown, options: NormalizeEventOptions = {}
 
   return {
     id: typeof value.id === 'string' && value.id.length > 0 ? value.id : idFactory(),
-    type: value.type as GuidanceEventType,
+    type: value.type as AgentEventType,
     timestamp: value.timestamp as string,
     source: value.source as EventSource,
     context: {

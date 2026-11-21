@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import { errorMessage } from '../errors.js';
-import type { GuidanceEvent } from '../events/types.js';
+import type { AgentEvent } from '../events/types.js';
 import { buildSignal } from '../signal/build.js';
-import type { GuidanceSignal } from '../signal/types.js';
+import type { GateSignal } from '../signal/types.js';
 import { assertSignalInvariants } from '../signal/validate.js';
 import { evaluateConditions } from './conditions.js';
 import { emptyMuteState, isPolicyMuted, type MuteState } from './mute.js';
@@ -28,7 +28,7 @@ export interface PolicyTrace {
 export interface EvaluationResult {
   event_id: string;
   decision: PolicyDecision;
-  signal: GuidanceSignal | null;
+  signal: GateSignal | null;
   matched_policy_id: string | null;
   /** True when at least one policy failed to evaluate and the engine fell back to allow. */
   degraded: boolean;
@@ -58,7 +58,7 @@ export function resolveDefaultTimezone(): string {
  */
 export function evaluateEvent(
   policies: readonly Policy[],
-  event: GuidanceEvent,
+  event: AgentEvent,
   options: EvaluateOptions = {},
 ): EvaluationResult {
   const now = options.now ?? new Date();
@@ -143,7 +143,7 @@ export function resolveDecision(policy: Policy): PolicyDecision {
   return policy.decision;
 }
 
-export function matchesTriggerContext(matcher: TriggerContextMatcher | undefined, event: GuidanceEvent): boolean {
+export function matchesTriggerContext(matcher: TriggerContextMatcher | undefined, event: AgentEvent): boolean {
   if (matcher === undefined) return true;
   return (
     matchesFacet(matcher.app, event.context.app) &&

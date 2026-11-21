@@ -28,7 +28,7 @@ export interface SignalEscalation {
  * The only thing the policy engine hands to an embodiment layer. It carries
  * intent plus a presentation contract — never a command to touch the system.
  */
-export interface GuidanceSignal {
+export interface GateSignal {
   id: string;
   policy_id: string;
   decision: SignalDecision;
@@ -41,7 +41,7 @@ export interface GuidanceSignal {
   audit_level: AuditLevel;
 }
 
-export interface GuidanceResponse {
+export interface GateResponse {
   signal_id: string;
   action_id: ActionId;
   responded_at: string;

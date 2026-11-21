@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GuidanceEngine } from '../src/engine.js';
+import { AgentGate } from '../src/gate/index.js';
 import { createPetServer, listen } from '../src/pet/http.js';
 import { makePolicies } from './mcp-fixtures.js';
 import { newAudit, NOW } from './helpers.js';
 
 async function startPet(options: { max_events_per_minute?: number } = {}) {
-  const engine = new GuidanceEngine({
+  const engine = new AgentGate({
     policies: makePolicies(),
     audit: newAudit(),
     clock: { now: () => new Date(NOW) },
@@ -23,7 +23,7 @@ const EVENT_BODY = JSON.stringify({
     type: 'focus_block_started',
     timestamp: NOW,
     source: 'manual',
-    context: { app: 'Code', project: 'guidance-runtime' },
+    context: { app: 'Code', project: 'agent-gate' },
   },
 });
 
@@ -50,7 +50,7 @@ test('an event produces a signal the pet can render, and a response settles it',
 
   const evaluate = await fetch(`${pet.url()}/v1/events`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-guidance-now': NOW },
+    headers: { 'content-type': 'application/json', 'x-agent-gate-now': NOW },
     body: EVENT_BODY,
   });
   assert.equal(evaluate.status, 200);
@@ -90,7 +90,7 @@ test('a dismissal is never retried automatically', async (t) => {
   const first = (await (
     await fetch(`${pet.url()}/v1/events`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-guidance-now': NOW },
+      headers: { 'content-type': 'application/json', 'x-agent-gate-now': NOW },
       body: EVENT_BODY,
     })
   ).json()) as { signal: { id: string } | null };
@@ -106,7 +106,7 @@ test('a dismissal is never retried automatically', async (t) => {
   const second = (await (
     await fetch(`${pet.url()}/v1/events`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-guidance-now': NOW },
+      headers: { 'content-type': 'application/json', 'x-agent-gate-now': NOW },
       body: EVENT_BODY,
     })
   ).json()) as { signal: unknown; throttled: boolean };
@@ -143,7 +143,7 @@ test('the event endpoint is rate limited', async (t) => {
   const post = async () =>
     fetch(`${pet.url()}/v1/events`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-guidance-now': NOW },
+      headers: { 'content-type': 'application/json', 'x-agent-gate-now': NOW },
       body: EVENT_BODY,
     });
 

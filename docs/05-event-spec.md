@@ -1,4 +1,4 @@
-# 04 · 行为事件规范
+# 05 · 行为事件规范
 
 这是源数据层的契约。不发明新捕获格式，只定义语义超集，兼容 ActivityWatch 和 screenpipe 的现有字段。
 
@@ -77,5 +77,5 @@ event:
 
 ## 与宠物 / MCP 的关系
 
-事件是**引擎的输入**，不是宠物的输入。宠物只能看到 `GuidanceSignal`；Agent 通过 MCP 的 `guidance/evaluate` 提交事件。
+事件是**引擎的输入**，不是宠物的输入。宠物只能看到 `GateSignal`；Agent 通过 MCP 的 `gate/evaluate` 提交事件。
 这条边界防止宠物变成「直接监听原始行为的监控器」。

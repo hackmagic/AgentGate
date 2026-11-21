@@ -1,4 +1,4 @@
-import type { GuidanceEventType } from '../events/types.js';
+import type { AgentEventType } from '../events/types.js';
 
 export const POLICY_DECISIONS = ['suggest', 'require_approval', 'suppress', 'allow'] as const;
 export type PolicyDecision = (typeof POLICY_DECISIONS)[number];
@@ -27,7 +27,7 @@ export interface TriggerContextMatcher {
 }
 
 export interface PolicyTrigger {
-  event: GuidanceEventType;
+  event: AgentEventType;
   context?: TriggerContextMatcher;
 }
 

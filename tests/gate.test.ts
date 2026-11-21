@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { GuidanceEngine } from '../src/engine.js';
+import { AgentGate } from '../src/gate/index.js';
 import type { Policy } from '../src/policy/types.js';
 import { makeClock, makeEvent, makePolicy, newAudit, NOW, sequentialIds, TZ } from './helpers.js';
 
 function engineWith(policies: Policy[], options: { timezone?: string } = {}) {
   const clock = makeClock();
   const audit = newAudit();
-  const engine = new GuidanceEngine({
+  const engine = new AgentGate({
     policies,
     audit,
     clock,

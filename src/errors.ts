@@ -5,18 +5,18 @@ export interface ValidationIssue {
 }
 
 /** Base class for every error the runtime raises on purpose. */
-export class GuidanceError extends Error {
+export class AgentGateError extends Error {
   readonly code: string;
 
   constructor(code: string, message: string, options?: { cause?: unknown }) {
     super(message, options);
-    this.name = 'GuidanceError';
+    this.name = 'AgentGateError';
     this.code = code;
   }
 }
 
 /** A contract (policy / event / signal / audit record) failed validation. */
-export class ContractError extends GuidanceError {
+export class ContractError extends AgentGateError {
   readonly issues: readonly ValidationIssue[];
 
   constructor(code: string, message: string, issues: readonly ValidationIssue[] = []) {

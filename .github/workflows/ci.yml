@@ -55,6 +55,58 @@ jobs:
           test -f out/mcp.json
           ls out/skills
 
+      - name: Compilation parity
+        run: |
+          node dist/cli.js verify --policy packs/deep-work
+          node --input-type=module -e "
+            import { readFileSync } from 'node:fs';
+            const manifest = JSON.parse(readFileSync('out/compile-manifest.json', 'utf8'));
+            const hashes = new Set(manifest.artifacts.map((entry) => entry.source_hash));
+            if (hashes.size !== 1) {
+              console.error('artifacts disagree on source_hash:', [...hashes]);
+              process.exit(1);
+            }
+            if (!manifest.format_version) {
+              console.error('manifest has no format_version; consumers cannot tell stale from older');
+              process.exit(1);
+            }
+            console.log('parity ok:', manifest.artifacts.length, 'targets, format', manifest.format_version);
+          "
+
+      - name: Emitted artifacts carry their format version
+        run: |
+          grep -q 'format v1' out/AGENTS.md
+          grep -q 'format v1' out/README.md
+
+      - name: Policy lifecycle projects from audit history
+        run: |
+          node --input-type=module -e "
+            import { writeFileSync } from 'node:fs';
+            import { AgentGate, JsonlAuditStore, projectLifecycle } from './dist/index.js';
+            import { loadPolicies } from './dist/index.js';
+            writeFileSync('audit.jsonl', '');
+            const policies = loadPolicies(['packs/deep-work']).map((entry) => entry.policy);
+            const gate = new AgentGate({
+              policies,
+              audit: new JsonlAuditStore('audit.jsonl'),
+              clock: { now: () => new Date('2026-11-20T01:00:00Z') },
+              timezone: 'Asia/Shanghai',
+            });
+            gate.evaluate({
+              id: 'ci-evt', type: 'focus_block_started', timestamp: '2026-11-20T01:00:00Z',
+              source: 'manual', context: { app: 'Code', project: 'agent-gate', language: 'typescript' },
+              duration_seconds: null, metrics: {}, metadata: {},
+            });
+            const store = new JsonlAuditStore('audit.jsonl');
+            const state = projectLifecycle(policies, store.query(), new Date('2026-11-20T01:05:00Z'));
+            const active = state.filter((entry) => entry.state === 'active');
+            if (active.length === 0) {
+              console.error('lifecycle projection found no active policy after a match:', JSON.stringify(state));
+              process.exit(1);
+            }
+            console.log('lifecycle ok:', active.map((entry) => entry.policy_id).join(','));
+          "
+
       - name: Audit whitelist never widens
         run: |
           node --input-type=module -e "

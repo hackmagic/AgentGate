@@ -1,13 +1,15 @@
 {
-  "name": "guidance-runtime",
+  "name": "agent-gate",
   "version": "0.1.0",
   "private": false,
-  "description": "Personal guidance policy runtime: compile your working boundaries into portable guidance for any AI agent (AGENTS.md / SKILL.md / MCP).",
+  "description": "AgentGate — compile your personal boundaries into portable, auditable policy for any AI agent (AGENTS.md / SKILL.md / MCP).",
   "keywords": [
     "ai-agent",
     "mcp",
     "policy-engine",
-    "guidance",
+    "agent-gate",
+    "agent-policy",
+    "guardrails",
     "activitywatch",
     "focus",
     "typescript"
@@ -36,7 +38,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "guidance": "./dist/cli.js"
+    "gate": "./dist/cli.js"
   },
   "files": [
     "dist",

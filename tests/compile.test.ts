@@ -61,12 +61,12 @@ test('SKILL.md frontmatter and instructions mirror the policy decision', () => {
   const morning = policies.find((policy) => policy.id === 'morning-focus-protection');
   assert.ok(morning !== undefined);
 
-  const file = bundle.files.find((entry) => entry.path === 'skills/guidance-morning-focus-protection/SKILL.md');
+  const file = bundle.files.find((entry) => entry.path === 'skills/agent-gate-morning-focus-protection/SKILL.md');
   assert.ok(file !== undefined);
-  assert.match(file.content, /^---\nname: guidance-morning-focus-protection\n/);
+  assert.match(file.content, /^---\nname: agent-gate-morning-focus-protection\n/);
   assert.match(file.content, /description: /);
   assert.match(file.content, /require_approval/);
-  assert.match(file.content, /guidance\/evaluate/);
+  assert.match(file.content, /gate\/evaluate/);
   assert.match(file.content, /不得改写文案|原样交给呈现层/);
 
   const skillFiles = bundle.files.filter((entry) => entry.path.endsWith('SKILL.md'));
@@ -81,13 +81,13 @@ test('the MCP bundle ships an installable config plus reloadable policies', () =
   const parsed = JSON.parse(config.content) as {
     mcpServers: Record<string, { command: string; args: string[]; env?: Record<string, string> }>;
   };
-  const server = parsed.mcpServers['guidance'];
+  const server = parsed.mcpServers['agent-gate'];
   assert.ok(server !== undefined);
   assert.equal(server.command, 'npx');
-  assert.ok(server.args.join(' ').includes('guidance-runtime'));
+  assert.ok(server.args.join(' ').includes('agent-gate'));
   assert.ok(server.args.join(' ').includes('mcp'));
 
-  const policyFiles = bundle.files.filter((entry) => entry.path.startsWith('guidance-policies/'));
+  const policyFiles = bundle.files.filter((entry) => entry.path.startsWith('agent-gate-policies/'));
   assert.equal(policyFiles.length, policies.length);
 
   // The emitted YAML documents must round-trip through the validator.
@@ -101,14 +101,14 @@ test('the MCP bundle ships an installable config plus reloadable policies', () =
 });
 
 test('writeBundle materializes a bundle without escaping its directory', () => {
-  const directory = mkdtempSync(path.join(tmpdir(), 'guidance-compile-'));
+  const directory = mkdtempSync(path.join(tmpdir(), 'agent-gate-compile-'));
   try {
     const bundle = compilePolicies(policies, 'mcp');
     const written = writeBundle(bundle, directory);
 
     assert.equal(written.length, bundle.files.length);
     assert.ok(readFileSync(path.join(directory, 'mcp.json'), 'utf8').includes('mcpServers'));
-    const names = readdirSync(path.join(directory, 'guidance-policies'));
+    const names = readdirSync(path.join(directory, 'agent-gate-policies'));
     assert.equal(names.length, policies.length);
 
     const evil = { ...bundle, files: [{ path: '../escape.md', content: 'x', sha256: 'x' }] };

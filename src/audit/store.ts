@@ -19,7 +19,7 @@ export type AuditReason = (typeof AUDIT_REASONS)[number];
 
 /**
  * Content-free by construction. This whitelist is the audit contract from
- * docs/07-security-and-audit.md: never a window title, screenshot, clipboard
+ * docs/08-security-and-audit.md: never a window title, screenshot, clipboard
  * payload or keystroke.
  */
 export const AUDIT_FIELD_WHITELIST = [

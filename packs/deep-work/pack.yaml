@@ -1,7 +1,7 @@
 name: deep-work
 version: 1
 description: 深度工作保护包：专注时段静默、夜间免打扰、久坐提醒与上下文恢复
-author: guidance-runtime contributors
+author: agent-gate contributors
 policies:
   - morning-focus-protection
   - evening-quiet-hours

@@ -1,4 +1,4 @@
-# 03 · 引导策略 DSL 规范
+# 04 · 引导策略 DSL 规范
 
 > 本文件是契约。实现必须遵守；测试必须固定这些规则。
 
@@ -17,7 +17,7 @@ policy:
     event: focus_block_started
     context:
       app: [code, cursor, terminal]
-      project: [guidance-runtime]
+      project: [agent-gate]
       language: [typescript]
   conditions:                       # 可选；缺省视为「总是满足」
     all:
@@ -73,7 +73,7 @@ policy:
 
 ### 规则 1：suppress 不能自己动手
 
-`decision: suppress` 且 `requires_approval: true` 时，引擎只能产出 `GuidanceSignal(decision="require_approval")`，不得直接执行。
+`decision: suppress` 且 `requires_approval: true` 时，引擎只能产出 `GateSignal(decision="require_approval")`，不得直接执行。
 
 ```ts
 // src/policy/evaluate.ts

@@ -1,5 +1,5 @@
 import type { Policy } from '../policy/types.js';
-import { ENGINE_VERSION } from '../version.js';
+import { COMPILE_FORMAT_VERSION, ENGINE_VERSION } from '../version.js';
 import { decisionText, sourceHash, triggerLines } from './support.js';
 
 export interface McpBundleFile {
@@ -9,7 +9,7 @@ export interface McpBundleFile {
 
 /**
  * Compile policies into a self-contained MCP server bundle: a host config that
- * launches `guidance-runtime mcp`, copies of the policy files, and a README
+ * launches `agent-gate mcp`, copies of the policy files, and a README
  * that explains the three tools and the approval contract.
  */
 export function compileMcpBundle(policies: readonly Policy[]): McpBundleFile[] {
@@ -20,10 +20,10 @@ export function compileMcpBundle(policies: readonly Policy[]): McpBundleFile[] {
     content: `${JSON.stringify(
       {
         mcpServers: {
-          guidance: {
+          'agent-gate': {
             command: 'npx',
-            args: ['-y', 'guidance-runtime', 'mcp', '--policy', './guidance-policies'],
-            env: { GUIDANCE_ENGINE_VERSION: ENGINE_VERSION },
+            args: ['-y', 'agent-gate', 'mcp', '--policy', './agent-gate-policies'],
+            env: { AGENT_GATE_ENGINE_VERSION: ENGINE_VERSION },
           },
         },
       },
@@ -34,7 +34,7 @@ export function compileMcpBundle(policies: readonly Policy[]): McpBundleFile[] {
 
   for (const policy of policies) {
     files.push({
-      path: `guidance-policies/${policy.id}.yaml`,
+      path: `agent-gate-policies/${policy.id}.yaml`,
       content: `${JSON.stringify({ policy }, null, 2)}\n`,
     });
   }
@@ -45,19 +45,19 @@ export function compileMcpBundle(policies: readonly Policy[]): McpBundleFile[] {
 
 function renderReadme(policies: readonly Policy[]): string {
   const lines: string[] = [];
-  lines.push('# Guidance MCP bundle');
+  lines.push('# AgentGate MCP bundle');
   lines.push('');
   lines.push(
-    `由 guidance-runtime v${ENGINE_VERSION} 编译，包含 ${policies.length} 条策略。把 \`mcp.json\` 里的 \`guidance\` 条目合并进你的 MCP 客户端配置即可。`,
+    `由 agent-gate v${ENGINE_VERSION} 以编译格式 v${COMPILE_FORMAT_VERSION} 编译，包含 ${policies.length} 条策略。把 \`mcp.json\` 里的 \`agent-gate\` 条目合并进你的 MCP 客户端配置即可。`,
   );
   lines.push('');
   lines.push('## 工具');
   lines.push('');
   lines.push('| 工具 | 输入 | 输出 |');
   lines.push('| --- | --- | --- |');
-  lines.push('| `guidance/evaluate` | `{ event }` | `{ decision, signal, matched_policy_id, degraded }` |');
-  lines.push('| `guidance/list-policies` | `{}` | 策略清单 |');
-  lines.push('| `guidance/audit-query` | `{ since?, policy_id?, limit? }` | 内容无关的审计记录 |');
+  lines.push('| `gate/evaluate` | `{ event }` | `{ decision, signal, matched_policy_id, degraded }` |');
+  lines.push('| `gate/list-policies` | `{}` | 策略清单 |');
+  lines.push('| `gate/audit-query` | `{ since?, policy_id?, limit? }` | 内容无关的审计记录 |');
   lines.push('');
   lines.push('## 契约');
   lines.push('');

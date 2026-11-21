@@ -1,8 +1,8 @@
 import { addMinutes } from '../util/clock.js';
 import { truncateChars } from '../util/text.js';
-import type { GuidanceEvent } from '../events/types.js';
+import type { AgentEvent } from '../events/types.js';
 import type { AnimationHint, Policy, SignalDecision } from '../policy/types.js';
-import type { GuidanceSignal, SignalAction, SignalPresentation } from './types.js';
+import type { GateSignal, SignalAction, SignalPresentation } from './types.js';
 
 export const BUBBLE_MAX_CHARS = 30;
 
@@ -49,10 +49,10 @@ export interface BuildSignalOptions {
  */
 export function buildSignal(
   policy: Policy,
-  event: GuidanceEvent,
+  event: AgentEvent,
   decision: SignalDecision,
   options: BuildSignalOptions,
-): GuidanceSignal {
+): GateSignal {
   const presentation = buildPresentation(policy, decision);
   const durationMinutes = readDurationMinutes(policy.action?.parameters);
   const expiresAt = options.expires_at ?? (durationMinutes === null ? null : addMinutes(options.now, durationMinutes));

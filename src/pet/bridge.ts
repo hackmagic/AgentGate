@@ -1,15 +1,15 @@
-import { ContractError, GuidanceError } from '../errors.js';
-import type { GuidanceEngine, EvaluateOutcome, RespondOutcome } from '../engine.js';
+import { ContractError, AgentGateError } from '../errors.js';
+import type { AgentGate, EvaluateOutcome, RespondOutcome } from '../gate/index.js';
 import { normalizeEvent } from '../events/normalize.js';
-import type { GuidanceEvent } from '../events/types.js';
+import type { AgentEvent } from '../events/types.js';
 import { loadSchema } from '../schema/load.js';
 import { validateSchema } from '../schema/validator.js';
-import type { GuidanceSignal } from '../signal/types.js';
+import type { GateSignal } from '../signal/types.js';
 
-export const PET_ENGINE_NAME = 'guidance-runtime';
+export const PET_ENGINE_NAME = 'agent-gate';
 
 export interface PetBridgeOptions {
-  engine: GuidanceEngine;
+  engine: AgentGate;
   /** Hard cap on event submissions per minute; excess is 429. */
   max_events_per_minute?: number;
 }
@@ -23,7 +23,7 @@ export interface PetResponseResult extends RespondOutcome {
   action_id: string;
 }
 
-export class RateLimitError extends GuidanceError {
+export class RateLimitError extends AgentGateError {
   readonly retryAfterSeconds: number;
 
   constructor(retryAfterSeconds: number) {
@@ -39,7 +39,7 @@ export class RateLimitError extends GuidanceError {
  * to ask the engine to execute anything.
  */
 export class PetBridge {
-  private readonly engine: GuidanceEngine;
+  private readonly engine: AgentGate;
   private readonly maxEventsPerMinute: number;
   private eventTimestamps: number[] = [];
 
@@ -63,7 +63,7 @@ export class PetBridge {
   }
 
   /** GET /v1/signals/pending */
-  pending(): GuidanceSignal[] {
+  pending(): GateSignal[] {
     return this.engine.pending();
   }
 
@@ -75,7 +75,7 @@ export class PetBridge {
     };
   }
 
-  private parseEvent(payload: unknown): GuidanceEvent {
+  private parseEvent(payload: unknown): AgentEvent {
     const result = validateSchema(payload, loadSchema('pet-contract'));
     if (isRecord(payload) && !('event' in payload)) {
       // A bare event body is accepted for convenience; wrappers are canonical.

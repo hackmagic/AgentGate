@@ -1,4 +1,4 @@
-import type { GuidanceSignal } from '../signal/types.js';
+import type { GateSignal } from '../signal/types.js';
 import type { Policy, TriggerContextMatcher } from './types.js';
 
 export interface PolicySummary {
@@ -30,7 +30,7 @@ export function summarizePolicy(policy: Policy): PolicySummary {
   };
 }
 
-export function summarizeSignal(signal: GuidanceSignal): Record<string, unknown> {
+export function summarizeSignal(signal: GateSignal): Record<string, unknown> {
   return {
     id: signal.id,
     policy_id: signal.policy_id,

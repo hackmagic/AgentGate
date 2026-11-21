@@ -2,5 +2,5 @@
   "type": "focus_block_started",
   "timestamp": "2026-11-20T01:00:00Z",
   "source": "manual",
-  "context": { "app": "Code", "project": "guidance-runtime", "language": "typescript" }
+  "context": { "app": "Code", "project": "agent-gate", "language": "typescript" }
 }

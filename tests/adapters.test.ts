@@ -17,7 +17,7 @@ function windowRow(timestamp: string, duration: number, app: string, title: stri
   return { timestamp, duration, data: { app, title } };
 }
 
-test('the ActivityWatch example export becomes ordered guidance events', () => {
+test('the ActivityWatch example export becomes ordered agent-gate events', () => {
   const raw: unknown = JSON.parse(readFileSync(EXAMPLE, 'utf8'));
   const events = eventsFromActivityWatch(raw, { id_factory: () => 'evt' });
 
@@ -37,7 +37,7 @@ test('the ActivityWatch example export becomes ordered guidance events', () => {
   const first = events[0];
   assert.equal(first?.timestamp, '2026-11-20T01:00:00.000Z');
   assert.equal(first?.context.app, 'Code');
-  assert.equal(first?.context.project, 'guidance-runtime');
+  assert.equal(first?.context.project, 'agent-gate');
   assert.equal(first?.context.language, 'typescript');
   assert.equal(first?.duration_seconds, 2400);
   assert.equal(first?.source, 'activitywatch');
@@ -133,7 +133,7 @@ test('the bundled pack loads and validates', () => {
 });
 
 test('duplicate policy ids fail loudly', () => {
-  const directory = mkdtempSync(path.join(tmpdir(), 'guidance-dupes-'));
+  const directory = mkdtempSync(path.join(tmpdir(), 'agent-gate-dupes-'));
   try {
     const single = loadPolicyFile(path.join(PACK, 'policies', 'idle-return-resume.yaml')).policy;
     for (const name of ['a.yaml', 'b.yaml']) {

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guidance-runtime.dev/schemas/audit.schema.json",
-  "title": "GuidanceAuditRecord",
+  "$id": "https://agent-gate.dev/schemas/audit.schema.json",
+  "title": "AgentGateAuditRecord",
   "description": "Content-free audit line. Every field is whitelisted; window titles, screenshots, clipboard payloads and keystrokes are forbidden.",
   "type": "object",
   "additionalProperties": false,

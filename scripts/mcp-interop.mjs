@@ -24,14 +24,14 @@ const tools = await client.listTools();
 console.log('tools:', tools.tools.map((tool) => tool.name).join(', '));
 
 const result = await client.callTool({
-  name: 'guidance/list-policies',
+  name: 'gate/list-policies',
   arguments: {},
 });
 console.log('list-policies isError:', result.isError);
 const listed = JSON.parse(result.content.at(-1).text.split('\n').at(-1));
 console.log('policy ids:', listed.policies.map((policy) => policy.id).join(', '));
 
-const audit = await client.callTool({ name: 'guidance/audit-query', arguments: {} });
+const audit = await client.callTool({ name: 'gate/audit-query', arguments: {} });
 console.log('audit-query isError:', audit.isError);
 
 await client.close();

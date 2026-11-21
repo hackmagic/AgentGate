@@ -1,5 +1,5 @@
-import { GuidanceError } from '../errors.js';
-import type { GuidanceEvent } from '../events/types.js';
+import { AgentGateError } from '../errors.js';
+import type { AgentEvent } from '../events/types.js';
 import {
   isConditionGroup,
   WEEKDAYS,
@@ -10,7 +10,7 @@ import {
 } from './types.js';
 
 export interface ConditionContext {
-  event: GuidanceEvent;
+  event: AgentEvent;
   /** Reference instant for `time_window` / `day_of_week`. */
   now: Date;
   /** IANA time zone, e.g. `Asia/Shanghai`. */
@@ -100,7 +100,7 @@ function matchesWeekday(expected: ConditionValue, context: ConditionContext): bo
   return values.some((value) => WEEKDAY_ALIASES[String(value).toLowerCase()] === weekday);
 }
 
-function matchesNumericField(key: string, expected: ConditionValue, event: GuidanceEvent, warnings: string[]): boolean {
+function matchesNumericField(key: string, expected: ConditionValue, event: AgentEvent, warnings: string[]): boolean {
   const actual = resolveNumericField(key, event);
   if (actual === undefined) {
     warnings.push(`condition field "${key}" is not present on the event`);
@@ -142,7 +142,7 @@ function matchesNumericField(key: string, expected: ConditionValue, event: Guida
   }
 }
 
-function resolveNumericField(key: string, event: GuidanceEvent): number | undefined {
+function resolveNumericField(key: string, event: AgentEvent): number | undefined {
   const metric = event.metrics[key];
   if (typeof metric === 'number' && Number.isFinite(metric)) return metric;
   if (key === 'duration_seconds') {
@@ -178,7 +178,7 @@ function localParts(instant: Date, timeZone: string): LocalParts {
         hour12: false,
       });
     } catch (error) {
-      throw new GuidanceError('invalid_timezone', `unknown time zone "${timeZone}"`, { cause: error });
+      throw new AgentGateError('invalid_timezone', `unknown time zone "${timeZone}"`, { cause: error });
     }
     formatterCache.set(timeZone, formatter);
   }
@@ -195,14 +195,14 @@ function localParts(instant: Date, timeZone: string): LocalParts {
 /** `HH:MM-HH:MM`, inclusive start, exclusive end, wrapping past midnight. */
 export function matchesTimeWindow(window: string, context: ConditionContext): boolean {
   const match = /^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(window);
-  if (match === null) throw new GuidanceError('invalid_time_window', `invalid time_window "${window}"`);
+  if (match === null) throw new AgentGateError('invalid_time_window', `invalid time_window "${window}"`);
   const startHour = Number(match[1]);
   const startMinute = Number(match[2]);
   const endHour = Number(match[3]);
   const endMinute = Number(match[4]);
 
   if (startHour > 23 || endHour > 23 || startMinute > 59 || endMinute > 59) {
-    throw new GuidanceError('invalid_time_window', `invalid time_window "${window}"`);
+    throw new AgentGateError('invalid_time_window', `invalid time_window "${window}"`);
   }
 
   const parts = localParts(context.now, context.timezone);

@@ -1,5 +1,5 @@
 import { MemoryAuditStore } from '../src/audit/store.js';
-import type { GuidanceEvent } from '../src/events/types.js';
+import type { AgentEvent } from '../src/events/types.js';
 import type { Policy } from '../src/policy/types.js';
 import { manualClock } from '../src/util/clock.js';
 
@@ -34,13 +34,13 @@ export function makePolicy(overrides: Partial<Policy> & { id: string }): Policy 
   return { ...base, ...overrides };
 }
 
-export function makeEvent(overrides: Partial<GuidanceEvent> = {}): GuidanceEvent {
-  const base: GuidanceEvent = {
+export function makeEvent(overrides: Partial<AgentEvent> = {}): AgentEvent {
+  const base: AgentEvent = {
     id: 'evt-1',
     type: 'focus_block_started',
     timestamp: NOW,
     source: 'manual',
-    context: { app: 'Code', project: 'guidance-runtime', language: 'typescript' },
+    context: { app: 'Code', project: 'agent-gate', language: 'typescript' },
     duration_seconds: null,
     metrics: {},
     metadata: {},

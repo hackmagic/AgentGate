@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { ContractError } from '../errors.js';
-import type { EventContext, GuidanceEvent } from './types.js';
+import type { EventContext, AgentEvent } from './types.js';
 
 /** Subset of an ActivityWatch event row used by the adapter. */
 export interface ActivityWatchRow {
@@ -95,13 +95,13 @@ const LANGUAGE_BY_EXTENSION: Record<string, string> = {
 };
 
 /**
- * Convert an ActivityWatch export (array of buckets) into guidance events.
+ * Convert an ActivityWatch export (array of buckets) into agent-gate events.
  *
  * Emits `app_switch`, `focus_block_started`, `focus_block_ended` and
  * `idle_detected`. Events are ordered by timestamp; the export itself is
  * accepted either as a bucket array, a single bucket, or `{ buckets: [] }`.
  */
-export function eventsFromActivityWatch(input: unknown, options: ActivityWatchOptions = {}): GuidanceEvent[] {
+export function eventsFromActivityWatch(input: unknown, options: ActivityWatchOptions = {}): AgentEvent[] {
   const settings = {
     focus_block_minutes: options.focus_block_minutes ?? DEFAULTS.focus_block_minutes,
     gap_tolerance_seconds: options.gap_tolerance_seconds ?? DEFAULTS.gap_tolerance_seconds,
@@ -120,7 +120,7 @@ export function eventsFromActivityWatch(input: unknown, options: ActivityWatchOp
   const afkRows = collectRows(buckets, (bucket) => isAfkBucket(bucket));
 
   const ordered = [...windowRows].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
-  const events: GuidanceEvent[] = [];
+  const events: AgentEvent[] = [];
 
   const runs = buildRuns(ordered, settings.gap_tolerance_seconds);
   let previousRun: Run | null = null;
@@ -201,7 +201,7 @@ interface Run {
   rows: ActivityWatchRow[];
 }
 
-function compareEvents(a: GuidanceEvent, b: GuidanceEvent): number {
+function compareEvents(a: AgentEvent, b: AgentEvent): number {
   const byTime = Date.parse(a.timestamp) - Date.parse(b.timestamp);
   if (byTime !== 0) return byTime;
   return a.type.localeCompare(b.type);

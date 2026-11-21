@@ -58,10 +58,25 @@ npm run check      # typecheck + 架构检查 + 测试 + 规范校验 + 构建
 
 约定：
 
-- **先写测试**：`docs/03-policy-dsl.md` 的五条语义规则是硬约束，改引擎必须让对应测试继续绿；
+- **先写测试**：`docs/04-policy-dsl.md` 的五条语义规则是硬约束，改引擎必须让对应测试继续绿；
 - 纯函数核心（`policy/conditions`、`policy/evaluate`、`signal/build`）不许做 I/O、不许读系统时钟；
+- 组合层新增副作用要做成 `GateStage`，不要塞回 `AgentGate.evaluate()`；
+- 改编译产物形状必须 bump `COMPILE_FORMAT_VERSION`，并同步 `docs/06-compiler-spec.md`；
 - 新枚举值必须同时改 `schemas/*.schema.json` 和 `src/**/types.ts`——`validate-specs` 会拦住只改一边的情况；
 - 不要为了通过测试去改 `docs/` 里的 spec。
+
+### 改动落在哪一层
+
+改之前先确认代码属于哪一层（`docs/02-architecture.md` 有四层对照表）：
+
+| 你想改 | 去哪 | 别碰 |
+| --- | --- | --- |
+| 决策语义 | `src/policy/` | 不要 import `gate/` |
+| 限流 / 队列 / 审计 | `src/gate/` | 不要把决策逻辑搬进来 |
+| 产物渲染 | `src/compile/` | 不要忘了 `verify.ts` 的事实读取器 |
+| 呈现协议 | `src/pet/`、`src/mcp/` | 不要绕过组合层直接读事件 |
+
+`npm run lint` 会拒绝反向依赖，所以这条表是强制的，不是建议。
 
 ## 提交信息
 
@@ -77,7 +92,7 @@ docs(spec): clarify time_window boundary
 
 ## 报告问题
 
-请附上：策略 YAML、`guidance evaluate` 的完整输出、`node --version`。
+请附上：策略 YAML、`gate evaluate` 的完整输出、`node --version`。
 **不要**附真实窗口标题或截图内容——需要时用占位符（如 `secret.docx — Word` 替成 `a.docx — App`）。
 
 ## License

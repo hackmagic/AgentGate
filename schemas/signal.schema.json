@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guidance-runtime.dev/schemas/signal.schema.json",
-  "title": "GuidanceSignal",
+  "$id": "https://agent-gate.dev/schemas/signal.schema.json",
+  "title": "GateSignal",
   "description": "The only payload the engine hands to an embodiment layer (pet, HUD, CLI)",
   "type": "object",
   "additionalProperties": false,

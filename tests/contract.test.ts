@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
 import { assertAuditRecordSafe, createAuditRecord } from '../src/audit/store.js';
-import { GuidanceEngine } from '../src/engine.js';
+import { AgentGate } from '../src/gate/index.js';
 import { validatePolicyDocument } from '../src/policy/validate.js';
 import { loadSchema, schemaFiles } from '../src/schema/load.js';
 import { validateSignal } from '../src/signal/validate.js';
@@ -32,8 +32,8 @@ test('every contract schema is valid JSON and loadable', () => {
   }
 });
 
-test('a guidance signal only carries what the pet contract allows', () => {
-  const engine = new GuidanceEngine({
+test('a gate signal only carries what the pet contract allows', () => {
+  const engine = new AgentGate({
     policies: makePolicies(),
     audit: newAudit(),
     clock: { now: () => new Date(NOW) },
@@ -44,7 +44,7 @@ test('a guidance signal only carries what the pet contract allows', () => {
     type: 'focus_block_started',
     timestamp: NOW,
     source: 'manual',
-    context: { app: 'Code', project: 'guidance-runtime', language: 'typescript' },
+    context: { app: 'Code', project: 'agent-gate', language: 'typescript' },
     duration_seconds: null,
     metrics: {},
     metadata: {},

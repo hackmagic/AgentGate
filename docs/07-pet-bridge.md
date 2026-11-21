@@ -1,8 +1,8 @@
-# 06 · 具身交互接口规范
+# 07 · 具身交互接口规范
 
-宠物不是 Agent 的皮肤，是 `GuidanceSignal` 的具身呈现层。接口定义在引擎和宠物运行时之间，与具体宠物实现（dsh-pet / OpenPets / 其他）解耦。
+宠物不是 Agent 的皮肤，是 `GateSignal` 的具身呈现层。接口定义在引擎和宠物运行时之间，与具体宠物实现（dsh-pet / OpenPets / 其他）解耦。
 
-## 引擎 → 宠物：`guidance_signal`
+## 引擎 → 宠物：`gate_signal`
 
 ```yaml
 id: uuid
@@ -37,7 +37,7 @@ Schema：`schemas/signal.schema.json`。不变量由 `validateSignal()` 在构�
 - `bubble_text` ≤ 30 码点（CJK 算 1 个字符）；
 - `decision: require_approval` 必须至少有一个非 `approve` 的动作（**必须能拒绝**）。
 
-## 宠物 → 引擎：`guidance_response`
+## 宠物 → 引擎：`gate_response`
 
 ```yaml
 signal_id: uuid
@@ -55,9 +55,9 @@ responded_at: ISO8601
 4. 所有 `require_approval` 信号必须包含至少一个「拒绝」动作；
 5. 宠物动画和气泡文案**不得由 LLM 实时生成**，必须来自策略的 `presentation` 字段——保证可审计、可测试。
 
-约束 1 与 2 由 `GuidanceEngine` 的速率闸与 `mute` 状态机实现；约束 4 由 `validateSignal`；约束 5 由「信号里根本没有生成入口」保证。
+约束 1 与 2 由 `AgentGate` 的速率闸与 `mute` 状态机实现；约束 4 由 `validateSignal`；约束 5 由「信号里根本没有生成入口」保证。
 
-## HTTP 桥（`guidance pet`）
+## HTTP 桥（`gate pet`）
 
 默认监听 `127.0.0.1:3778`，只绑回环地址。
 
@@ -76,18 +76,18 @@ responded_at: ISO8601
 | 404 | 未知 `signal_id`、或该信号未提供此动作 |
 | 429 | 事件提交被限流（默认 60 次/分钟） |
 
-测试用 `X-Guidance-Now` 头覆盖服务端时钟：它同时决定求值时刻（`time_window` / `day_of_week`）、速率闸与过期判定，因此回放历史事件是可复现的。
+测试用 `X-Agent-Gate-Now` 头覆盖服务端时钟：它同时决定求值时刻（`time_window` / `day_of_week`）、速率闸与过期判定，因此回放历史事件是可复现的。
 
 ## 接入 dsh-pet 的方式
 
-利用其插件宿主的 `apply` 入口和 HTTP 路由表，把引擎的 `guidance_signal` 映射到宠物已有的气泡和动画池；不修改 dsh-pet 内核，只写适配插件。
+利用其插件宿主的 `apply` 入口和 HTTP 路由表，把引擎的 `gate_signal` 映射到宠物已有的气泡和动画池；不修改 dsh-pet 内核，只写适配插件。
 
 最小适配器形状：
 
 ```ts
 // 伪代码：dsh-pet 侧插件
 import { apply } from 'dsh-pet/host';
-import { PetBridgeClient } from 'guidance-runtime/pet';
+import { PetBridgeClient } from 'agent-gate/pet';
 
 apply((host) => {
   const client = new PetBridgeClient({ baseUrl: 'http://127.0.0.1:3778' });

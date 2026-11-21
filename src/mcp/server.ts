@@ -1,7 +1,7 @@
 import { createInterface } from 'node:readline';
 
-import { errorMessage, GuidanceError } from '../errors.js';
-import type { GuidanceEngine } from '../engine.js';
+import { errorMessage, AgentGateError } from '../errors.js';
+import type { AgentGate } from '../gate/index.js';
 import { normalizeEvent } from '../events/normalize.js';
 import { loadSchema } from '../schema/load.js';
 import type { JsonSchema } from '../schema/validator.js';
@@ -9,7 +9,7 @@ import { ENGINE_VERSION } from '../version.js';
 
 /** Stateless MCP core revision this server targets. */
 export const MCP_PROTOCOL_VERSION = '2026-07-28';
-export const SERVER_NAME = 'guidance-runtime';
+export const SERVER_NAME = 'agent-gate';
 
 export type JsonRpcId = string | number | null;
 
@@ -39,14 +39,14 @@ export interface ToolDefinition {
   inputSchema: JsonSchema;
 }
 
-export const TOOL_NAMES = ['guidance/evaluate', 'guidance/list-policies', 'guidance/audit-query'] as const;
+export const TOOL_NAMES = ['gate/evaluate', 'gate/list-policies', 'gate/audit-query'] as const;
 
 export function toolDefinitions(): ToolDefinition[] {
   return [
     {
-      name: 'guidance/evaluate',
+      name: 'gate/evaluate',
       description:
-        'Evaluate one normalized event against the loaded guidance policies. Returns the matched policy decision and, when the policy asks the user something, a guidance signal to present.',
+        'Evaluate one normalized event against the loaded gate policies. Returns the matched policy decision and, when the policy asks the user something, a gate signal to present.',
       inputSchema: {
         type: 'object',
         additionalProperties: false,
@@ -57,14 +57,14 @@ export function toolDefinitions(): ToolDefinition[] {
       },
     },
     {
-      name: 'guidance/list-policies',
-      description: 'List the loaded guidance policies with their trigger, decision and approval requirements.',
+      name: 'gate/list-policies',
+      description: 'List the loaded gate policies with their trigger, decision and approval requirements.',
       inputSchema: { type: 'object', additionalProperties: false, properties: {} },
     },
     {
-      name: 'guidance/audit-query',
+      name: 'gate/audit-query',
       description:
-        'Query the content-free guidance audit trail. Records never contain window titles, screenshots, clipboard or keystrokes.',
+        'Query the content-free gate audit trail. Records never contain window titles, screenshots, clipboard or keystrokes.',
       inputSchema: {
         type: 'object',
         additionalProperties: false,
@@ -79,7 +79,7 @@ export function toolDefinitions(): ToolDefinition[] {
 }
 
 export class McpServer {
-  constructor(private readonly engine: GuidanceEngine) {}
+  constructor(private readonly engine: AgentGate) {}
 
   /** Handle one JSON-RPC message. Returns null for notifications. */
   async handle(message: unknown): Promise<JsonRpcResponse | null> {
@@ -112,10 +112,10 @@ export class McpServer {
           serverInfo: {
             name: SERVER_NAME,
             version: this.engine.engineVersionNumber,
-            title: 'Guidance Runtime',
+            title: 'AgentGate',
           },
           instructions:
-            'Personal guidance policies compiled for agents. Call guidance/evaluate with a normalized event before acting; respect the returned decision.',
+            'Personal gate policies compiled for agents. Call gate/evaluate with a normalized event before acting; respect the returned decision.',
         };
 
       case 'notifications/initialized':
@@ -155,7 +155,7 @@ export class McpServer {
 
     try {
       switch (name) {
-        case 'guidance/evaluate': {
+        case 'gate/evaluate': {
           const event = normalizeEvent(args['event']);
           const outcome = this.engine.evaluate(event);
           const payload = {
@@ -172,12 +172,12 @@ export class McpServer {
           );
         }
 
-        case 'guidance/list-policies': {
+        case 'gate/list-policies': {
           const policies = this.engine.listPolicies();
           return toolResult({ policies }, `${policies.length} policies loaded`);
         }
 
-        case 'guidance/audit-query': {
+        case 'gate/audit-query': {
           const query: { since?: string; policy_id?: string; limit?: number } = {};
           if (typeof args['since'] === 'string') query.since = args['since'];
           if (typeof args['policy_id'] === 'string') query.policy_id = args['policy_id'];
@@ -190,7 +190,7 @@ export class McpServer {
           throw new RpcError(-32602, `unknown tool: ${name}`);
       }
     } catch (error) {
-      if (error instanceof GuidanceError) {
+      if (error instanceof AgentGateError) {
         return {
           content: [{ type: 'text', text: `${error.code}: ${error.message}` }],
           isError: true,
@@ -240,7 +240,7 @@ export interface StdioServer {
  * Stateless: every request carries everything it needs.
  */
 export function serveStdio(
-  engine: GuidanceEngine,
+  engine: AgentGate,
   streams: { input: NodeJS.ReadableStream; output: NodeJS.WritableStream } = {
     input: process.stdin,
     output: process.stdout,

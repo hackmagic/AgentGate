@@ -14,7 +14,7 @@
 | --- | --- |
 | 捕获器（ActivityWatch / screenpipe 重造） | 已有成熟工具；我们只定义语义超集 |
 | 通用记忆数据库（Mem0 / Letta / Zep 重造） | 与「引导」正交，做了会稀释内核 |
-| Web Dashboard / 团队版 / 非 Coding 场景 | MVP 之外，见 [08-mvp-roadmap](08-mvp-roadmap.md) |
+| Web Dashboard / 团队版 / 非 Coding 场景 | MVP 之外，见 [08-mvp-roadmap](09-mvp-roadmap.md) |
 | `autonomous` 默认行为 | 默认永远是只读 / 建议 / 需审批 |
 
 ## 成功标准（MVP 验收）
@@ -35,7 +35,7 @@
 
 ## 核心边界（不可交易）
 
-- **引擎不执行动作**：只产出 `GuidanceSignal`，执行发生在适配器且必须经用户批准。
+- **引擎不执行动作**：只产出 `GateSignal`，执行发生在适配器且必须经用户批准。
 - **审计不记内容**：只有九个白名单字段，没有窗口标题、截图、剪贴板、按键。
 - **文案不生成**：`bubble_text` 来自策略文件，不由模型即兴创作。
 

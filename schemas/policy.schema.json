@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://guidance-runtime.dev/schemas/policy.schema.json",
-  "title": "GuidancePolicy",
-  "description": "A single guidance policy, exactly as stored on disk under packs/*/policies/*.yaml",
+  "$id": "https://agent-gate.dev/schemas/policy.schema.json",
+  "title": "AgentGatePolicy",
+  "description": "A single AgentGate policy, exactly as stored on disk under packs/*/policies/*.yaml",
   "type": "object",
   "required": ["policy"],
   "additionalProperties": false,

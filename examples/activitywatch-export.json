@@ -11,7 +11,7 @@
         "duration": 600,
         "data": {
           "app": "Code",
-          "title": "policy.ts - guidance-runtime - Visual Studio Code"
+          "title": "policy.ts - agent-gate - Visual Studio Code"
         }
       },
       {
@@ -19,7 +19,7 @@
         "duration": 600,
         "data": {
           "app": "Code",
-          "title": "evaluate.ts - guidance-runtime - Visual Studio Code"
+          "title": "evaluate.ts - agent-gate - Visual Studio Code"
         }
       },
       {
@@ -27,7 +27,7 @@
         "duration": 600,
         "data": {
           "app": "Code",
-          "title": "conditions.ts - guidance-runtime - Visual Studio Code"
+          "title": "conditions.ts - agent-gate - Visual Studio Code"
         }
       },
       {
@@ -35,7 +35,7 @@
         "duration": 600,
         "data": {
           "app": "Code",
-          "title": "engine.ts - guidance-runtime - Visual Studio Code"
+          "title": "engine.ts - agent-gate - Visual Studio Code"
         }
       },
       {
@@ -43,7 +43,7 @@
         "duration": 900,
         "data": {
           "app": "Terminal",
-          "title": "npm test — ~/guidance-runtime"
+          "title": "npm test — ~/agent-gate"
         }
       },
       {
@@ -51,7 +51,7 @@
         "duration": 900,
         "data": {
           "app": "Code",
-          "title": "cli.ts - guidance-runtime - Visual Studio Code"
+          "title": "cli.ts - agent-gate - Visual Studio Code"
         }
       },
       {
@@ -59,7 +59,7 @@
         "duration": 900,
         "data": {
           "app": "Code",
-          "title": "mcp/server.ts - guidance-runtime - Visual Studio Code"
+          "title": "mcp/server.ts - agent-gate - Visual Studio Code"
         }
       },
       {
@@ -67,7 +67,7 @@
         "duration": 900,
         "data": {
           "app": "Code",
-          "title": "pet/bridge.ts - guidance-runtime - Visual Studio Code"
+          "title": "pet/bridge.ts - agent-gate - Visual Studio Code"
         }
       }
     ]

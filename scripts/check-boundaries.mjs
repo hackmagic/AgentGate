@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 /**
- * Architecture guard for the three-layer contract:
+ * Architecture guard for the layered contract (docs/02-architecture.md):
  *
- *   events (adapters)  →  policy + signal + audit (engine core)  →  pet / mcp / compile (surfaces)
+ *   events (adapters) → policy + signal + audit (pure core) → gate (composition)
+ *                                                          → pet / mcp / compile (surfaces)
  *
  * Imports may only point "downwards". Adapters must not know about policies;
- * the core must not know about pets, MCP or compiled artifacts; and the
- * adapters must never reach around the engine into the audit store directly
- * unless that is their documented job.
+ * the pure core must not know about the gate, pets, MCP or compiled artifacts;
+ * and only the composition layer may construct an AgentGate.
  *
  * Run with `npm run lint`.
  */
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,15 +20,22 @@ const SRC = path.join(ROOT, 'src');
 
 /** Layer → layers this layer is forbidden to import at runtime. */
 const FORBIDDEN = {
-  events: ['policy', 'signal', 'engine', 'pet', 'mcp', 'compile', 'audit'],
-  audit: ['engine', 'pet', 'mcp', 'compile'],
-  schema: ['engine', 'pet', 'mcp', 'compile', 'policy', 'signal', 'events', 'audit'],
-  util: ['engine', 'pet', 'mcp', 'compile', 'policy', 'signal', 'events', 'audit'],
-  policy: ['engine', 'pet', 'mcp', 'compile'],
-  signal: ['engine', 'pet', 'mcp', 'compile'],
+  events: ['policy', 'signal', 'gate', 'pet', 'mcp', 'compile', 'audit'],
+  audit: ['gate', 'pet', 'mcp', 'compile'],
+  schema: ['gate', 'pet', 'mcp', 'compile', 'policy', 'signal', 'events', 'audit'],
+  util: ['gate', 'pet', 'mcp', 'compile', 'policy', 'signal', 'events', 'audit'],
+  policy: ['gate', 'pet', 'mcp', 'compile'],
+  signal: ['gate', 'pet', 'mcp', 'compile'],
+  gate: ['pet', 'mcp', 'compile'],
+  compile: ['gate', 'pet', 'mcp'],
 };
 
-/** Files that must stay pure: value in → value out, no I/O, no clock access. */
+/**
+ * Files that must stay pure: value in → value out, no I/O, no clock access.
+ *
+ * `gate/` is deliberately absent: the gate is where composition and side
+ * effects are allowed to live. Everything a decision is made of stays here.
+ */
 const PURE = new Set([
   'policy/conditions.ts',
   'policy/evaluate.ts',
@@ -36,24 +43,36 @@ const PURE = new Set([
   'policy/validate.ts',
   'policy/summary.ts',
   'policy/types.ts',
+  'policy/lifecycle.ts',
   'signal/build.ts',
   'signal/validate.ts',
   'signal/types.ts',
   'events/normalize.ts',
+  'compile/support.ts',
+  'compile/verify.ts',
+  'compile/agents-md.ts',
+  'compile/skill-md.ts',
+  'compile/mcp-bundle.ts',
 ]);
 
 const IO_MODULES = new Set(['fs', 'fs/promises', 'http', 'https', 'net', 'readline', 'child_process', 'os']);
 
-/** Only these may construct a GuidanceEngine. */
-const ENGINE_IMPORTERS = new Set(['engine.ts', 'pet/bridge.ts', 'pet/http.ts', 'mcp/server.ts', 'cli.ts', 'index.ts']);
+/** Only these may construct an AgentGate. */
+const GATE_CONSTRUCTORS = new Set([
+  'gate/gate.ts',
+  'gate/index.ts',
+  'pet/bridge.ts',
+  'pet/http.ts',
+  'mcp/server.ts',
+  'cli.ts',
+  'index.ts',
+]);
 
 const problems = [];
 
 function layerOf(relPath) {
-  if (relPath === 'engine.ts') return 'engine';
-  const [first, second] = relPath.split('/');
-  if (second !== undefined) return first === 'util' || first === 'schema' ? first : first;
-  return 'misc';
+  const [first] = relPath.split('/');
+  return first ?? 'misc';
 }
 
 function walk(directory) {
@@ -94,17 +113,35 @@ for (const file of walk(SRC)) {
       problems.push(`${where} layer "${layer}" must not import "${targetLayer}" (${target})`);
     }
 
-    if (target === 'engine.ts' && !ENGINE_IMPORTERS.has(rel)) {
-      problems.push(`${where} constructs/consumes GuidanceEngine directly; go through an adapter (src/pet, src/mcp, src/cli)`);
+    if (targetLayer === 'gate' && !GATE_CONSTRUCTORS.has(rel) && !rel.startsWith('gate/')) {
+      problems.push(
+        `${where} layer "${layer}" must not consume the gate directly; go through an adapter (src/pet, src/mcp, src/cli)`,
+      );
     }
   });
 }
 
 /** Every public module must be reachable from src/index.ts. */
 const indexText = readFileSync(path.join(SRC, 'index.ts'), 'utf8');
-for (const required of ['engine', 'policy', 'signal', 'audit', 'events', 'pet', 'mcp', 'compile']) {
+for (const required of ['gate', 'policy', 'signal', 'audit', 'events', 'pet', 'mcp', 'compile']) {
   if (!indexText.includes(`'./${required}`) && !indexText.includes(`"./${required}`)) {
     problems.push(`src/index.ts does not re-export "./${required}"`);
+  }
+}
+
+/**
+ * Pure core must not read the clock or perform I/O. Nondeterministic ids are
+ * allowed, but only as an *injectable default*: a module that calls
+ * `randomUUID()` must also expose a factory option callers can override, so
+ * every decision stays reproducible in tests.
+ */
+for (const rel of PURE) {
+  const text = readFileSync(path.join(SRC, rel), 'utf8');
+  if (/\b(Date\.now|new Date\(\)|performance\.now)\b/.test(text)) {
+    problems.push(`${rel} is a pure module and must not read the system clock; take \`now\` as an argument`);
+  }
+  if (/from ['"]node:crypto['"]/.test(text) && !/(idFactory|id_factory|signal_id_factory)/.test(text)) {
+    problems.push(`${rel} generates ids without offering an injectable factory; tests cannot make it deterministic`);
   }
 }
 
@@ -115,4 +152,4 @@ if (problems.length > 0) {
   process.exit(1);
 }
 
-console.log('architecture check passed: adapters → engine → surfaces stays one-directional.');
+console.log('architecture check passed: adapters → pure core → gate → surfaces stays one-directional.');

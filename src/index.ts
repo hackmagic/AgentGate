@@ -4,11 +4,11 @@ export {
   EVENT_SOURCES,
   EVENT_TYPES,
   isEventSource,
-  isGuidanceEventType,
+  isAgentEventType,
   type EventContext,
   type EventSource,
-  type GuidanceEvent,
-  type GuidanceEventType,
+  type AgentEvent,
+  type AgentEventType,
 } from './events/types.js';
 
 export {
@@ -56,10 +56,20 @@ export {
   type PolicyMuteState,
 } from './policy/mute.js';
 export { summarizePolicy, summarizeSignal, type PolicySummary } from './policy/summary.js';
+export {
+  ARCHIVE_REASONS,
+  LIFECYCLE_STATES,
+  authoringState,
+  projectLifecycle,
+  type ArchiveReason,
+  type LifecycleState,
+  type LifecycleTransition,
+  type PolicyLifecycle,
+} from './policy/lifecycle.js';
 
 export { BUBBLE_MAX_CHARS, buildPresentation, buildSignal } from './signal/build.js';
 export { assertSignalInvariants, validateSignal } from './signal/validate.js';
-export { type GuidanceResponse, type GuidanceSignal, type SignalPresentation } from './signal/types.js';
+export { type GateResponse, type GateSignal, type SignalPresentation } from './signal/types.js';
 
 export {
   AUDIT_FIELD_WHITELIST,
@@ -74,12 +84,29 @@ export {
 } from './audit/store.js';
 
 export {
+  AgentGate,
   DEFAULT_PRESENTATION_WINDOW_MINUTES,
-  GuidanceEngine,
-  type EngineOptions,
+  SignalInbox,
+  ThrottleState,
+  append,
+  auditStage,
+  inboxStage,
+  isThrottled,
+  queryAudit,
+  runStages,
+  stageNames,
+  throttleStage,
+  type AppendInput,
+  type AuditSink,
+  type AuditStageOptions,
   type EvaluateOutcome,
+  type GateCall,
+  type GateOptions,
+  type GateStage,
+  type PendingSignal,
   type RespondOutcome,
-} from './engine.js';
+  type ThrottleOptions,
+} from './gate/index.js';
 
 export { createPetServer, errorStatus, listen, type PetServer, type PetServerOptions } from './pet/http.js';
 export { PET_ENGINE_NAME, PetBridge, RateLimitError, type PetBridgeOptions } from './pet/bridge.js';
@@ -97,6 +124,7 @@ export {
 } from './mcp/server.js';
 
 export {
+  COMPILE_FORMAT_VERSION,
   COMPILE_TARGETS,
   compileAllTargets,
   compilePolicies,
@@ -106,8 +134,17 @@ export {
   type CompiledFile,
 } from './compile/index.js';
 
+export {
+  readAgentsMd,
+  readSkillMd,
+  verifyCompilation,
+  type ArtifactFact,
+  type ParityIssue,
+  type ParityReport,
+} from './compile/verify.js';
+
 export { ENGINE_VERSION } from './version.js';
-export { ContractError, GuidanceError, errorMessage } from './errors.js';
+export { AgentGateError, ContractError, errorMessage } from './errors.js';
 export { validateSchema, formatSchemaIssues, type JsonSchema, type SchemaIssue } from './schema/validator.js';
 export { loadSchema, schemaFiles, type SchemaName } from './schema/load.js';
 export {

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { PassThrough } from 'node:stream';
 import test from 'node:test';
 
-import { GuidanceEngine } from '../src/engine.js';
+import { AgentGate } from '../src/gate/index.js';
 import { McpServer, serveStdio, TOOL_NAMES } from '../src/mcp/server.js';
 import type { JsonRpcResponse } from '../src/mcp/server.js';
 import { makeAudit, makePolicies } from './mcp-fixtures.js';
@@ -10,7 +10,7 @@ import { NOW } from './helpers.js';
 
 function newServer() {
   const audit = makeAudit();
-  const engine = new GuidanceEngine({
+  const engine = new AgentGate({
     policies: makePolicies(),
     audit,
     clock: { now: () => new Date(NOW) },
@@ -24,13 +24,13 @@ const EVALUATE_REQUEST = {
   id: 1,
   method: 'tools/call',
   params: {
-    name: 'guidance/evaluate',
+    name: 'gate/evaluate',
     arguments: {
       event: {
         type: 'focus_block_started',
         timestamp: NOW,
         source: 'manual',
-        context: { app: 'Code', project: 'guidance-runtime' },
+        context: { app: 'Code', project: 'agent-gate' },
       },
     },
   },
@@ -52,7 +52,7 @@ test('initialize advertises the protocol version and tool capability', async () 
   };
   assert.equal(result.protocolVersion, '2026-07-28');
   assert.equal(result.capabilities.tools.listChanged, false);
-  assert.equal(result.serverInfo.name, 'guidance-runtime');
+  assert.equal(result.serverInfo.name, 'agent-gate');
   assert.equal(result.serverInfo.version, '0.1.0');
 });
 
@@ -72,11 +72,11 @@ test('tools/list exposes exactly the compiled surface', async () => {
     [...TOOL_NAMES].sort(),
   );
 
-  const evaluate = result.tools.find((tool) => tool.name === 'guidance/evaluate');
+  const evaluate = result.tools.find((tool) => tool.name === 'gate/evaluate');
   assert.ok(evaluate?.inputSchema !== undefined);
 });
 
-test('guidance/evaluate returns a signal for a matching policy', async () => {
+test('gate/evaluate returns a signal for a matching policy', async () => {
   const { server } = newServer();
   const response = (await server.handle(EVALUATE_REQUEST)) as JsonRpcResponse;
   const result = response.result as {
@@ -90,13 +90,13 @@ test('guidance/evaluate returns a signal for a matching policy', async () => {
   assert.equal(result.structuredContent.signal?.presentation.bubble_text, '进入专注？');
 });
 
-test('guidance/evaluate turns contract failures into isError results, not crashes', async () => {
+test('gate/evaluate turns contract failures into isError results, not crashes', async () => {
   const { server } = newServer();
   const response = (await server.handle({
     jsonrpc: '2.0',
     id: 3,
     method: 'tools/call',
-    params: { name: 'guidance/evaluate', arguments: { event: { type: 'nope' } } },
+    params: { name: 'gate/evaluate', arguments: { event: { type: 'nope' } } },
   })) as JsonRpcResponse;
 
   const result = response.result as { isError: boolean; content: { text: string }[] };
@@ -104,7 +104,7 @@ test('guidance/evaluate turns contract failures into isError results, not crashe
   assert.match(result.content[0]?.text ?? '', /invalid_event/);
 });
 
-test('guidance/list-policies and guidance/audit-query answer from engine state', async () => {
+test('gate/list-policies and gate/audit-query answer from engine state', async () => {
   const { server } = newServer();
   await server.handle(EVALUATE_REQUEST);
 
@@ -112,7 +112,7 @@ test('guidance/list-policies and guidance/audit-query answer from engine state',
     jsonrpc: '2.0',
     id: 4,
     method: 'tools/call',
-    params: { name: 'guidance/list-policies', arguments: {} },
+    params: { name: 'gate/list-policies', arguments: {} },
   })) as JsonRpcResponse;
   const list = listResponse.result as { structuredContent: { policies: { id: string }[] } };
   assert.deepEqual(
@@ -124,7 +124,7 @@ test('guidance/list-policies and guidance/audit-query answer from engine state',
     jsonrpc: '2.0',
     id: 5,
     method: 'tools/call',
-    params: { name: 'guidance/audit-query', arguments: {} },
+    params: { name: 'gate/audit-query', arguments: {} },
   })) as JsonRpcResponse;
   const records = auditResponse.result as { structuredContent: { records: { policy_id: string }[] } };
   assert.equal(records.structuredContent.records[0]?.policy_id, 'mcp-focus');
@@ -153,14 +153,14 @@ test('unknown methods and malformed envelopes get JSON-RPC errors', async () => 
     jsonrpc: '2.0',
     id: 9,
     method: 'tools/call',
-    params: { name: 'guidance/nope' },
+    params: { name: 'gate/nope' },
   })) as JsonRpcResponse;
   assert.equal(badTool.error?.code, -32602);
 });
 
 test('serveStdio speaks newline-delimited JSON and supports batches', async () => {
   const audit = makeAudit();
-  const engine = new GuidanceEngine({
+  const engine = new AgentGate({
     policies: makePolicies(),
     audit,
     clock: { now: () => new Date(NOW) },
