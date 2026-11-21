@@ -370,7 +370,14 @@ for (const code of issuedCodes) {
 
 // AGENTS.md is the contributor contract; it must point at the live doc names.
 const agentsMd = readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8');
-for (const reference of ['docs/02-architecture.md', 'docs/04-policy-dsl.md', 'docs/06-compiler-spec.md']) {
+// Paths are the live Chinese-first layout; a stale path here means a reader
+// (or an agent) is sent to a file that no longer exists.
+for (const reference of [
+  'docs/zh-cn/02-architecture.md',
+  'docs/zh-cn/04-policy-dsl.md',
+  'docs/zh-cn/06-compiler-spec.md',
+  'docs/zh-cn/10-report-spec.md',
+]) {
   check(`AGENTS.md links ${reference}`, agentsMd.includes(reference));
 }
 

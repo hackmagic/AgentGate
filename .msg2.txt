@@ -1,0 +1,36 @@
+test(pet): end-to-end contract tests for both pet adapters
+
+The existing tests covered each adapter module in isolation. Nothing covered
+the seam: a real gate producing a real signal, the real dispatch path, and a
+transport standing in for the desktop app. That seam is where an adapter gets
+the routing or the ordering wrong while every unit still passes.
+
+`tests/pet-e2e-openpets.test.ts` drives the OpenPets adapter with a mock IPC
+that records every call, so it can assert what was *attempted*. The approve
+path proves a lease is acquired before the pet is touched and that a reaction
+carries that lease. The dismiss path proves the engine does not re-prompt
+inside its window. Cooldowns, forbidden-field leakage, config reversibility and
+swallowed transport failures each get a case.
+
+`tests/pet-e2e-dsh.test.ts` drives the DSH host adapter the way its host does:
+a stub Cordis context collects the routes it registers, a real HTTP server
+serves them, and a real bridge sits behind. That means a wrong route or a
+missing loopback fence fails here; calling handlers directly would hide both.
+
+What a mock cannot establish is marked `skip` with the reason rather than
+asserted optimistically: window routing, lease TTL teardown, and whether the
+real app rejects an out-of-enum reaction live in code this repository does not
+own. Five skips, each naming what would be needed.
+
+Two things the tests found:
+
+- the DSH config test initially asserted `isInstalled`/`removeConfig`, which
+  are the OpenPets API. The DSH adapter owns exactly one file and never edits a
+  neighbour, so its reversibility is narrower and the test now says so instead
+  of pretending the two are interchangeable;
+- `host/config.js` binds `CONFIG_PATH` from `DSH_HOME` at import time, so a
+  test that changed the environment afterwards was asserting its own import
+  order. It now drives the writer instead.
+
+Also updates the AGENTS.md path gate: it still required the pre-migration flat
+paths, and would have kept a stale reference alive forever.
