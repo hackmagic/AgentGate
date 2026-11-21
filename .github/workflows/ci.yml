@@ -75,8 +75,9 @@ jobs:
 
       - name: Emitted artifacts carry their format version
         run: |
-          grep -q 'format v1' out/AGENTS.md
-          grep -q 'format v1' out/README.md
+          grep -q '编译格式 v1' out/AGENTS.md
+          grep -q '编译格式 v1' out/README.md
+          grep -q '编译格式 v1' out/skills/agent-gate-morning-focus-protection/SKILL.md
 
       - name: Policy lifecycle projects from audit history
         run: |
