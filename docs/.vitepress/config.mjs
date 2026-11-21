@@ -75,7 +75,7 @@ export default defineConfig({
         {
           text: '开始',
           items: [
-            { text: '文档索引', link: '/README' },
+            { text: '文档索引', link: '/' },
             { text: '一页纸立项', link: '/00-project-brief' },
             { text: '产品需求', link: '/01-prd' },
           ],
@@ -112,7 +112,7 @@ export default defineConfig({
         {
           text: 'Start',
           items: [
-            { text: 'Documentation index', link: '/en/README' },
+            { text: 'Documentation index', link: '/en/' },
             { text: 'Project brief', link: '/en/00-project-brief' },
             { text: 'Product requirements', link: '/en/01-prd' },
           ],

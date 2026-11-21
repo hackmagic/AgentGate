@@ -13,7 +13,7 @@
  *
  *   npm run lint-docs
  */
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -191,6 +191,54 @@ for (const tree of TREES) {
         }
       }
     });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Navigation targets must exist as pages.
+//
+// The sidebar is written by hand and does not go through link resolution, so a
+// stale entry is invisible to every other check: the build succeeds, the page
+// builds, and the link 404s only once someone clicks it in a browser. This
+// happened with `/README`, which is the *source* path of the index page while
+// the site serves it at `/` because of `rewrites`.
+//
+// Each sidebar link is mapped the same way the build maps it, then compared with
+// the pages that actually exist.
+// ---------------------------------------------------------------------------
+
+const CONFIG = path.join(ROOT, 'docs', '.vitepress', 'config.mjs');
+if (existsSync(CONFIG)) {
+  const config = readFileSync(CONFIG, 'utf8');
+
+  /** Pages that will exist on the site, as clean URLs without a trailing slash. */
+  const sitePages = new Set(['/']);
+  for (const tree of TREES) {
+    for (const relative of walk(path.join(ROOT, tree))) {
+      const slug = relative.replace(/\.md$/, '');
+      // The source tree is rewritten to the root; the translation keeps its dir.
+      const served = tree === SOURCE_TREE ? slug : `${tree.replace(/^docs\//, '')}/${slug}`;
+
+      // `README` becomes the directory index, so it is served as the directory
+      // itself rather than as `/README`.
+      const isIndex = slug === 'README' || slug.endsWith('/README');
+      const withoutIndex = served.replace(/\/?README$/, '');
+      const clean = `/${withoutIndex}`.replace(/\/$/, '') || '/';
+
+      sitePages.add(clean);
+      sitePages.add(`${clean === '/' ? '' : clean}/`);
+      if (isIndex) sitePages.add(withoutIndex === '' ? '/' : `/${withoutIndex}/`);
+    }
+  }
+
+  for (const match of config.matchAll(/link:\s*'(\/[^']*)'/g)) {
+    const target = match[1];
+    const normalised = target.replace(/\/$/, '') || '/';
+    if (sitePages.has(normalised) || sitePages.has(target)) continue;
+    problems.push(
+      `docs/.vitepress/config.mjs: sidebar link "${target}" has no page; ` +
+        `the site serves the index at "/" because rewrites map README to index`,
+    );
   }
 }
 
