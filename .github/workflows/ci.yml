@@ -36,6 +36,9 @@ jobs:
       - name: Architecture boundaries
         run: npm run lint
 
+      - name: Bilingual documentation pairing
+        run: npm run verify-i18n
+
       - name: Tests
         run: npm test
 

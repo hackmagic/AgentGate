@@ -1,74 +1,82 @@
-# 06 · 编译器规范
+# 06 · Compiler specification
 
-> 本文件回答一个问题：**一条策略凭什么能到处运行**。
-> 运行时架构见 [02-architecture](02-architecture.md)；生命周期见 [03-policy-lifecycle](03-policy-lifecycle.md)。
+English | [中文](06-compiler-spec.zh.md)
 
-一条策略源，编译成三种目标形态：`AGENTS.md` 片段、`SKILL.md` 技能、MCP bundle。
-参考 transskill 的适配器模式：**源格式 → 目标适配器 → 输出**，不手写多份。
+> This document answers one question: **what makes one policy runnable everywhere**.
+> Runtime architecture is in [02-architecture](02-architecture.md); lifecycle is in
+> [03-policy-lifecycle](03-policy-lifecycle.md).
 
-「一条策略到处运行」如果只是口号，它就是不可验证的营销。这一章定义四个可检查的
-契约：**输入、输出、版本、一致性**。
+One policy source compiles into three target shapes: an `AGENTS.md` section, `SKILL.md` skills, and an
+MCP bundle. Following transskill's adapter pattern — **source format → target adapter → output** —
+rather than hand-writing each form.
 
-## 1. 编译器输入
+"One policy, runs everywhere" is unverifiable marketing unless it is checkable. This chapter defines
+four contracts that can be checked: **input, output, version, consistency**.
+
+## 1. Compiler input
 
 ```ts
 compilePolicies(policies: readonly Policy[], target: CompileTarget): CompilationBundle
 ```
 
-- `policies` 是已经通过 `validatePolicyDocument()` 的策略对象数组，编译器不再做语义校验；
-  它假设输入合法，并把非法输入当作调用方 bug（而不是在渲染时兜底）。
-- 排序固定为 `id` 升序，保证两次编译的字节完全一致。
-- 编译器是**纯函数**：不读文件、不读时钟、不生成随机 id。落盘由 `writeBundle()` 负责。
+- `policies` are `Policy` objects that already passed `validatePolicyDocument()`. The compiler does no
+  semantic validation; it assumes valid input and treats invalid input as a caller bug rather than
+  compensating during rendering.
+- Ordering is fixed to ascending `id`, so two compilations produce byte-identical output.
+- The compiler is a **pure function**: no file access, no clock, no generated randomness. Writing to
+  disk is `writeBundle()`'s job.
 
-## 2. 编译器输出
+## 2. Compiler output
 
-每个 bundle 携带四个元数据字段：
+Every bundle carries four metadata fields:
 
-| 字段 | 含义 |
+| Field | Meaning |
 | --- | --- |
 | `target` | `agents` / `skill` / `mcp` |
-| `engine_version` | 生成它的引擎版本（`0.1.0`） |
-| `format_version` | **渲染契约版本**（当前 `1`），与引擎版本解耦 |
-| `source_hash` | 策略集的 `sha256(stableStringify(sorted(policies)))` |
+| `engine_version` | The engine that produced it (`0.2.0`) |
+| `format_version` | The **rendering contract** version (currently `1`), decoupled from the engine version |
+| `source_hash` | `sha256(stableStringify(sorted(policies)))` |
 
-`files[]` 里每个文件带自己的 `sha256`，覆盖确切字节。这让「哪个产物过期了」可以逐文件回答，
-而不是只能整包重编。
+Each file in `files[]` carries its own `sha256` covering the exact bytes. That answers "which artifact
+is stale" per file instead of forcing a whole-bundle rebuild.
 
-### format_version 是什么
+### What format_version is for
 
-引擎版本回答「谁生成的」，格式版本回答「读者该怎么解析」。两者必须分开：
-修一个内部 bug 会让引擎版本变，但产物形状没变，已发布的 Agent 不需要重读；
-反过来，改了一章的标题，引擎版本可能不变，但所有 Agent 都要重读。
+The engine version answers "who generated this"; the format version answers "how should a reader parse
+it". They must stay separate. Fixing an internal bug moves the engine version while the artifact shape
+is unchanged, so an agent that already read it needs no re-read. Conversely, renaming a section heading
+may leave the engine version alone while every agent needs to re-read.
 
-**规则：只要某个目标的渲染形状变化到会让已发布的 Agent 读出不同含义，就 bump `format_version`。**
-它定义在 `src/version.ts`，由 `tests/parity.test.ts` 断言与产物一致。
+**Rule: bump `format_version` whenever a target's rendered shape changes in a way an already-shipped
+agent would read differently.** It is defined in `src/version.ts` and `tests/parity.test.ts` asserts it
+appears in the emitted artifacts.
 
-## 3. 目标格式矩阵
+## 3. Target format matrix
 
-| 策略字段 | → `AGENTS.md` | → `SKILL.md` | → MCP bundle |
+| Policy field | → `AGENTS.md` | → `SKILL.md` | → MCP bundle |
 | --- | --- | --- | --- |
-| `description` | 章节标题 | frontmatter `description` | bundle README 摘要 |
-| `trigger` + `conditions` | 「何时适用」段落 | Instructions 里的条件描述 | `gate/evaluate` 的 `inputSchema` 约束 |
-| `decision` + `action` | 「行为规则」段落 | Instructions 里的动作说明 | 返回值的 `decision` 字段 |
-| `safety` | 「禁止事项」段落 | Instructions 里的边界 | `requires_approval` 元数据 |
-| `presentation` | 「呈现」段落 | 呈现约束 | `signal.presentation` |
-| `priority` | 头部元信息行 | — | 引擎内部求值顺序 |
+| `description` | Chapter title | Frontmatter `description` | Bundle README summary |
+| `trigger` + `conditions` | "When it applies" paragraph | Condition description in Instructions | `gate/evaluate` `inputSchema` constraints |
+| `decision` + `action` | "Behaviour rules" paragraph | Action description in Instructions | The `decision` field of the response |
+| `safety` | "Prohibitions" paragraph | Boundaries in Instructions | `requires_approval` metadata |
+| `presentation` | "Presentation" paragraph | Presentation constraints | `signal.presentation` |
+| `priority` | Header metadata line | — | Internal evaluation order |
 
-### 三种产物的形状
+### The three artifact shapes
 
-**AGENTS.md** —— 一章一策略，便于把策略变更 diff 到 Agent 契约上：
+**AGENTS.md** — one chapter per policy, so a policy change diffs cleanly against the agent contract:
 
 ```
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.1.0 以编译格式 v1 从 5 条策略生成。…
-## 通用求值规则       ← 五条语义规则
-## 边界               ← 执行者不是策略制定者
-## {description}      ← 每条策略一章
+本文件由 agent-gate v0.3.0 以编译格式 v1 从 5 条策略生成。…
+## 通用求值规则       ← the five semantic rules
+## 边界               ← the executor is not the policy author
+## {description}      ← one chapter per policy
    > 策略 `<id>` v1 · 优先级 80 · 源哈希 `abcdef123456`
    ### 何时适用 / ### 行为规则 / ### 禁止事项 / ### 呈现
 ```
 
-**SKILL.md** —— 每个策略一个技能，目录 `skills/agent-gate-<policy-id>/SKILL.md`：
+**SKILL.md** — one skill per policy, at `skills/agent-gate-<policy-id>/SKILL.md`:
 
 ```yaml
 ---
@@ -77,15 +85,15 @@ description: 工作日早上进入专注块时…（个人引导策略 morning-f
 ---
 ```
 
-正文 Instructions 明确四步：调 `gate/evaluate` → 按 `decision` 行动 → 原样呈现文案 →
-回传 `signal_id` / `action_id`。
+The Instructions body defines four steps: call `gate/evaluate` → act on `decision` → present the copy
+verbatim → send back `signal_id` / `action_id`.
 
-**MCP bundle**：
+**MCP bundle**:
 
 ```
-mcp.json                          # 可直接合并进 MCP 客户端配置
-agent-gate-policies/<id>.yaml     # 策略副本（可被 CLI 重新加载）
-README.md                         # 工具表 + 契约摘要
+mcp.json                          # merge straight into an MCP client config
+agent-gate-policies/<id>.yaml     # policy copies, reloadable by the CLI
+README.md                         # tool table plus the contract summary
 ```
 
 ```json
@@ -94,83 +102,86 @@ README.md                         # 工具表 + 契约摘要
     "agent-gate": {
       "command": "npx",
       "args": ["-y", "agent-gate", "mcp", "--policy", "./agent-gate-policies"],
-      "env": { "AGENT_GATE_ENGINE_VERSION": "0.1.0" }
+      "env": { "AGENT_GATE_ENGINE_VERSION": "0.3.0" }
     }
   }
 }
 ```
 
-## 4. 一致性契约（这是重点）
+## 4. The consistency contract (the important part)
 
-一致性有两半，缺一不可。只做一半会产生一种很糟的假安全感。
+Consistency has two halves. Skipping either produces a comfortable false confidence.
 
-### 4.1 身份：三个目标描述同一份策略集
+### 4.1 Identity: the three targets describe one policy set
 
-`source_hash` 在三个目标里必须相同。它抓的是「编译器按目标渲染了不同输入」这类 bug。
+`source_hash` must be identical across the three targets. That catches a compiler rendering different
+inputs per target.
 
-### 4.2 保真：从产物里读回来的事实与源策略一致
+### 4.2 Fidelity: facts read back from the artifact match the source policy
 
-光有 hash 不够：一个丢字段的渲染器可以保持 hash 不变（hash 算的是输入）。所以
-`verifyCompilation()` 把产物**当文本读回来**，恢复四项事实，与源策略逐条比对：
+The hash alone is not enough: a renderer that drops a field keeps the hash unchanged, because the hash
+covers the input. So `verifyCompilation()` reads the artifacts **back as text**, recovers four facts,
+and compares them against the source policy one by one:
 
-| 事实 | 从哪读 |
+| Fact | Where it is read from |
 | --- | --- |
 | `policy_id` | `> 策略 \`<id>\`` / `策略 \`<id>\`` |
-| `decision` | `- 决策：\`<decision>\`` / 指令列表项 |
-| `requires_approval` | 安全性段落的第一句 |
-| `bubble_text` | 「气泡文案（固定…）：…」 |
+| `decision` | `- 决策：\`<decision>\`` / the instruction list item |
+| `requires_approval` | The first sentence of the safety section |
+| `bubble_text` | "气泡文案（固定…）：…" |
 
-从**发出的字节**读，而不是比内存对象——这一点是刻意的：内存比对即使在渲染器丢字段时
-也会通过。
+It reads from the **emitted bytes** rather than comparing in-memory objects. That is deliberate: an
+in-memory comparison would pass even when the renderer loses a field.
 
 ```bash
-gate verify --policy packs/deep-work          # 三个目标，全量
-gate compile --policy packs/deep-work --out out --target all   # 编译内含校验，失败即中止
+gate verify --policy packs/deep-work          # all three targets
+gate compile --policy packs/deep-work --out out --target all   # compile verifies and aborts on failure
 ```
 
-### 4.3 一致性错误码
+### 4.3 Consistency error codes
 
-| code | 触发条件 |
+| code | Trigger |
 | --- | --- |
-| `source_hash_mismatch` | 目标之间的 `source_hash` 不同 |
-| `format_version_mismatch` | 目标之间由不同格式版本渲染 |
-| `missing_policy` | 某条源策略在某个目标里消失了 |
-| `unknown_policy` | 某个目标里出现了源策略集之外的 id |
-| `decision_drift` | 产物里的 decision 与源策略不同 |
-| `approval_drift` | 产物里的审批立场与源策略不同 |
-| `copy_drift` | 产物里的文案与源策略不同 |
-| `invalid_policy_copy` | MCP bundle 里的策略副本无法通过校验器 round-trip |
-| `unparsable_policy_copy` | 策略副本不是合法 JSON |
-| `missing_artifact` / `unparsable_skill` | 目标缺了关键产物，或产物无法解析 |
-| `unknown_target` | 出现了没有事实读取器的目标（编译器新增目标但校验器未跟上） |
+| `source_hash_mismatch` | Targets disagree on `source_hash` |
+| `format_version_mismatch` | Targets were rendered by different format versions |
+| `missing_policy` | A source policy disappeared from some target |
+| `unknown_policy` | A target mentions an id outside the source policy set |
+| `decision_drift` | The artifact's decision differs from the source policy |
+| `approval_drift` | The artifact's approval stance differs from the source policy |
+| `copy_drift` | The artifact's copy differs from the source policy |
+| `invalid_policy_copy` | An MCP policy copy fails the validator round-trip |
+| `unparsable_policy_copy` | A policy copy is not valid JSON |
+| `missing_artifact` / `unparsable_skill` | A target lacks a key artifact, or it cannot be parsed |
+| `unknown_target` | A target appeared with no fact reader (compiler grew a target, verifier did not) |
 
-### 4.4 验收标准
+### 4.4 Acceptance criteria
 
-> 给定同一条 `morning-focus-protection` 策略，编译命令能产出合法的 `AGENTS.md` 片段、
-> `SKILL.md` 文件和可启动的 MCP Server；三者对同一模拟事件的求值结果一致。
+> Given the same `morning-focus-protection` policy, the compile command produces a valid `AGENTS.md`
+> section, a `SKILL.md` file and a startable MCP server; all three agree when evaluating the same
+> simulated event.
 
-在仓库里的落点：
+Where that lives in the repository:
 
-| 断言 | 测试 |
+| Assertion | Test |
 | --- | --- |
-| 三目标 `source_hash` 相同且稳定 | `tests/parity.test.ts` |
-| 每个目标都能读回每条策略 | `tests/parity.test.ts` |
-| 丢字段会被抓住 | `tests/parity.test.ts`（`approval_drift` 用例） |
-| 少一条策略会被抓住 | `tests/parity.test.ts`（`missing_policy` 用例） |
-| MCP 策略副本可 round-trip | `tests/parity.test.ts` + `tests/compile.test.ts` |
-| AGENTS.md 与 SKILL.md 读出的事实相同 | `tests/parity.test.ts` |
+| All three `source_hash` values match and are stable | `tests/parity.test.ts` |
+| Every target yields every policy | `tests/parity.test.ts` |
+| A dropped field is caught | `tests/parity.test.ts` (the `approval_drift` case) |
+| A missing policy is caught | `tests/parity.test.ts` (the `missing_policy` case) |
+| MCP policy copies round-trip | `tests/parity.test.ts` + `tests/compile.test.ts` |
+| AGENTS.md and SKILL.md yield identical facts | `tests/parity.test.ts` |
 
-## 5. 产物清单
+## 5. Artifact manifest
 
 ```bash
 gate compile --policy packs/deep-work --out out --target all
 ```
 
-写 `out/compile-manifest.json`：
+Writes `out/compile-manifest.json`:
 
 ```json
 {
-  "engine_version": "0.1.0",
+  "engine_version": "0.3.0",
   "format_version": "1",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
@@ -182,16 +193,18 @@ gate compile --policy packs/deep-work --out out --target all
 }
 ```
 
-`artifacts` 让消费方能判断**具体哪个产物**过期，而不是只知道整包变了。
+`artifacts` lets a consumer tell **which specific artifact** is stale, instead of only knowing the whole
+bundle changed.
 
-## 6. 版本兼容承诺
+## 6. Version compatibility promises
 
-| 承诺 | 含义 |
+| Promise | Meaning |
 | --- | --- |
-| `format_version` 只增不改语义 | 同一 `format_version` 内，章节标题与字段位置稳定 |
-| 未知字段被忽略，不报错 | 新增策略字段不破坏旧产物 |
-| `source_hash` 算法不变 | 跨版本的 hash 保持可比 |
-| 产物永远自描述 | 头部写明引擎版本与格式版本，不需要旁查 |
+| `format_version` only grows, never remeans | Within one `format_version`, section titles and field positions are stable |
+| Unknown fields are ignored, not rejected | A new policy field does not break older artifacts |
+| The `source_hash` algorithm is fixed | Hashes stay comparable across versions |
+| Artifacts are always self-describing | The header states engine version and format version; no side lookup needed |
 
-不承诺：**产物文本逐字节跨大版本稳定**。渲染是给人读的，标题措辞会随文档改进变化；
-兼容性由 `format_version` 承载，不由字节承载。
+Not promised: **byte-identical artifact text across major versions**. Rendering is written for humans
+and headings improve as the documentation does. Compatibility is carried by `format_version`, not by
+bytes.

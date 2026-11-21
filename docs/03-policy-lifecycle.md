@@ -1,78 +1,86 @@
-# 03 · 策略生命周期
+# 03 · Policy lifecycle
 
-> 本文件回答一个问题：**一条策略从写到死，经历什么**。
-> 语义规则见 [04-policy-dsl](04-policy-dsl.md)；编译产物见 [06-compiler-spec](06-compiler-spec.md)。
+English | [中文](03-policy-lifecycle.zh.md)
 
-策略引擎和普通规则引擎的区别不在「能不能匹配」，而在**匹配之后用户能不能反悔**。
-这条链路的每一环都必须可观测，否则社区不敢贡献策略——没人愿意提交一条自己看不见
-后果、也关不掉的规则。
+> This document answers one question: **what happens to a policy from first write to retirement**.
+> Semantic rules live in [04-policy-dsl](04-policy-dsl.md); compiled artifacts live in
+> [06-compiler-spec](06-compiler-spec.md).
 
-## 状态机
+A policy engine differs from a plain rules engine not in whether it can match, but in whether the
+user can **take it back** afterwards. Every link in that chain has to be observable, or nobody will
+contribute a policy: no one wants to submit a rule whose consequences they cannot see and cannot
+switch off.
+
+## The state machine
 
 ```mermaid
 stateDiagram-v2
-    [*] --> draft: 写入 packs/*/policies/*.yaml
-    draft --> validated: 通过 schema + 语义校验
-    validated --> active: 首次被引擎求值
-    active --> muted: 连续 N 次 dismiss，或用户选 mute_1h
-    muted --> active: approve，或静音窗口到期
-    active --> archived: 操作者归档
-    muted --> archived: 操作者归档
+    [*] --> draft: written to packs/*/policies/*.yaml
+    draft --> validated: passes schema + semantic validation
+    validated --> active: first evaluation by the engine
+    active --> muted: N consecutive dismissals, or mute_1h
+    muted --> active: approve, or the mute window elapses
+    active --> archived: operator archives it
+    muted --> archived: operator archives it
     archived --> [*]
 ```
 
-| 状态 | 含义 | 谁决定 |
+| State | Meaning | Decided by |
 | --- | --- | --- |
-| `draft` | 文件存在，但校验不通过 | 校验器（`validatePolicyDocument`） |
-| `validated` | 合法，但从未被求值 | 校验器 |
-| `active` | 引擎正在使用它 | 第一条审计记录 |
-| `muted` | 用户让它闭嘴 | 用户回执 |
-| `archived` | 退役，但保留历史 | 操作者，且必须写原因 |
+| `draft` | The file exists but does not validate | The validator (`validatePolicyDocument`) |
+| `validated` | Legal, but never evaluated | The validator |
+| `active` | The engine is using it | The first audit record |
+| `muted` | The user silenced it | A user response |
+| `archived` | Retired, history retained | An operator, with a mandatory reason |
 
-## 状态从哪来：审计是唯一事实来源
+## Where state comes from: the audit log is the only source of truth
 
-不维护第二份状态文件。引擎唯一持久化的东西是审计日志，所以生命周期是它的**投影**：
+There is no second state file. The only thing the engine persists is the audit log, so lifecycle is a
+**projection** of it:
 
 ```ts
 projectLifecycle(policies, auditRecords, now, { archives })
 ```
 
-这条设计的两点好处：
+Two consequences, both deliberate:
 
-1. **不会漂移**：状态文件可以和实际行为不一致，投影不会；
-2. **可回放**：给定同一份审计日志与 `now`，任何时刻都能重建当时的状态。
+1. **It cannot drift.** A state file can disagree with actual behaviour; a projection cannot.
+2. **It is replayable.** Given the same audit log and a `now`, you can reconstruct the state at any
+   past instant.
 
-没有审计历史的策略报告为 `validated`，**绝不猜成 `active`**：没被求值过就是没被求值过。
+A policy with no audit history is reported as `validated`, **never guessed as `active`**: if it was
+never evaluated, it was never evaluated.
 
-### 投影规则
+### Projection rules
 
-| 审计 `reason` | 对生命周期的影响 |
+| Audit `reason` | Effect on lifecycle |
 | --- | --- |
-| `matched` / `degraded` / `rate_limited` | → `active`（引擎确实加载并求值了它） |
-| `user_approved` | → `active`，dismiss 计数归零，清掉静音窗口 |
-| `user_dismissed` | 计数 +1；状态不变 |
-| `user_muted`（`mute_1h`） | → `muted`，开一个 60 分钟窗口；**不改计数** |
-| `muted`（阈值静音） | → `muted`，无到期时间 |
+| `matched` / `degraded` / `rate_limited` | → `active` (the engine really did load and evaluate it) |
+| `user_approved` | → `active`, dismissal count resets, mute window cleared |
+| `user_dismissed` | Count +1; state unchanged |
+| `user_muted` (`mute_1h`) | → `muted`, opens a 60-minute window; **does not change the count** |
+| `muted` (threshold mute) | → `muted`, no expiry |
 
-`user_muted` 不改计数这条容易写错，所以它是 [04-policy-dsl](04-policy-dsl.md) 规则 5 的一部分，
-由 `tests/lifecycle.test.ts` 固定。
+`user_muted` not changing the count is easy to get wrong, so it is part of rule 5 in
+[04-policy-dsl](04-policy-dsl.md) and is pinned by `tests/lifecycle.test.ts`.
 
-## 静音的两种形态
+## Two shapes of "be quiet"
 
-同一个「闭嘴」动作有两种语义，混淆它们会让用户困惑：
+The same "silence it" gesture has two semantics; conflating them confuses users:
 
-| 形态 | 触发 | 到期 | 计数 |
+| Shape | Trigger | Expiry | Count |
 | --- | --- | --- | --- |
-| 有界静音 | 用户点 `mute_1h` | 60 分钟后由时钟自动解除 | 不变 |
-| 无界静音 | 连续 3 次 `dismiss` | 只有 `approve` 或显式解除 | 重置为 0 |
+| Bounded mute | User picks `mute_1h` | Lifted by the clock after 60 minutes | Unchanged |
+| Unbounded mute | Three consecutive `dismiss` | Only `approve` or an explicit unmute | Reset to 0 |
 
-有界静音的到期**不需要新审计记录**：`projectLifecycle` 把 `now` 与 `muted_until` 一比，
-就地把状态折回 `active`，并追加一条 `mute_window_elapsed` 转换。这样「为什么它自己
-恢复了」也有据可查。
+A bounded mute expiring **needs no new audit record**: `projectLifecycle` compares `now` against
+`muted_until`, folds the state back to `active`, and appends a `mute_window_elapsed` transition. So
+"why did it come back by itself?" also has a written answer.
 
-## 归档
+## Archiving
 
-归档是**操作者行为**，不是推断出来的。它是 `ProjectLifecycleOptions.archives` 的显式输入：
+Archiving is an **operator action**, never inferred. It is explicit input to
+`ProjectLifecycleOptions.archives`:
 
 ```ts
 projectLifecycle(policies, records, now, {
@@ -80,16 +88,16 @@ projectLifecycle(policies, records, now, {
 });
 ```
 
-| `reason` | 何时用 |
+| `reason` | When to use it |
 | --- | --- |
-| `superseded` | 被另一条策略取代 |
-| `retired` | 场景不再需要 |
-| `experimental` | 试验失败，撤下 |
-| `revised` | 拆成了更细的几条 |
+| `superseded` | Another policy replaced it |
+| `retired` | The situation no longer applies |
+| `experimental` | An experiment failed; withdraw it |
+| `revised` | Split into several finer policies |
 
-归档优先于任何运行时状态：即使当时正处于 `muted`，归档后也报告为 `archived`。
+Archiving outranks any runtime state: even a policy that was `muted` reports `archived` afterwards.
 
-## 可观测性
+## Observability
 
 ```bash
 gate lifecycle --policy packs/deep-work --audit ./audit.jsonl --now 2026-11-20T05:00:00Z
@@ -101,14 +109,14 @@ gate lifecycle --policy packs/deep-work --audit ./audit.jsonl --now 2026-11-20T0
 ]
 ```
 
-`transitions` 保留完整转换序列，`tests/lifecycle.test.ts` 逐条断言它——因为
-「这条策略为什么现在是 muted」的答案必须是数据，不能是调试会话。
+`transitions` keeps the whole sequence, and `tests/lifecycle.test.ts` asserts it line by line —
+because the answer to "why is this policy muted now" has to be data, not a debugging session.
 
-## 贡献一条策略时要知道的四件事
+## Four things to know before contributing a policy
 
-1. **默认保守**：能 `require_approval` 就不要 `suppress`；
-2. **能拒绝**：`require_approval` 的信号至少含一个非 `approve` 动作，否则用户没有出口；
-3. **会静音**：连续 3 次否决后这条策略自己闭嘴，并建议你改条件——被静音不是 bug，是反馈；
-4. **可归档**：任何策略都能被操作者退役，历史审计不受影响。
+1. **Be conservative by default**: prefer `require_approval` over `suppress`.
+2. **Allow refusal**: a `require_approval` signal must offer at least one non-`approve` action, or the user has no exit.
+3. **It will mute itself**: three consecutive rejections silence the policy and suggest changing the condition — being muted is feedback, not a bug.
+4. **It can always be archived**: an operator can retire any policy, and the audit history is unaffected.
 
-模板与评审标准见 [CONTRIBUTING.md](../CONTRIBUTING.md)。
+Templates and review criteria are in [CONTRIBUTING.md](../CONTRIBUTING.md).

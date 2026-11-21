@@ -1,43 +1,63 @@
-# 文档索引
+# Documentation index
 
-三份主文档各回答一个问题，其余是契约附件。
+English | [中文](README.zh.md)
 
-| 文档 | 回答什么 | 何时读 |
+Three documents each answer one question; the rest are contract appendices.
+
+| Document | Answers | Read it when |
 | --- | --- | --- |
-| [00 · 一页纸立项](00-project-brief.md) | 做什么、不做什么 | 第一次了解这个项目 |
-| [01 · 产品需求](01-prd.md) | 为谁解决什么 | 判断某个需求在不在范围内 |
-| [**02 · 运行时架构**](02-architecture.md) | **系统怎么跑** | 改代码前必读；含分层约束与中间件链 |
-| [**03 · 策略生命周期**](03-policy-lifecycle.md) | **一条策略从生到死** | 贡献策略、排查「为什么它不弹了」 |
-| [04 · 策略 DSL](04-policy-dsl.md) | 策略怎么写、五条语义规则 | 写策略、改求值器 |
-| [05 · 行为事件规范](05-event-spec.md) | 引擎的输入长什么样 | 写适配器 |
-| [**06 · 编译器规范**](06-compiler-spec.md) | **怎么保证到处运行一致** | 改编译器、判断产物是否过期 |
-| [07 · 具身交互接口](07-pet-bridge.md) | 信号怎么呈现给用户 | 写宠物 / 悬浮层 |
-| [08 · 安全与审计](08-security-and-audit.md) | 权限分级与审计边界 | 涉及隐私或执行能力时 |
-| [09 · 路线图与验收](09-mvp-roadmap.md) | 已完成什么、下一步做什么 | 找可贡献的入口 |
+| [00 · Project brief](00-project-brief.md) | What this is, and what it is not | Learning about the project for the first time |
+| [01 · Product requirements](01-prd.md) | Who it serves and what for | Deciding whether a request is in scope |
+| [**02 · Runtime architecture**](02-architecture.md) | **How the system runs** | Before changing code; layer constraints and the middleware chain |
+| [**03 · Policy lifecycle**](03-policy-lifecycle.md) | **One policy from birth to retirement** | Contributing a policy, or debugging "why did it stop appearing" |
+| [04 · Policy DSL](04-policy-dsl.md) | How to write a policy; the five semantic rules | Writing a policy, or changing the evaluator |
+| [05 · Event specification](05-event-spec.md) | What the engine's input looks like | Writing an adapter |
+| [**06 · Compiler specification**](06-compiler-spec.md) | **How one policy stays consistent everywhere** | Changing the compiler, or judging whether an artifact is stale |
+| [07 · Embodiment interface](07-pet-bridge.md) | How a signal reaches the user | Building a pet or a HUD |
+| [08 · Security and audit](08-security-and-audit.md) | Permission levels and the audit boundary | Anything touching privacy or execution |
+| [09 · Roadmap and acceptance](09-mvp-roadmap.md) | What is done and what comes next | Looking for a place to contribute |
 
-## 加粗的三份为什么单独存在
+## Why three documents are bold
 
-早期版本用一份 `02-architecture.md` 同时承担运行时、生命周期和编译规范，结果是三件事
-互相稀释：读者找不到「一条策略被否决之后会怎样」，也找不到「编译产物凭什么可信」。
+An earlier version used one `02-architecture.md` to cover runtime, lifecycle and the compiler. The
+result diluted all three: a reader looking for "what happens after a policy is rejected" or for "why
+should I trust the compiled artifacts" found neither.
 
-拆分的依据是**读者不同**：
+The split follows **different readers**:
 
-- 改引擎的人读 02，需要的是层间契约与依赖方向；
-- 写策略的人读 03 + 04，需要的是状态机与语义规则；
-- 做集成的人读 06，需要的是产物形状与版本承诺。
+- Someone changing the engine reads 02 and needs inter-layer contracts and dependency direction.
+- Someone writing a policy reads 03 + 04 and needs the state machine and the semantic rules.
+- Someone integrating reads 06 and needs artifact shapes and version promises.
 
-## 文档即契约
+## Documentation is a contract
 
-`docs/` 下的规范文件不是描述性的，是可执行的：
+The files under `docs/` are not descriptive; they are executable:
 
-| 文档 | 由什么固定 |
+| Document | Pinned by |
 | --- | --- |
-| 02 分层约束 | `npm run lint`（`scripts/check-boundaries.mjs`） |
-| 03 生命周期规则 | `tests/lifecycle.test.ts` |
-| 04 五条语义规则 | `tests/gate.test.ts`、`tests/policy.test.ts` |
-| 05 事件规范 | `schemas/event.schema.json` + `npm run validate-specs` |
-| 06 一致性契约 | `tests/parity.test.ts` + `gate verify` |
-| 08 审计白名单 | `tests/contract.test.ts` + CI 断言 |
+| 02 layer constraints | `npm run lint` (`scripts/check-boundaries.mjs`) |
+| 03 lifecycle rules | `tests/lifecycle.test.ts` |
+| 04 the five semantic rules | `tests/gate.test.ts`, `tests/policy.test.ts` |
+| 05 event specification | `schemas/event.schema.json` + `npm run validate-specs` |
+| 06 consistency contract | `tests/parity.test.ts` + `gate verify` |
+| 08 audit whitelist | `tests/contract.test.ts` + a CI assertion |
+| Every document | `npm run validate-specs` checks the facts docs claim |
 
-**不要为了让代码通过测试去改文档里的 spec。** spec 是契约，代码是实现；
-两者冲突时先确认哪一边错了，而不是哪一边好改。
+**Do not edit a spec under `docs/` just to make code pass.** The spec is the contract and the code is
+the implementation. When they disagree, first work out which one is wrong — not which one is easier to
+change.
+
+## Translations
+
+Every document is a pair: `<name>.md` is English, `<name>.zh.md` is Chinese. Each page links to its
+counterpart directly under the H1. `npm run verify-i18n` enforces the pairing:
+
+- both sides exist, and each links to the other;
+- the heading outline matches (§-for-§), so a translation cannot quietly lose a section;
+- the recorded English/Chinese hashes in `docs/i18n/pairs.json` still match, so editing one side
+  without the other fails CI.
+
+After a deliberate edit to either side, re-record with `npm run verify-i18n -- --write`.
+
+Code blocks and identifiers stay in English inside both languages: `GateSignal`, `require_approval`
+and `AGENTS.md` are proper nouns of the system, and translating them would break the contract they name.

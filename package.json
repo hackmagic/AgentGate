@@ -1,6 +1,6 @@
 {
   "name": "agent-gate",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "description": "AgentGate — compile your personal boundaries into portable, auditable policy for any AI agent (AGENTS.md / SKILL.md / MCP).",
   "keywords": [
@@ -46,6 +46,7 @@
     "packs",
     "docs",
     "README.md",
+    "README.zh.md",
     "CHANGELOG.md"
   ],
   "scripts": {
@@ -55,7 +56,8 @@
     "lint": "node scripts/check-boundaries.mjs",
     "test": "node scripts/run-tests.mjs",
     "validate-specs": "node --import tsx scripts/validate-specs.ts",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run validate-specs && npm run build"
+    "verify-i18n": "node scripts/verify-i18n.mjs",
+    "check": "npm run typecheck && npm run lint && npm run verify-i18n && npm run test && npm run validate-specs && npm run build"
   },
   "dependencies": {
     "yaml": "^2.9.1"

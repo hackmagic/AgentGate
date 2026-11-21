@@ -1,44 +1,50 @@
-# 00 · 一页纸立项
+# 00 · Project brief
 
-## 做什么
+English | [中文](00-project-brief.zh.md)
 
-一个开源的**个人引导策略运行时**。把用户的操作习惯和边界编译成可跨 Agent 执行的引导策略，通过 AI 宠物等具身界面进行低打扰、可拒绝、可审计的交互。
+## What we are building
 
-一句话：**让「AI 什么时候可以介入我电脑操作」从口头约定变成可执行、可审计的策略文件。**
+An open-source **personal boundary policy runtime**. It compiles a user's working habits and boundaries
+into guidance policies that any agent can execute, and presents them through low-interruption,
+refusable, auditable interfaces such as an AI pet.
 
-## 不做什么
+In one sentence: **turn "when may AI act on my computer" from a verbal agreement into an executable,
+auditable policy file.**
 
-同样重要，用于防止范围蔓延：
+## What we are not building
 
-| 不做 | 原因 |
+Equally important, and it is what keeps scope from spreading:
+
+| Not building | Why |
 | --- | --- |
-| 捕获器（ActivityWatch / screenpipe 重造） | 已有成熟工具；我们只定义语义超集 |
-| 通用记忆数据库（Mem0 / Letta / Zep 重造） | 与「引导」正交，做了会稀释内核 |
-| Web Dashboard / 团队版 / 非 Coding 场景 | MVP 之外，见 [08-mvp-roadmap](09-mvp-roadmap.md) |
-| `autonomous` 默认行为 | 默认永远是只读 / 建议 / 需审批 |
+| A capture tool (rebuilding ActivityWatch / screenpipe) | Mature tools exist; we only define a semantic superset |
+| A general memory database (rebuilding Mem0 / Letta / Zep) | Orthogonal to guidance; building it would dilute the core |
+| Web dashboard / team edition / non-coding scenarios | Outside the MVP, see [09-mvp-roadmap](09-mvp-roadmap.md) |
+| `autonomous` behaviour by default | The default is always read-only, suggest, or require approval |
 
-## 成功标准（MVP 验收）
+## Success criteria (MVP acceptance)
 
-1. 能从一条真实 ActivityWatch 事件生成一条可执行的引导策略；
-2. 该策略能编译为 `AGENTS.md`、`SKILL.md`、`MCP Server` 三种形态中的至少两种；
-3. 宠物能完成「提出引导 → 用户批准/拒绝 → 执行或静默」的完整交互；
-4. 每一次引导都有审计记录，包含触发依据和用户否决。
+1. A real ActivityWatch event can produce an executable guidance policy;
+2. That policy compiles to at least two of `AGENTS.md`, `SKILL.md` and an MCP server;
+3. The pet can complete "propose → user approves or rejects → execute or stay silent" end to end;
+4. Every guidance event leaves an audit record containing the trigger and any user rejection.
 
-四条标准在仓库中的落点：
+Where the four criteria live in the repository:
 
-| 标准 | 落点 |
+| Criterion | Location |
 | --- | --- |
 | 1 | `src/events/activitywatch.ts` + `packs/deep-work/policies/*.yaml` + `tests/adapters.test.ts` |
-| 2 | `src/compile/` + `tests/compile.test.ts` |
+| 2 | `src/compile/` + `tests/compile.test.ts` + `tests/parity.test.ts` |
 | 3 | `src/pet/` + `tests/pet.test.ts` |
-| 4 | `src/audit/store.ts` + `tests/engine.test.ts`、`tests/contract.test.ts` |
+| 4 | `src/audit/store.ts` + `tests/gate.test.ts`, `tests/contract.test.ts` |
 
-## 核心边界（不可交易）
+## Core boundaries (non-negotiable)
 
-- **引擎不执行动作**：只产出 `GateSignal`，执行发生在适配器且必须经用户批准。
-- **审计不记内容**：只有九个白名单字段，没有窗口标题、截图、剪贴板、按键。
-- **文案不生成**：`bubble_text` 来自策略文件，不由模型即兴创作。
+- **The engine executes nothing**: it produces a `GateSignal`; execution happens in an adapter, after user approval.
+- **The audit records no content**: nine whitelisted fields, with no window titles, screenshots, clipboard or keystrokes.
+- **No copy is generated**: `bubble_text` comes from the policy file, never improvised by a model.
 
-## 谁是用户
+## Who the user is
 
-已经在用 Coding Agent、但缺少「AI 什么时候可以介入我的电脑操作」边界控制的开发者与知识工作者。
+Developers and knowledge workers who already use coding agents but lack a boundary for when those
+agents may act on their machine.

@@ -1,51 +1,55 @@
-# 01 · 产品需求
+# 01 · Product requirements
 
-## 目标用户
+English | [中文](01-prd.zh.md)
 
-开发者 / 知识工作者，已经在用 Coding Agent，但缺少「AI 什么时候可以介入我电脑操作」的边界控制。
+## Target user
 
-他们的真实痛点不是「AI 不够聪明」，而是：
+Developers and knowledge workers who already use coding agents but lack a boundary for when those
+agents may act on their machine.
 
-- 不知道 Agent 在什么情况下会自动改东西；
-- 每次换工具（Cursor → Claude Code → Codex）都要重新交代一遍边界；
-- 一旦被过度打扰，就会整体关掉所有提醒，回到手动模式。
+Their real pain is not "the AI is not smart enough", it is:
 
-## 核心用户故事（MVP 只保留 3 个）
+- not knowing under what conditions an agent will change things by itself;
+- having to restate the boundary every time they switch tools (Cursor → Claude Code → Codex);
+- and, once over-interrupted, turning every reminder off and going back to manual work.
 
-| ID | 故事 | 验收要点 |
+## Core user stories (the MVP keeps three)
+
+| ID | Story | Acceptance |
 | --- | --- | --- |
-| US-1 | 作为用户，我想导入我的 ActivityWatch 数据，让系统识别我的深度工作时段 | 能读取 window/app 事件，输出 focus block 事件 |
-| US-2 | 作为用户，我想定义一条「深度工作保护」策略，在专注时抑制通知，但必须经过我批准 | 策略可保存、可编译、宠物可触发审批 |
-| US-3 | 作为用户，我想在 Cursor 和 Claude Code 里复用同一条策略，不用重写 | 同一策略源编译出 `SKILL.md` 和 `AGENTS.md`（及 MCP 工具） |
+| US-1 | As a user, I want to import my ActivityWatch data so the system can identify my deep-work blocks | Reads window/app events, emits focus-block events |
+| US-2 | As a user, I want a "deep work protection" policy that suppresses notifications while I focus, but only with my approval | The policy can be saved, compiled, and triggers an approval through the pet |
+| US-3 | As a user, I want to reuse the same policy in Cursor and Claude Code without rewriting it | One policy source compiles to `SKILL.md` and `AGENTS.md` (and MCP tools) |
 
-## 非目标
+## Non-goals
 
-情绪陪伴、宠物养成、社交功能、企业合规——这些属于生态层，不是内核。
+Emotional companionship, pet raising, social features, enterprise compliance — those belong to the
+ecosystem layer, not the kernel.
 
-## 功能边界
+## Functional scope
 
-### 做
+### In
 
-- 事件语义规范（`focus_block_started` / `app_switch` / `idle_detected` 等）
-- 策略 DSL：YAML、可读、可校验
-- 确定性求值引擎：优先级、条件树、静音与速率闸
-- 跨 Agent 编译：`AGENTS.md` / `SKILL.md` / MCP bundle
-- 内容无关审计
-- 具身呈现契约（宠物只消费信号）
+- Event semantics (`focus_block_started` / `app_switch` / `idle_detected` and so on)
+- Policy DSL: YAML, readable, validatable
+- Deterministic evaluation engine: priority, condition tree, mute and rate limiting
+- Cross-agent compilation: `AGENTS.md` / `SKILL.md` / MCP bundle
+- Content-free audit
+- Embodiment presentation contract (the pet only consumes signals)
 
-### 不做（本期）
+### Out (this cycle)
 
-- 系统级动作执行（静音通知、切换 DND 的实现留给适配器）
-- 策略的可视化编辑器
-- 多用户 / 云端同步
-- 任何形式的屏幕内容分析
+- System-level action execution (implementing notification suppression or DND is left to adapters)
+- A visual policy editor
+- Multi-user / cloud sync
+- Any form of screen content analysis
 
-## 关键质量属性
+## Key quality attributes
 
-| 属性 | 目标 | 保障方式 |
+| Attribute | Target | How it is guaranteed |
 | --- | --- | --- |
-| 可预测 | 同一事件 + 同一策略集 → 同一决策 | 纯函数求值 + 固定时钟测试 |
-| 不打扰 | 用户拒绝后不自动重试 | `mute` 状态机 + 速率闸 + 测试 |
-| 可审计 | 每次引导可回溯触发依据 | 九字段审计 + 白名单强制 |
-| 不越权 | 未经批准不执行 | `resolveDecision` 降级 + 语义校验 |
-| 可移植 | 一条策略源多 Agent 复用 | 三目标编译 + source_hash 一致性测试 |
+| Predictable | Same event + same policy set → same decision | Pure evaluation + fixed-clock tests |
+| Non-intrusive | No automatic retry after a rejection | `mute` state machine + rate limiting + tests |
+| Auditable | Every guidance event traces back to its trigger | Nine-field audit + enforced whitelist |
+| Non-overreaching | Nothing executes unapproved | `resolveDecision` downgrade + semantic validation |
+| Portable | One policy source reused across agents | Three-target compilation + `source_hash` and fact parity tests |

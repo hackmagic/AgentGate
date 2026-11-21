@@ -1,0 +1,475 @@
+{
+  "$comment": "Bilingual pairing record. Each entry hashes one heading section of the English and Chinese blocks, excluding fenced code blocks and the language switcher. Re-record with `npm run verify-i18n -- --write`.",
+  "pairs": {
+    "README.md": {
+      "0:h1": {
+        "en": "a84ca7505458258c",
+        "zh": "631dfe1cccaa1295"
+      },
+      "1:h2": {
+        "en": "96f8641d6f4ec1b5",
+        "zh": "c25307f353187292"
+      },
+      "2:h2": {
+        "en": "1ac7c9dbe9267da8",
+        "zh": "e36aaa51630fccd4"
+      },
+      "3:h2": {
+        "en": "c7d484cf40db462c",
+        "zh": "5f6b886f6a7d337f"
+      },
+      "4:h2": {
+        "en": "a77734302df14a40",
+        "zh": "cc7478c427c863c9"
+      },
+      "5:h2": {
+        "en": "3f86740253b2684e",
+        "zh": "eac8dd791290e095"
+      },
+      "6:h2": {
+        "en": "bc435faf3bb9017d",
+        "zh": "2a7d0bac7b33d273"
+      },
+      "7:h2": {
+        "en": "a7690f3d5fa1003e",
+        "zh": "e18e9b00c1fbb104"
+      },
+      "8:h2": {
+        "en": "a084319d22df6dd5",
+        "zh": "5a5b07b2f97263b5"
+      },
+      "9:h2": {
+        "en": "219ff78ee89cdb7d",
+        "zh": "8c97a303018754d4"
+      },
+      "10:h2": {
+        "en": "e5dcffe836b6ec8a",
+        "zh": "e5dcffe836b6ec8a"
+      }
+    },
+    "CONTRIBUTING.md": {
+      "0:h1": {
+        "en": "a3f796c1a16def35",
+        "zh": "347be4fb50f6443f"
+      },
+      "1:h2": {
+        "en": "eeeb11ee7f6ce4fb",
+        "zh": "7f9d97d60f94e540"
+      },
+      "2:h3": {
+        "en": "6493fc64204e978f",
+        "zh": "ef6ad34919373924"
+      },
+      "3:h2": {
+        "en": "9982cc3697b6c1c0",
+        "zh": "ddbd8b765afc7039"
+      },
+      "4:h3": {
+        "en": "4616197068d6fec2",
+        "zh": "fe24ed44303e4d3e"
+      },
+      "5:h3": {
+        "en": "4b15ce0d43a8b474",
+        "zh": "0f89e6e0184452b3"
+      },
+      "6:h2": {
+        "en": "4ec2faf3f635d5c8",
+        "zh": "9445a7c7e075fb97"
+      },
+      "7:h2": {
+        "en": "18d5eccf4e6bb6aa",
+        "zh": "19b13b1ec0fb4721"
+      },
+      "8:h2": {
+        "en": "617711627f3e1835",
+        "zh": "f0c6c1adfb4fe368"
+      }
+    },
+    "docs/00-project-brief.md": {
+      "0:h1": {
+        "en": "e3b0c44298fc1c14",
+        "zh": "e3b0c44298fc1c14"
+      },
+      "1:h2": {
+        "en": "9ecc539fdfb295e4",
+        "zh": "acc4c7a4910a24e1"
+      },
+      "2:h2": {
+        "en": "a34c551b2403af89",
+        "zh": "442ecbeb91e5765c"
+      },
+      "3:h2": {
+        "en": "e6f2a31522eb81f0",
+        "zh": "46f32ef73f103128"
+      },
+      "4:h2": {
+        "en": "4ab79f5025b849a7",
+        "zh": "46337454258c4118"
+      },
+      "5:h2": {
+        "en": "a4b2d7a4fc84c5a5",
+        "zh": "8c65555a9f7b851b"
+      }
+    },
+    "docs/01-prd.md": {
+      "0:h1": {
+        "en": "e3b0c44298fc1c14",
+        "zh": "e3b0c44298fc1c14"
+      },
+      "1:h2": {
+        "en": "a0234a2dcb665044",
+        "zh": "0ccc449dc59a8a43"
+      },
+      "2:h2": {
+        "en": "404bce70f46d64be",
+        "zh": "609f0010c2254acd"
+      },
+      "3:h2": {
+        "en": "d49232b7a37e6191",
+        "zh": "87650ee6e7938826"
+      },
+      "4:h2": {
+        "en": "e3b0c44298fc1c14",
+        "zh": "e3b0c44298fc1c14"
+      },
+      "5:h3": {
+        "en": "32188af1eb27e117",
+        "zh": "979422162b28aaf3"
+      },
+      "6:h3": {
+        "en": "a2ce2908d84fd8ac",
+        "zh": "53d5cb878913808b"
+      },
+      "7:h2": {
+        "en": "5d7a23064fbcd7fb",
+        "zh": "d68043ef686b1d3f"
+      }
+    },
+    "docs/02-architecture.md": {
+      "0:h1": {
+        "en": "cdfa465e111f64f6",
+        "zh": "add838ec3c9eb172"
+      },
+      "1:h2": {
+        "en": "e775536bf9f35131",
+        "zh": "d55bba3a6c3f12b4"
+      },
+      "2:h2": {
+        "en": "7c5e1eb42ebc7da3",
+        "zh": "55af527539cb4d64"
+      },
+      "3:h2": {
+        "en": "f34d077f6fc5478e",
+        "zh": "a85a35e34fd71d98"
+      },
+      "4:h2": {
+        "en": "1036ebbc7c57fcd0",
+        "zh": "f7c2d34f11fe55e6"
+      },
+      "5:h2": {
+        "en": "8e830a25e3a1522e",
+        "zh": "80e0eebc1815f438"
+      },
+      "6:h2": {
+        "en": "2dda71edf9ba111f",
+        "zh": "bbaf53166ca0f66c"
+      },
+      "7:h2": {
+        "en": "ff0cd3c34a5491d5",
+        "zh": "525f18f57c985d7d"
+      },
+      "8:h2": {
+        "en": "8f4ed7048abc3f60",
+        "zh": "0eea86748d083e12"
+      }
+    },
+    "docs/03-policy-lifecycle.md": {
+      "0:h1": {
+        "en": "2a3a0d02f1fa51c3",
+        "zh": "a647b3a9a486724c"
+      },
+      "1:h2": {
+        "en": "e82fcf43d254660a",
+        "zh": "589ff4271807d4b6"
+      },
+      "2:h2": {
+        "en": "0c5d48f182b06fa0",
+        "zh": "26a36b58de487157"
+      },
+      "3:h3": {
+        "en": "615699375d1610cc",
+        "zh": "caeb53d952a41b1d"
+      },
+      "4:h2": {
+        "en": "da38d119b430f7cd",
+        "zh": "2d2016ee5a5a4874"
+      },
+      "5:h2": {
+        "en": "63e64d37f12a670b",
+        "zh": "4ce54a8418933aae"
+      },
+      "6:h2": {
+        "en": "1c60f00ce5cb789d",
+        "zh": "2179c604dd9b5c46"
+      },
+      "7:h2": {
+        "en": "e38e18eb5754d452",
+        "zh": "f35e29c54d90fe80"
+      }
+    },
+    "docs/04-policy-dsl.md": {
+      "0:h1": {
+        "en": "eb1d889b406dfb8d",
+        "zh": "283aca4b0210274b"
+      },
+      "1:h2": {
+        "en": "39d43b09e9d83280",
+        "zh": "bbcdd1c04126bfb8"
+      },
+      "2:h2": {
+        "en": "189947837c4eced2",
+        "zh": "c5c817f8edf8f7f9"
+      },
+      "3:h2": {
+        "en": "e3b0c44298fc1c14",
+        "zh": "e3b0c44298fc1c14"
+      },
+      "4:h3": {
+        "en": "b3a81fc709684bd1",
+        "zh": "cee54a56173a01d9"
+      },
+      "5:h3": {
+        "en": "d48c954d4b0202ce",
+        "zh": "8c3d04cd1fd5cd8e"
+      },
+      "6:h3": {
+        "en": "1c12827977c803a9",
+        "zh": "dd0ee69860151a39"
+      },
+      "7:h3": {
+        "en": "b618a6dc503ff710",
+        "zh": "e2610084572e475c"
+      },
+      "8:h3": {
+        "en": "2a0a1028ce609e15",
+        "zh": "6ce548480cc3dbac"
+      },
+      "9:h2": {
+        "en": "e8b0c96c5fffa90e",
+        "zh": "982965f7a535c5a2"
+      },
+      "10:h2": {
+        "en": "c4a3f729bcfc68b5",
+        "zh": "093bf050a0e11066"
+      }
+    },
+    "docs/05-event-spec.md": {
+      "0:h1": {
+        "en": "93a466a21a0d50af",
+        "zh": "8bdfedb81251220f"
+      },
+      "1:h2": {
+        "en": "b1de7aced970fa86",
+        "zh": "714c110cd89d567d"
+      },
+      "2:h2": {
+        "en": "c72abd8aafe68686",
+        "zh": "83c72c9053b15385"
+      },
+      "3:h2": {
+        "en": "7c8bcf212e5db8ba",
+        "zh": "312350389ed73d1c"
+      },
+      "4:h3": {
+        "en": "ed59703d09cd818a",
+        "zh": "a04f86ea3dda458f"
+      },
+      "5:h2": {
+        "en": "98eb0a66fe52838c",
+        "zh": "618cadbb6759a500"
+      },
+      "6:h2": {
+        "en": "e232f9541af35b53",
+        "zh": "d88c8e2c0134596f"
+      }
+    },
+    "docs/06-compiler-spec.md": {
+      "0:h1": {
+        "en": "389f7fbf4a803f30",
+        "zh": "3c6b20426c35c168"
+      },
+      "1:h2": {
+        "en": "30857846ea5bb65d",
+        "zh": "7dd0dc2dca250c6c"
+      },
+      "2:h2": {
+        "en": "3005382a7d8e6e57",
+        "zh": "4cd9078b02045cf9"
+      },
+      "3:h3": {
+        "en": "0dc701b6eae5e8b0",
+        "zh": "cd2015c8cb519e93"
+      },
+      "4:h2": {
+        "en": "07286185795f0f1c",
+        "zh": "b7c8f84c72169761"
+      },
+      "5:h3": {
+        "en": "17c04f22760f73a2",
+        "zh": "b76a94ef229da0f9"
+      },
+      "6:h2": {
+        "en": "a0176047e3ffefdc",
+        "zh": "fd2ac4684ceca553"
+      },
+      "7:h3": {
+        "en": "5234fcb65df2b9d8",
+        "zh": "f171d90f24604acd"
+      },
+      "8:h3": {
+        "en": "6312d4a12cdc497c",
+        "zh": "7f459206a869c7a0"
+      },
+      "9:h3": {
+        "en": "15f11411ba68a715",
+        "zh": "58c649d175ef44d4"
+      },
+      "10:h3": {
+        "en": "80245dcc23ae278b",
+        "zh": "67e906522939a18f"
+      },
+      "11:h2": {
+        "en": "78d4db54b5a9f811",
+        "zh": "e77287bec3a82480"
+      },
+      "12:h2": {
+        "en": "2934ea97dfc18415",
+        "zh": "745363a625d5b5c2"
+      }
+    },
+    "docs/07-pet-bridge.md": {
+      "0:h1": {
+        "en": "a922748b0167726b",
+        "zh": "139c0b06224796df"
+      },
+      "1:h2": {
+        "en": "276e2a0e68695e5a",
+        "zh": "dc277e615ec7a4c8"
+      },
+      "2:h2": {
+        "en": "b9223a027d059802",
+        "zh": "7014a6d08d27caf4"
+      },
+      "3:h2": {
+        "en": "f79c7cda3132835f",
+        "zh": "237cd328666b18f9"
+      },
+      "4:h2": {
+        "en": "52d15f7455a99020",
+        "zh": "d85d4389fd4df276"
+      },
+      "5:h2": {
+        "en": "4c94dc656281c3a3",
+        "zh": "76c2b97f9d52edc4"
+      },
+      "6:h2": {
+        "en": "a4f4e95dcd683962",
+        "zh": "e10e7082501b5ee4"
+      }
+    },
+    "docs/08-security-and-audit.md": {
+      "0:h1": {
+        "en": "e3b0c44298fc1c14",
+        "zh": "e3b0c44298fc1c14"
+      },
+      "1:h2": {
+        "en": "f31faca661f283ce",
+        "zh": "c81349dcf3de6937"
+      },
+      "2:h2": {
+        "en": "f85c3a957073b928",
+        "zh": "ca31d6e44dbd4c43"
+      },
+      "3:h3": {
+        "en": "c9d6d2b58595ff03",
+        "zh": "61e1c0917d4770c6"
+      },
+      "4:h2": {
+        "en": "1d236881e0421290",
+        "zh": "19d796f87737f3ee"
+      },
+      "5:h2": {
+        "en": "b1f0a70756316b93",
+        "zh": "231b043b99990d30"
+      },
+      "6:h2": {
+        "en": "add6efcc0de9b144",
+        "zh": "d473a795b2996382"
+      }
+    },
+    "docs/09-mvp-roadmap.md": {
+      "0:h1": {
+        "en": "3ac12e5809e36cef",
+        "zh": "1fdc8367b16e58d0"
+      },
+      "1:h2": {
+        "en": "b390d6f934ad86bb",
+        "zh": "a233a43a95515426"
+      },
+      "2:h2": {
+        "en": "59158fb75be69228",
+        "zh": "2770c49676d9d8bf"
+      },
+      "3:h2": {
+        "en": "a14d892e9b826aec",
+        "zh": "dc43d673ef83e5ec"
+      },
+      "4:h2": {
+        "en": "a8a7819af1f6fe41",
+        "zh": "7979b1cad2e29c19"
+      },
+      "5:h2": {
+        "en": "17307f2cf05497d2",
+        "zh": "2341b081aab096f0"
+      },
+      "6:h2": {
+        "en": "a690beb342b95dfe",
+        "zh": "e517454cc25e6d16"
+      },
+      "7:h2": {
+        "en": "49b22c3e541e2bac",
+        "zh": "6d3b48be3a22481c"
+      },
+      "8:h2": {
+        "en": "08433e79a44fbf1e",
+        "zh": "05b6b0b1a5639f07"
+      },
+      "9:h2": {
+        "en": "ba472207cbe76f8b",
+        "zh": "a4f755093e8054d8"
+      },
+      "10:h2": {
+        "en": "54258ebaf9858014",
+        "zh": "820cb1ef5d8b5183"
+      }
+    },
+    "docs/README.md": {
+      "0:h1": {
+        "en": "cd5b7a998e0c7a35",
+        "zh": "a9cb8b004d40fd4f"
+      },
+      "1:h2": {
+        "en": "663667cd934abedc",
+        "zh": "c9a12f2db005ed06"
+      },
+      "2:h2": {
+        "en": "6c018ff1f4b1daae",
+        "zh": "3c4b1a72c45dbf53"
+      },
+      "3:h2": {
+        "en": "b555d5188d164623",
+        "zh": "b68918a3fa409787"
+      }
+    }
+  }
+}

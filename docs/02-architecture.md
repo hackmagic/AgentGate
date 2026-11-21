@@ -1,33 +1,36 @@
-# 02 · 运行时架构
+# 02 · Runtime architecture
 
-> 本文件回答一个问题：**系统怎么跑**。策略语义见 [04-policy-dsl](04-policy-dsl.md) 与
-> [04-policy-lifecycle](04-policy-lifecycle.md)；编译产物见 [06-compiler-spec](06-compiler-spec.md)。
+English | [中文](02-architecture.zh.md)
 
-## 一次求值的完整路径
+> This document answers one question: **how does the system run**. Policy semantics live in
+> [04-policy-dsl](04-policy-dsl.md) and [03-policy-lifecycle](03-policy-lifecycle.md); compiled
+> artifacts live in [06-compiler-spec](06-compiler-spec.md).
+
+## The full path of one evaluation
 
 ```mermaid
 flowchart TB
-  subgraph ADAPT["事件适配层 · src/events"]
+  subgraph ADAPT["Event adapters · src/events"]
     AW[ActivityWatch / screenpipe / manual]
     NORM[normalizeEvent]
   end
 
-  subgraph CORE["纯核心 · 无 I/O、无系统时钟"]
-    EVAL["evaluateEvent()<br/>priority 降序 + 条件树"]
+  subgraph CORE["Pure core · no I/O, no system clock"]
+    EVAL["evaluateEvent()<br/>priority order + condition tree"]
     COND["evaluateConditions()"]
     SIG["buildSignal()"]
-    MUTE["policy/mute<br/>静音状态折叠"]
-    LIFE["policy/lifecycle<br/>审计 → 生命周期投影"]
+    MUTE["policy/mute<br/>mute state folding"]
+    LIFE["policy/lifecycle<br/>audit → lifecycle projection"]
   end
 
-  subgraph GATE["组合层 · src/gate"]
+  subgraph GATE["Composition · src/gate"]
     PIPE["runStages()"]
-    THR["throttle · 速率闸"]
-    INBOX["inbox · 在途信号"]
-    AUD["audit · 九字段白名单"]
+    THR["throttle · rate limiter"]
+    INBOX["inbox · in-flight signals"]
+    AUD["audit · nine-field whitelist"]
   end
 
-  subgraph SURF["表面层"]
+  subgraph SURF["Surfaces"]
     PET[pet bridge]
     MCP[MCP server]
     CLI[CLI]
@@ -49,27 +52,29 @@ flowchart TB
   SIG -.->|compile| OUT["AGENTS.md / SKILL.md / MCP bundle"]
 ```
 
-## 四层，严格单向依赖
+## Four layers, strictly one-directional
 
-| 层 | 目录 | 职责 | 允许依赖 |
+| Layer | Directory | Responsibility | May depend on |
 | --- | --- | --- | --- |
-| 事件适配层 | `src/events/` | 只做格式转换与字段补齐 | `schema`、`util`、`errors` |
-| 纯核心 | `src/policy/`、`src/signal/`、`src/audit/` | 决策：解析、求值、信号、静音、生命周期、审计存储 | 事件类型、`schema`、`util` |
-| 组合层 | `src/gate/` | 编排：中间件链、在途信号、审计写入 | 纯核心 |
-| 表面层 | `src/pet/`、`src/mcp/`、`src/compile/`、`src/cli.ts` | 呈现与编译 | 组合层 |
+| Event adapters | `src/events/` | Format conversion and field defaults only | `schema`, `util`, `errors` |
+| Pure core | `src/policy/`, `src/signal/`, `src/audit/` | Decisions: parsing, evaluation, signals, mute, lifecycle, audit storage | Event types, `schema`, `util` |
+| Composition | `src/gate/` | Orchestration: middleware chain, in-flight signals, audit writes | Pure core |
+| Surfaces | `src/pet/`, `src/mcp/`, `src/compile/`, `src/cli.ts` | Presentation and compilation | Composition |
 
-下层不知道上层的存在。这条约束由 `scripts/check-boundaries.mjs` 在 CI 中强制，
-不是靠 review 时的人工记忆。
+A lower layer never knows an upper one exists. `scripts/check-boundaries.mjs` enforces this in CI,
+so it does not depend on anyone remembering during review.
 
-## 组合层：中间件链，不是门面
+## The composition layer: a middleware chain, not a façade
 
-早期版本把求值、速率闸、审计塞进一个 `engine.ts` 门面。那是 MVP 阶段可以接受的
-耦合，但它让三件事无法分别测试，也让「为什么这次没弹气泡」必须靠调试器回答。
+An earlier version welded evaluation, throttling and auditing into a single `engine.ts` façade.
+That is acceptable for an MVP and it is the hardest thing to pull apart later: it makes three
+capabilities untestable in isolation, and it turns "why did no bubble appear?" into a debugger
+session.
 
-现在 `src/gate/` 把它拆成四个可替换部件：
+`src/gate/` splits it into four replaceable parts:
 
 ```ts
-// src/gate/gate.ts —— 默认链条
+// src/gate/gate.ts — the default chain
 this.stages = options.stages ?? [
   throttleStage(this.throttle, { presentation_window_minutes }),
   inboxStage(this.inbox),
@@ -77,92 +82,96 @@ this.stages = options.stages ?? [
 ];
 ```
 
-| 部件 | 文件 | 单一职责 |
+| Part | File | Single responsibility |
 | --- | --- | --- |
-| `runStages()` | `pipeline.ts` | 按注册顺序跑 `before` → 纯求值 → `after` |
-| `throttleStage()` | `throttle.ts` | 同一策略在呈现窗口内降级为 `allow` |
-| `inboxStage()` | `inbox.ts` | 把存活信号放进在途队列 |
-| `auditStage()` | `audit-stage.ts` | 观察**最终**状态并写一行审计 |
+| `runStages()` | `pipeline.ts` | Run `before` → pure evaluation → `after`, in registration order |
+| `throttleStage()` | `throttle.ts` | Downgrade a match to `allow` inside the presentation window |
+| `inboxStage()` | `inbox.ts` | Put a surviving signal into the in-flight queue |
+| `auditStage()` | `audit-stage.ts` | Observe the **final** state and write one audit line |
 
-**注册顺序即语义。** throttle 在 inbox 之前，所以被限流的匹配不会进队列；audit
-在最后，所以它记录的是降级后的结果（`rate_limited`），而不是原始的 `matched`。
+**Registration order is semantics.** Throttle runs before the inbox, so a rate-limited match never
+queues. Audit runs last, so it records the downgraded outcome (`rate_limited`) rather than the raw
+`matched`.
 
-`AgentGate` 自身不再持有决策逻辑。它的 `evaluate()` 只做三件事：构造调用对象、
-跑链条、把「已呈现」写回 throttle 与静音状态。
+`AgentGate` itself holds no decision logic. Its `evaluate()` does three things: build the call
+object, run the chain, and write "presented" back into throttle and mute state.
 
 ```ts
 const gate = new AgentGate({ policies, audit, timezone });
-gate.pipeline; // ['throttle', 'inbox', 'audit'] —— 链条可被外部观测
+gate.pipeline; // ['throttle', 'inbox', 'audit'] — the chain is observable
 ```
 
-替换整条链（例如回放历史数据时不想要速率闸）：
+Replacing the whole chain, for example a replay harness that wants no rate limiting:
 
 ```ts
-const replay = new AgentGate({ policies, audit, stages: [auditStage({ store, engine_version: '0.1.0' })] });
+const replay = new AgentGate({ policies, audit, stages: [auditStage({ store, engine_version: '0.2.0' })] });
 ```
 
-## 关键架构约束
+## Architecture constraints
 
-违反任一条，PR 拒绝（`npm run lint` 会先拒一次）：
+Violating any of these rejects the pull request (`npm run lint` rejects it first):
 
-1. **引擎不得直接调用系统 API 执行拦截/抑制。** 它只产出 `GateSignal`，由适配器在用户批准后执行。
-2. **事件适配层不得包含任何策略逻辑。** `src/events/` 不 import `policy/`、`signal/`、`gate/`。
-3. **表面层不得绕过组合层直接监听原始事件。** 宠物只接收信号。
-4. **审计日志不得包含原始屏幕内容或完整窗口标题。** 只记录九个白名单字段。
-5. **纯核心不动 I/O、不读系统时钟。** 时钟由调用方注入；`policy/`、`signal/`、`events/normalize` 都是值进值出。
-6. **只有组合层与适配器可以构造 `AgentGate`。** 纯核心不认识它。
+1. **The engine must not call system APIs to block or suppress anything.** It produces a `GateSignal`; an adapter executes, after user approval.
+2. **The event adapter layer must contain no policy logic.** `src/events/` does not import `policy/`, `signal/` or `gate/`.
+3. **Surfaces must not bypass the composition layer to watch raw events.** The pet only receives signals.
+4. **The audit log must not contain screen content or full window titles.** Nine whitelisted fields, nothing else.
+5. **The pure core performs no I/O and reads no system clock.** The clock is injected; `policy/`, `signal/` and `events/normalize` are value-in, value-out.
+6. **Only the composition layer and adapters may construct an `AgentGate`.** The pure core does not know it exists.
 
-第 5 条的一个细节：`randomUUID()` 允许作为**可覆盖的默认值**存在，但每个使用它的
-纯模块必须同时暴露工厂参数（`idFactory` / `signal_id_factory`），否则测试无法复现。
+One detail on rule 5: `randomUUID()` may remain as an **overridable default**, but every pure module
+that uses it must also expose a factory option (`idFactory` / `signal_id_factory`). Without it, tests
+cannot reproduce a decision.
 
-## 数据流：一次事件
+## Data flow: one event
 
 ```
 AgentEvent
    │ gate.evaluate(event, now)
    ▼
-┌─ pipeline ────────────────────────────────────────┐
-│  before: （默认链条没有 before 钩子）             │
-│  evaluateEvent()  ← 纯函数，priority 降序         │
-│  after:  throttle → inbox → audit                 │
-└───────────────────────────────────────────────────┘
+┌─ pipeline ─────────────────────────────────────────┐
+│  before: (the default chain has no before hooks)    │
+│  evaluateEvent()  ← pure, descending priority       │
+│  after:  throttle → inbox → audit                  │
+└─────────────────────────────────────────────────────┘
    │
-   ├─ allow      → 无信号；仅在 degraded 时写审计
-   ├─ throttled  → 降级 allow + 审计 reason=rate_limited
-   └─ signal     → 进 inbox、写审计 reason=matched、返回给适配器
+   ├─ allow      → no signal; audited only when degraded
+   ├─ throttled  → downgraded to allow, audit reason=rate_limited
+   └─ signal     → enters the inbox, audit reason=matched, returned to the adapter
                         │
                         ▼
-              GateSignal → 宠物 / MCP 呈现
+              GateSignal → pet / MCP presentation
                         │
                         ▼
-              GateResponse（approve / dismiss / mute_1h）
+              GateResponse (approve / dismiss / mute_1h)
                         │
                         ▼
-              applyResponse() → 静音状态 + 审计 reason=user_*
+              applyResponse() → mute state + audit reason=user_*
 ```
 
-## 技术选型
+## Technology choices
 
-| 选择 | 理由 |
+| Choice | Reason |
 | --- | --- |
-| TypeScript（ESM, strict） | 与 MCP 生态一致；类型即契约 |
-| 单包、零运行时依赖（仅 `yaml`） | 安装体积小，供应链面窄 |
-| 手写 JSON Schema 子集校验器 | 规则可审计，不引入 ajv 的隐式行为 |
-| 纯函数求值 + 注入时钟 | 决策可复现，测试无需 mock 时间 |
-| 中间件链而非门面 | 每一环可单独替换、单独测试；顺序显式 |
-| 内存 / JSONL 审计 | MVP 不需要数据库；JSONL 可直接 grep |
+| TypeScript (ESM, strict) | Matches the MCP ecosystem; types are the contract |
+| Single package, no runtime dependency except `yaml` | Small install, narrow supply-chain surface |
+| Hand-written JSON Schema subset validator | Reviewable rules, no implicit ajv behaviour |
+| Pure evaluation plus an injected clock | Reproducible decisions; tests need no time mocking |
+| A middleware chain rather than a façade | Each part is replaceable and testable; order is explicit |
+| Memory / JSONL audit | An MVP needs no database; JSONL greps directly |
 
-## 为什么不把执行放进引擎
+## Why execution does not live in the engine
 
-如果引擎能「直接执行」，那么每一个策略解析 bug 都会变成一次真实的系统变更。
-把执行推到适配器，并强制 `requires_approval`，意味着最坏情况只是「多问了一次用户」。
+If the engine could execute, every policy-parsing bug would become a real change to the user's
+machine. Pushing execution into the adapter, and requiring `requires_approval`, means the worst case
+is one extra question.
 
-这是「AI 引导」与「AI 监控」的分界线，也是架构第一约束。
+That is the line between "AI guidance" and "AI monitoring", and it is architecture constraint number one.
 
-## 什么情况下可以打破分层
+## When it is legitimate to break the layering
 
-只有一个方向允许破例：**表面层可以只读地访问纯核心的纯函数**（例如 CLI 直接调用
-`projectLifecycle()` 打印状态），因为那是无副作用的计算，不引入新的依赖方向。
+Exactly one direction may break: **a surface may read pure functions of the pure core** — for
+example, the CLI calling `projectLifecycle()` directly to print state. That is side-effect-free
+computation and introduces no new dependency direction.
 
-反向破例——纯核心 import 组合层或表面层——永远不允许。需要这类能力时，把数据作为
-参数传进来，而不是把依赖拉下去。
+The reverse — the pure core importing the composition layer or a surface — is never allowed. When
+such a need appears, pass the data in as an argument instead of pulling the dependency down.

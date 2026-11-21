@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { parse as parseYaml } from 'yaml';
 
 import { AUDIT_FIELD_WHITELIST } from '../src/audit/store.js';
-import { COMPILE_FORMAT_VERSION } from '../src/version.js';
+import { COMPILE_FORMAT_VERSION, ENGINE_VERSION } from '../src/version.js';
 import { EVENT_SOURCES, EVENT_TYPES, type AgentEvent } from '../src/events/types.js';
 import { matchesTimeWindow } from '../src/policy/conditions.js';
 import { LIFECYCLE_STATES } from '../src/policy/lifecycle.js';
@@ -265,25 +265,38 @@ check('the bundled packs ship policies', totalPolicies > 0);
 const docsDirectory = path.join(ROOT, 'docs');
 const readDoc = (name: string): string => readFileSync(path.join(docsDirectory, name), 'utf8');
 
+/**
+ * Every document exists in both languages. `verify-i18n` owns pairing,
+ * links and drift hashes; this gate only asserts the invariant that matters
+ * to the rest of the spec checks: the English document it reads is the
+ * primary one, and a translation sits beside it.
+ */
 const EXPECTED_DOCS = [
-  '00-project-brief.md',
-  '01-prd.md',
-  '02-architecture.md',
-  '03-policy-lifecycle.md',
-  '04-policy-dsl.md',
-  '05-event-spec.md',
-  '06-compiler-spec.md',
-  '07-pet-bridge.md',
-  '08-security-and-audit.md',
-  '09-mvp-roadmap.md',
-  'README.md',
+  '00-project-brief',
+  '01-prd',
+  '02-architecture',
+  '03-policy-lifecycle',
+  '04-policy-dsl',
+  '05-event-spec',
+  '06-compiler-spec',
+  '07-pet-bridge',
+  '08-security-and-audit',
+  '09-mvp-roadmap',
+  'README',
 ];
-const presentDocs = readdirSync(docsDirectory).filter((name) => name.endsWith('.md')).sort();
-check(
-  'docs/ contains exactly the indexed document set',
-  JSON.stringify(presentDocs) === JSON.stringify([...EXPECTED_DOCS].sort()),
-  `found=${JSON.stringify(presentDocs)}`,
-);
+const presentDocs = readdirSync(docsDirectory)
+  .filter((name) => name.endsWith('.md'))
+  .sort();
+
+for (const base of EXPECTED_DOCS) {
+  check(`docs/${base}.md exists`, presentDocs.includes(`${base}.md`));
+  check(`docs/${base}.zh.md exists`, presentDocs.includes(`${base}.zh.md`));
+}
+
+// Every `.md` in docs/ must belong to an indexed pair; a stray page escapes review.
+const expectedSet = new Set(EXPECTED_DOCS.flatMap((base) => [`${base}.md`, `${base}.zh.md`]));
+const strays = presentDocs.filter((name) => !expectedSet.has(name));
+check('docs/ contains no unindexed document', strays.length === 0, `strays=${JSON.stringify(strays)}`);
 
 // The architecture doc must name every layer the boundary checker enforces.
 const architecture = readDoc('02-architecture.md');
@@ -322,6 +335,27 @@ for (const code of issuedCodes) {
 const agentsMd = readFileSync(path.join(ROOT, 'AGENTS.md'), 'utf8');
 for (const reference of ['docs/02-architecture.md', 'docs/04-policy-dsl.md', 'docs/06-compiler-spec.md']) {
   check(`AGENTS.md links ${reference}`, agentsMd.includes(reference));
+}
+
+// Version strings quoted in documentation must match the shipped constant.
+// A stale example is a small lie that costs a reader real debugging time, and
+// it appears in *both* language files, so `verify-i18n` cannot see it.
+for (const doc of presentDocs) {
+  const text = readDoc(doc);
+  for (const match of text.matchAll(/agent-gate v(\d+\.\d+\.\d+)/g)) {
+    check(
+      `docs/${doc} quotes the shipped engine version (found v${match[1]})`,
+      match[1] === ENGINE_VERSION,
+      `expected v${ENGINE_VERSION}`,
+    );
+  }
+  for (const match of text.matchAll(/"engine_version": "(\d+\.\d+\.\d+)"/g)) {
+    check(
+      `docs/${doc} manifest sample uses the shipped engine version (found ${match[1]})`,
+      match[1] === ENGINE_VERSION,
+      `expected ${ENGINE_VERSION}`,
+    );
+  }
 }
 
 // ------------------------------------------------------------ result ---

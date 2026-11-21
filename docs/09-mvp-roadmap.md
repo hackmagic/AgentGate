@@ -1,112 +1,128 @@
-# 09 · 路线图与验收
+# 09 · Roadmap and acceptance
 
-状态：M0–M5 的**内核部分已落地**（v0.1.0）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
+English | [中文](09-mvp-roadmap.zh.md)
 
-## M0 · 规范先行（已完成）
+Status: the **kernel** of M0–M6 has landed (v0.3.0). The table marks real progress with ✅ / ⬜, not
+aspiration.
 
-交付：
+## M0 · Specifications first (done)
 
-- ✅ 五份契约 JSON Schema（policy/event/signal/audit/pet-contract）
-- ✅ 手写 schema 子集校验器 + 语义校验器（9 个错误码）
-- ✅ `npm run validate-specs`：锁定「代码常量 ↔ schema 枚举」一致性
-- ✅ 文档 00–09，拆成「运行时 / 生命周期 / 编译器」三份主文档 + 索引
+Delivered:
 
-验收：`npm run validate-specs` 全绿；spec 与代码漂移时 CI 红。
+- ✅ Five contract JSON Schemas (policy/event/signal/audit/pet-contract)
+- ✅ Hand-written schema subset validator plus a semantic validator (9 error codes)
+- ✅ `npm run validate-specs` pins "code constants ↔ schema enums" consistency
+- ✅ Documentation 00–09, split into three primary documents (runtime / lifecycle / compiler) plus an index
 
-## M1 · 策略引擎 + ActivityWatch 适配器（已完成）
+Acceptance: `npm run validate-specs` is green; CI fails when a spec drifts from the code.
 
-交付：
+## M1 · Policy engine and ActivityWatch adapter (done)
 
-- ✅ 事件规范化与 ActivityWatch 适配器（focus block / app switch / idle）
-- ✅ 条件求值（all/any/not、时区感知的 time_window、day_of_week、数值比较）
-- ✅ 优先级求值、五条语义规则的实现
-- ✅ 静音状态机（3 次 dismiss / mute_1h / approve 清零）
-- ✅ 内容无关审计（内存 + JSONL）
+Delivered:
 
-验收：`npm test` 全绿，其中五条语义规则各有独立测试。
+- ✅ Event normalization and the ActivityWatch adapter (focus block / app switch / idle)
+- ✅ Condition evaluation (all/any/not, timezone-aware `time_window`, `day_of_week`, numeric comparison)
+- ✅ Priority evaluation and the five semantic rules
+- ✅ Mute state machine (3 dismissals / `mute_1h` / reset on approve)
+- ✅ Content-free audit (memory + JSONL)
 
-## M2 · MCP Server + 跨 Agent 编译（已完成）
+Acceptance: `npm test` green, with an independent test for each of the five semantic rules.
 
-交付：
+## M2 · MCP server and cross-agent compilation (done)
 
-- ✅ 无状态 stdio MCP server（`initialize` / `tools/list` / `tools/call` / `server/discover`）
-- ✅ 三个工具：`gate/evaluate`、`gate/list-policies`、`gate/audit-query`
-- ✅ 三目标编译（`AGENTS.md` / `SKILL.md` / MCP bundle）+ `source_hash` 一致性
-- ✅ `compile-manifest.json`，含逐目标逐文件哈希
+Delivered:
 
-验收：`tests/compile.test.ts` + `tests/mcp.test.ts`；三产物 source_hash 相同。
+- ✅ Stateless stdio MCP server (`initialize` / `tools/list` / `tools/call` / `server/discover`)
+- ✅ Three tools: `gate/evaluate`, `gate/list-policies`, `gate/audit-query`
+- ✅ Three-target compilation (`AGENTS.md` / `SKILL.md` / MCP bundle) with `source_hash` consistency
+- ✅ `compile-manifest.json` with per-target, per-file hashes
 
-## M3 · 宠物适配器（部分完成）
+Acceptance: `tests/compile.test.ts` + `tests/mcp.test.ts`; all three artifacts share one `source_hash`.
 
-已完成：
+## M3 · Pet adapter (partially done)
 
-- ✅ 传输无关的 `PetBridge` 协议
-- ✅ HTTP 桥（`/healthz`、`/v1/events`、`/v1/signals/pending`、`/v1/signals/:id/respond`）
-- ✅ 防骚扰约束：速率闸、dismiss 不重试、require_approval 必有拒绝动作
-- ✅ 契约测试覆盖完整「呈现 → 批准 → 审计」链路
-- ✅ 临时端口不再落在 fetch 禁用端口上（否则 Node 自己的 `fetch` 会拒绝连接）
+Done:
 
-未完成：
+- ✅ Transport-agnostic `PetBridge` protocol
+- ✅ HTTP bridge (`/healthz`, `/v1/events`, `/v1/signals/pending`, `/v1/signals/:id/respond`)
+- ✅ Anti-nuisance constraints: rate limiting, no retry after dismiss, `require_approval` always offers a refusal
+- ✅ Contract tests covering the full "present → approve → audit" chain
+- ✅ Ephemeral ports no longer land on fetch-forbidden ports (where Node's own `fetch` refuses to connect)
 
-- ⬜ 真实 dsh-pet 插件（需宿主仓库；文档给的是适配器形状）
-- ⬜ 宠物侧动画资源映射
+Not done:
 
-## M4 · 分层重构（已完成）
+- ⬜ A real dsh-pet plugin (needs the host repository; the documentation gives the adapter shape)
+- ⬜ Pet-side animation asset mapping
 
-「三层 flowchart」在实现上是一个门面，这是它最难拆的地方。本轮把它拆开：
+## M4 · Layer refactor (done)
 
-- ✅ `src/engine.ts` 门面拆成 `src/gate/`：`pipeline` + `throttle` + `inbox` + `audit-stage`
-- ✅ 中间件链可替换、可观测（`gate.pipeline`），顺序即语义
-- ✅ `npm run lint` 强制新的四层依赖方向，纯核心禁止读系统时钟
-- ✅ 修掉一个真实 bug：非法 `action_id` 会吞掉用户的待办信号
+The "three-layer flowchart" was implemented as one façade, which is exactly what made it hardest to
+pull apart. This cycle took it apart:
 
-验收：`tests/pipeline.test.ts`（7 项），覆盖链顺序、链条替换、降级审计与信号存活。
+- ✅ `src/engine.ts` façade split into `src/gate/`: `pipeline` + `throttle` + `inbox` + `audit-stage`
+- ✅ The middleware chain is replaceable and observable (`gate.pipeline`); order is semantics
+- ✅ `npm run lint` enforces the new four-layer dependency direction and bans a system clock in the pure core
+- ✅ Fixed a real bug: an invalid `action_id` swallowed the user's pending signal
 
-## M5 · 生命周期与编译一致性（已完成）
+Acceptance: `tests/pipeline.test.ts` (7 cases) covering chain order, chain replacement, downgrade
+auditing and signal survival.
 
-- ✅ `src/policy/lifecycle.ts`：审计 → 生命周期投影（`draft/validated/active/muted/archived`）
-- ✅ `gate lifecycle` 命令
-- ✅ `COMPILE_FORMAT_VERSION` 与引擎版本解耦
-- ✅ `src/compile/verify.ts`：身份（source_hash）+ 保真（从产物读回事实）双重校验
-- ✅ `gate verify` 命令；`gate compile` 失败即中止
-- ✅ 一致性错误码 10 个，各有测试
+## M5 · Lifecycle and compile consistency (done)
 
-验收：`tests/lifecycle.test.ts`（11 项）+ `tests/parity.test.ts`（9 项）。
+- ✅ `src/policy/lifecycle.ts`: audit → lifecycle projection (`draft/validated/active/muted/archived`)
+- ✅ `gate lifecycle` command
+- ✅ `COMPILE_FORMAT_VERSION` decoupled from the engine version
+- ✅ `src/compile/verify.ts`: dual verification of identity (`source_hash`) and fidelity (facts read back from artifacts)
+- ✅ `gate verify` command; `gate compile` aborts on failure
+- ✅ Ten consistency error codes, each with a test
 
-## M6 · 开源发布（进行中）
+Acceptance: `tests/lifecycle.test.ts` (11 cases) + `tests/parity.test.ts` (9 cases).
 
-已完成：
+## M6 · Bilingual documentation (done)
 
-- ✅ README、五条策略的 `deep-work` 包、示例数据
-- ✅ CI（typecheck / 架构检查 / 测试 / 规范校验 / 编译一致性 / 构建）
+Modelled on the reference harness's documentation system:
+
+- ✅ Every document is a pair: `<name>.md` English, `<name>.zh.md` Chinese, each linking to the other under the H1
+- ✅ `npm run verify-i18n` checks pairing, mutual links and matching heading outlines
+- ✅ Per-section English/Chinese hashes recorded in `docs/i18n/pairs.json`, so editing one side without
+      the other fails CI instead of leaving a half-translated page
+- ✅ `validate-specs` additionally asserts that the facts docs claim still hold
+
+## M7 · Open-source release (in progress)
+
+Done:
+
+- ✅ README, the five-policy `deep-work` pack, sample data
+- ✅ CI (typecheck / architecture / tests / spec validation / compile parity / build)
 - ✅ MIT License
-- ✅ CONTRIBUTING.md 与策略贡献模板
+- ✅ CONTRIBUTING with a policy template
 
-待办：
+Remaining:
 
-- ⬜ 更多策略包（`packs/late-night`、`packs/meeting-heavy`）
-- ⬜ npm 发布（`bin: gate`）
-- ⬜ 策略修订建议：连续 dismiss 后给出「是不是条件太宽」的具体改法
+- ⬜ More policy packs (`packs/late-night`, `packs/meeting-heavy`)
+- ⬜ npm release (`bin: gate`)
+- ⬜ Revision suggestions: after repeated dismissals, propose a concrete condition change
 
-## 下一步优先级
+## Next priorities
 
-按「社区能不能贡献」排序，而不是按技术趣味：
+Ordered by "can the community contribute", not by technical interest:
 
-1. **策略模板库扩展**——贡献一条 YAML 策略的门槛远低于贡献一个捕获引擎；
-2. **真实宠物适配器**——让第一条链路在真人桌面上跑起来；
-3. **策略修订建议**——利用生命周期数据，把 3 次 dismiss 变成一条可采纳的修改建议。
+1. **Grow the policy template library** — contributing one YAML policy is far cheaper than contributing a capture engine;
+2. **A real pet adapter** — get the first chain running on a real desktop;
+3. **Revision suggestions** — turn lifecycle data into an actionable change after three dismissals.
 
-## 验收清单（可复制进 PR 描述）
+## Acceptance checklist (copy into a pull request)
 
 ```
-[ ] npm run check 全绿
-[ ] 新增/修改策略：npm run validate-specs 通过
-[ ] 改动引擎：五条语义规则测试仍绿（tests/gate.test.ts）
-[ ] 改动组合层：tests/pipeline.test.ts 仍绿
-[ ] 改动生命周期：tests/lifecycle.test.ts 仍绿
-[ ] 改动审计：tests/contract.test.ts 的注入测试仍绿
-[ ] 改动编译：gate verify + tests/parity.test.ts 仍绿
-[ ] 未新增捕获依赖（ActivityWatch / screenpipe 之外）
-[ ] 未实现 autonomous 执行级别
-[ ] 未在纯核心引入 I/O 或系统时钟（npm run lint 会拦）
+[ ] npm run check is green
+[ ] New or changed policy: npm run validate-specs passes
+[ ] Engine change: the five semantic rule tests still pass (tests/gate.test.ts)
+[ ] Composition change: tests/pipeline.test.ts still passes
+[ ] Lifecycle change: tests/lifecycle.test.ts still passes
+[ ] Audit change: the injection test in tests/contract.test.ts still passes
+[ ] Compile change: gate verify and tests/parity.test.ts still pass
+[ ] Documentation change: npm run verify-i18n passes, both languages updated
+[ ] No new capture dependency beyond ActivityWatch / screenpipe
+[ ] No autonomous execution level
+[ ] No I/O or system clock introduced into the pure core (npm run lint blocks it)
 ```

@@ -1,70 +1,76 @@
-# 08 · 安全与审计
+# 08 · Security and audit
 
-## 权限分级（四级，默认最保守）
+English | [中文](08-security-and-audit.zh.md)
 
-| 级别 | 含义 | 谁能触发 |
+## Permission levels (four, defaulting to the most conservative)
+
+| Level | Meaning | Who can trigger it |
 | --- | --- | --- |
-| `read_only` | 只产出信号，不改变任何系统状态 | 所有策略默认 |
-| `suggest` | 向用户提出建议，用户可忽略 | 策略显式声明 |
-| `require_approval` | 需要用户明确批准才执行动作 | 策略显式声明 + 用户批准 |
-| `autonomous` | 无需批准直接执行 | **MVP 不实现**：spec 保留字段但校验器拒绝 |
+| `read_only` | Produce signals only; change no system state | Every policy by default |
+| `suggest` | Offer advice the user may ignore | Policy declares it explicitly |
+| `require_approval` | Execute an action only after explicit user approval | Policy declares it, plus user approval |
+| `autonomous` | Execute without approval | **Not implemented in the MVP**: the spec keeps the field, the validator rejects it |
 
-`autonomous` 的拒绝方式：任何 `requires_approval: false` 的策略必须给出 `rationale` 且不能 `audit_level: none`（`missing_rationale` / `unaudited_autonomy`）。
+How `autonomous` is rejected: any policy with `requires_approval: false` must supply a `rationale` and
+must not use `audit_level: none` (`missing_rationale` / `unaudited_autonomy`).
 
-## 审计记录（白名单，九字段）
+## Audit records (whitelist, nine fields)
 
 ```
 event_id  policy_id  decision  signal_id  user_response
 timestamp  engine_version  degraded  reason
 ```
 
-`reason` 枚举：`matched` / `degraded` / `muted` / `rate_limited` / `user_approved` / `user_dismissed` / `user_muted`。
+`reason` values: `matched` / `degraded` / `muted` / `rate_limited` / `user_approved` /
+`user_dismissed` / `user_muted`.
 
-### 禁止出现在审计里的内容
+### Content forbidden from the audit
 
-- 屏幕截图、录屏帧
-- 完整窗口标题（`secret.docx — Word`）
-- 剪贴板内容
-- 按键序列
-- 文件路径（除 `policy_id` / 策略文件名这类配置路径）
+- Screenshots, screen-recording frames
+- Full window titles (`secret.docx — Word`)
+- Clipboard contents
+- Keystroke sequences
+- File paths (other than configuration paths such as `policy_id` or a policy file name)
 
-这条约束由三层强制：
+Three layers enforce this:
 
-1. **构造期过滤**：`createAuditRecord()` 只拷贝白名单字段，输入里的 `window_title` 直接被丢弃；
-2. **写入前断言**：`JsonlAuditStore.append()` 调 `assertAuditRecordSafe()`，越界字段抛 `unsafe_audit_record`；
-3. **测试固定**：`tests/contract.test.ts` 主动注入 `screenshot` / `window_title` / `clipboard` 并断言被剥离。
+1. **Construction-time filtering**: `createAuditRecord()` copies whitelisted fields only, so a `window_title` in the input is dropped;
+2. **Pre-write assertion**: `JsonlAuditStore.append()` calls `assertAuditRecordSafe()`, which raises `unsafe_audit_record` on any out-of-bounds field;
+3. **Test pinning**: `tests/contract.test.ts` injects `screenshot` / `window_title` / `clipboard` and asserts they are stripped.
 
-写入路径只有一个：`src/gate/audit-stage.ts` 的 `append()`。审计是中间件链的最后一环，
-它观察的是**降级之后**的最终决策——所以「被限流」和「被静音」也各有一行，不会因为
-走了另一条代码路径而漏记。
+There is exactly one write path: `append()` in `src/gate/audit-stage.ts`. Auditing is the last link in
+the middleware chain, so it observes the **post-downgrade** decision. That is why "rate limited" and
+"muted" each get their own line instead of being missed by a second code path.
 
-## 用户否决权是核心安全机制
+## The user's right to refuse is the core safety mechanism
 
-否决数据必须回流到策略引擎，用于：
+Rejection data flows back into the engine and is used to:
 
-- 自动 `mute`（连续 3 次 `dismiss`）；
-- 向用户建议修订条件。
+- mute automatically (three consecutive `dismiss` responses);
+- suggest a revision of the conditions.
 
-否决还会投影成策略的**生命周期状态**（[03-policy-lifecycle](03-policy-lifecycle.md)）：
-用户一次点击不仅否决了这一次，还改变了这条策略之后的可见性与审计解释。
+Rejection also projects into the policy's **lifecycle state**
+([03-policy-lifecycle](03-policy-lifecycle.md)): one click does not just reject this instance, it
+changes how the policy is surfaced and audited from then on.
 
-这是「AI 引导」区别于「AI 监控」的关键分界线：监控只收集行为，引导允许用户用一次点击否掉整个规则。
+This is the line between "AI guidance" and "AI monitoring": monitoring only collects behaviour;
+guidance lets the user kill an entire rule with one click.
 
-## 威胁模型
+## Threat model
 
-| 威胁 | 缓解 |
+| Threat | Mitigation |
 | --- | --- |
-| 策略写错导致过度拦截 | 默认 `requires_approval: true`；求值出错降级 `allow` |
-| 模型即兴生成文案造成误导 | 文案只能来自策略文件；signal 里没有生成入口 |
-| 适配器越权执行 | 引擎不持有执行能力；执行必须在批准后由适配器做 |
-| 审计泄露隐私 | 九字段白名单 + 构造期过滤 + 写入期断言 |
-| 记录被篡改后重放 | MVP 不提供签名；JSONL 可直接 `git` 版本化，后续可加哈希链 |
-| 事件洪泛 | 宠物桥 60 次/分钟限流；引擎侧速率闸限制同策略重复呈现 |
+| A mistaken policy over-blocks | `requires_approval: true` by default; evaluation errors degrade to `allow` |
+| Model-improvised copy misleads the user | Copy can only come from the policy file; a signal has no generation entry point |
+| An adapter oversteps and executes | The engine holds no execution capability; execution must happen in an adapter after approval |
+| The audit leaks privacy | Nine-field whitelist + construction-time filtering + pre-write assertion |
+| Records are tampered with and replayed | The MVP provides no signing; JSONL can be versioned with `git`, and a hash chain can follow |
+| Event flooding | The pet bridge limits to 60 requests/minute; the engine rate limiter limits repeat presentation per policy |
 
-## 明确不做的安全承诺
+## Security promises we explicitly do not make
 
-- **不做内容审查**：我们不读取屏幕内容，因此也无法判断内容是否敏感。
-- **不做沙箱**：策略引擎本身运行在用户权限下；它不是安全边界，架构边界才是。
-- **不保证动作可撤销**：`reversible` 是策略声明的意图，撤销逻辑在适配器里。
+- **No content inspection**: we never read screen content, so we cannot judge whether it is sensitive.
+- **No sandbox**: the policy engine runs with the user's own permissions. It is not a security boundary; the architectural boundary is.
+- **No guarantee that actions are reversible**: `reversible` states a policy's intent; the undo logic lives in the adapter.
 
-诚实说明这些，比给一个虚假的「全链路安全」承诺更有用。
+Stating this honestly is more useful than a false promise of end-to-end security.
