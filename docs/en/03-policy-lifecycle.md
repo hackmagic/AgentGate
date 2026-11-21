@@ -4,6 +4,7 @@ sidebar_position: 4
 tags: [architecture, policy]
 description: "This document answers one question: what happens to a policy from first write to retirement."
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 03 · Policy lifecycle
@@ -127,4 +128,4 @@ because the answer to "why is this policy muted now" has to be data, not a debug
 3. **It will mute itself**: three consecutive rejections silence the policy and suggest changing the condition — being muted is feedback, not a bug.
 4. **It can always be archived**: an operator can retire any policy, and the audit history is unaffected.
 
-Templates and review criteria are in [CONTRIBUTING.md](../../CONTRIBUTING.md).
+Templates and review criteria are in [CONTRIBUTING.md](https://github.com/hackmagic/AgentGate/blob/main/CONTRIBUTING.md).

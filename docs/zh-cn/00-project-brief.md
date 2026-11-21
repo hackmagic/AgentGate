@@ -4,7 +4,6 @@ sidebar_position: 1
 tags: [overview]
 description: "English(00-project-brief.md) | 中文"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 00 · 一页纸立项
@@ -51,7 +50,7 @@ translation_status: complete
 
 | 初始愿景 | 现在仓库怎么做 | 为什么 | 代价 / 状态 |
 | --- | --- | --- | --- |
-| 项目叫 `guidance-runtime`，定位是「个人引导策略运行时」 | 改名 **AgentGate**；CLI 是 `gate`，信号是 `GateSignal` | `guidance` 在 AI 语境下已被占用，`runtime` 是通用后缀，名字既不承载定位也搜不到 | 一次性迁移成本：所有 import、工具名与契约名词都变了。见 [CHANGELOG](../../CHANGELOG.md) |
+| 项目叫 `guidance-runtime`，定位是「个人引导策略运行时」 | 改名 **AgentGate**；CLI 是 `gate`，信号是 `GateSignal` | `guidance` 在 AI 语境下已被占用，`runtime` 是通用后缀，名字既不承载定位也搜不到 | 一次性迁移成本：所有 import、工具名与契约名词都变了。见 [CHANGELOG](https://github.com/hackmagic/AgentGate/blob/main/CHANGELOG.md) |
 | 三层：事件适配 → 策略引擎 → 具身交互 | **四层**：适配 → 纯核心 → 组合层（`src/gate/`）→ 表面层 | 「三层」只存在于图里；代码里求值、速率闸与审计被焊在一个 `engine` 门面里，是最难事后拆开的那种结构 | 多一个概念要学；换来每一环可单独替换、单独测试 |
 | 策略就是一个引擎加载的 YAML 文件 | 策略还有**生命周期**（`draft → validated → active ⇄ muted → archived`），从审计日志投影而来 | 愿景说了「可拒绝、可审计」，但没说用户拒绝之后这条策略会怎样 | 多一份文档要读（[03](03-policy-lifecycle.md)）；没有第二份状态文件，所以没有新的漂移面 |
 | 一条策略源编译成三种形态 | 仍是三种，外加**可验证的一致性契约**：`source_hash` **加上**从产物文本读回的事实 | 「到处能跑」如果不做检查就只是口号；而单靠哈希，一个悄悄丢字段的渲染器也能通过 | 编译需要每个目标的产物读取器；新增目标就要新增一个 |

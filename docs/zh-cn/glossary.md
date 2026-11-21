@@ -4,7 +4,6 @@ sidebar_position: 99
 tags: [reference, glossary]
 description: "项目专有名词的权威释义。所有页面与所有翻译都使用这些写法。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 术语表

@@ -4,6 +4,7 @@ sidebar_position: 2
 tags: [product]
 description: "English | 中文(01-prd.md)"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 01 · Product requirements

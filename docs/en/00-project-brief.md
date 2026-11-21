@@ -4,6 +4,7 @@ sidebar_position: 1
 tags: [overview]
 description: "English | 中文(00-project-brief.md)"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 00 · Project brief
@@ -54,7 +55,7 @@ from drift.
 
 | Initial vision | What the repository now does | Why | Cost / status |
 | --- | --- | --- | --- |
-| The project is called `guidance-runtime`: a "personal guidance policy runtime" | It is called **AgentGate**; the CLI is `gate`, the signal is `GateSignal` | `guidance` was already taken in AI and `runtime` is a generic suffix, so the name carried none of the idea and did not search | Migration cost paid once: every import, tool name and wire noun changed. See [CHANGELOG](../../CHANGELOG.md) |
+| The project is called `guidance-runtime`: a "personal guidance policy runtime" | It is called **AgentGate**; the CLI is `gate`, the signal is `GateSignal` | `guidance` was already taken in AI and `runtime` is a generic suffix, so the name carried none of the idea and did not search | Migration cost paid once: every import, tool name and wire noun changed. See [CHANGELOG](https://github.com/hackmagic/AgentGate/blob/main/CHANGELOG.md) |
 | Three layers: event adapter → policy engine → embodiment | **Four** layers: adapters → pure core → composition (`src/gate/`) → surfaces | The "three layers" existed only in the diagram; in code, evaluation, rate limiting and auditing were welded into one `engine` façade — the hardest thing to split later | One extra concept to learn. In exchange each stage is independently replaceable and testable |
 | A policy is a YAML file the engine loads | A policy also has a **lifecycle** (`draft → validated → active ⇄ muted → archived`) projected from the audit log | The vision said "refusable, auditable" but never said what happens to a policy *after* the user rejects it | One more document to read ([03](03-policy-lifecycle.md)). No second state file, so nothing new can drift |
 | One policy source compiles into three shapes | Same three shapes, plus a **verifiable consistency contract**: `source_hash` *and* facts read back from the emitted text | "Runs everywhere" is marketing unless it is checkable, and a hash alone passes a renderer that silently drops a field | Compiling now needs an artifact reader per target; adding a target means adding one |

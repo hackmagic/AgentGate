@@ -4,7 +4,6 @@ sidebar_position: 11
 tags: [reference, report]
 description: "本文件回答一个问题：gate report 到底算了什么，消费方可以依赖什么。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 10 · 报告规范
@@ -32,16 +31,16 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 | 参数 | 含义 |
 | --- | --- |
 | `--policy <path>...` | 必填。报告**关于**哪份策略集；没有历史的策略会作为 `validated` 出现。 |
-| `--audit <file>` | JSONL 审计日志。省略表示空日志，不是错误。 |
+| `--audit &lt;file&gt;` | JSONL 审计日志。省略表示空日志，不是错误。 |
 | `--format markdown\|text\|json` | `markdown`（默认）用于分享；`text` 用于终端；`json` 是稳定的机器形状。 |
-| `--out <file>` | 把报告写进文件并打印路径，而不是输出到 stdout。 |
-| `--title <heading>` | 仅 markdown：文档的 H1，默认 `AgentGate report`。 |
-| `--now <iso>` | 有界静音到期判定与 `generated_at` 的参考时刻。 |
+| `--out &lt;file&gt;` | 把报告写进文件并打印路径，而不是输出到 stdout。 |
+| `--title &lt;heading&gt;` | 仅 markdown：文档的 H1，默认 `AgentGate report`。 |
+| `--now &lt;iso&gt;` | 有界静音到期判定与 `generated_at` 的参考时刻。 |
 | `--no-policies` | 去掉逐策略表，保留汇总与发现项。 |
-| `--archive <id>:<reason>` | 报告前应用一次操作者归档。 |
+| `--archive &lt;id&gt;:&lt;reason&gt;` | 报告前应用一次操作者归档。 |
 | `--rejection-threshold <0..1>` | 何时报 `high_rejection_rate`，默认 `0.5`。 |
-| `--throttle-threshold <n>` | 何时报 `heavily_throttled`，默认 `3`。 |
-| `--timezone <tz>` | IANA 时区，用于把否决时间分桶以生成修订建议。 |
+| `--throttle-threshold &lt;n&gt;` | 何时报 `heavily_throttled`，默认 `3`。 |
+| `--timezone &lt;tz&gt;` | IANA 时区，用于把否决时间分桶以生成修订建议。 |
 
 只要生成了报告，退出码就是 `0`。**发现项是信息，不是失败**：某条策略被静音是用户的事实，
 不是构建坏了。参数写错是 `2`；审计文件读不了才是错误。

@@ -4,7 +4,6 @@ sidebar_position: 5
 tags: [reference, policy]
 description: "本文件是契约。实现必须遵守；测试必须固定这些规则。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 04 · 引导策略 DSL 规范

@@ -4,6 +4,7 @@ sidebar_position: 7
 tags: [reference, compiler]
 description: "This document answers one question: what makes one policy runnable everywhere."
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 06 · Compiler specification
@@ -76,7 +77,7 @@ appears in the emitted artifacts.
 
 ```text
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.9.0 以编译格式 v3 从 5 条策略生成。…
+本文件由 agent-gate v0.10.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← the five semantic rules
 ## 边界               ← the executor is not the policy author
 ## {description}      ← one chapter per policy
@@ -84,7 +85,7 @@ appears in the emitted artifacts.
    ### 何时适用 / ### 行为规则 / ### 禁止事项 / ### 呈现
 ```
 
-**SKILL.md** — one skill per policy, at `skills/agent-gate-<policy-id>/SKILL.md`:
+**SKILL.md** — one skill per policy, at `skills/agent-gate-&lt;policy-id&gt;/SKILL.md`:
 
 ```yaml
 ---
@@ -133,8 +134,8 @@ and compares them against the source policy one by one:
 
 | Fact | Where it is read from |
 | --- | --- |
-| `policy_id` | `> 策略 \`<id>\`` / `策略 \`<id>\`` |
-| `decision` | `- 决策：\`<decision>\`` / the instruction list item |
+| `policy_id` | `> 策略 \`&lt;id&gt;\`` / `策略 \`&lt;id&gt;\`` |
+| `decision` | `- 决策：\`&lt;decision&gt;\`` / the instruction list item |
 | `requires_approval` | The first sentence of the safety section |
 | `bubble_text` | "气泡文案（固定…）：…" |
 
@@ -189,7 +190,7 @@ Writes `out/compile-manifest.json`:
 
 ```json
 {
-  "engine_version": "0.9.0",
+  "engine_version": "0.10.0",
   "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],

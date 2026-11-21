@@ -10,3 +10,7 @@ coverage/
 .vscode/*
 !.vscode/extensions.json
 audit.jsonl
+
+# VitePress build output and cache
+docs/.vitepress/dist/
+docs/.vitepress/cache/

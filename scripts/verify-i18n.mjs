@@ -30,14 +30,22 @@ const RECORD = path.join(ROOT, 'docs', 'i18n', 'pairs.json');
 const WRITE = process.argv.includes('--write');
 
 /**
- * Layout: `docs/en/` is the source of truth, `docs/zh-cn/` mirrors it page for
- * page with identical filenames. Repository-root pages keep the sibling form
- * (`README.md` / `README.zh.md`) because they are read by tools and hosts that
- * expect them at the root, not under `docs/`.
+ * Layout: **Chinese is the source of truth.** `docs/zh-cn/` is authored first
+ * and `docs/en/` mirrors it page for page with identical filenames. A directory
+ * per language is still the right shape — translation platforms and docs sites
+ * both expect it — but the direction of authorship is Chinese-first.
+ *
+ * Repository-root pages keep the sibling form (`README.md` in English,
+ * `README.zh.md` in Chinese) because tools and hosts read them from the root.
+ * There the Chinese copy is still the translation, for the same reason: the
+ * repository's public face on GitHub is English and is read by more people.
  */
 const ROOTS = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md'];
-const EN_DIR = path.join(ROOT, 'docs', 'en');
-const ZH_DIR = path.join(ROOT, 'docs', 'zh-cn');
+const SOURCE_DIR = path.join(ROOT, 'docs', 'zh-cn');
+const TRANSLATION_DIR = path.join(ROOT, 'docs', 'en');
+/** Kept as aliases so the existing logic reads naturally. */
+const EN_DIR = TRANSLATION_DIR;
+const ZH_DIR = SOURCE_DIR;
 
 /** Docs that are English-only by design, with the reason recorded here. */
 const SINGLE_LANGUAGE = new Set([
@@ -63,8 +71,9 @@ function listMarkdown(dir, base = dir, out = []) {
 }
 
 const rootDocs = ROOTS.map((name) => path.join(ROOT, name)).filter((p) => existsSync(p));
-const enDocs = listMarkdown(EN_DIR).map((name) => path.join(EN_DIR, name));
-const zhDocs = listMarkdown(ZH_DIR).map((name) => path.join(ZH_DIR, name));
+/** The authored tree first, then its translation. */
+const sourceDocs = listMarkdown(SOURCE_DIR).map((name) => path.join(SOURCE_DIR, name));
+const translationDocs = listMarkdown(TRANSLATION_DIR).map((name) => path.join(TRANSLATION_DIR, name));
 
 const rel = (absolute) => path.relative(ROOT, absolute).split(path.sep).join('/');
 
@@ -74,17 +83,18 @@ const rel = (absolute) => path.relative(ROOT, absolute).split(path.sep).join('/'
  * Root pages pair as siblings; `docs/en/x.md` pairs with `docs/zh-cn/x.md`.
  * A missing counterpart is reported by the caller, not guessed here.
  */
-const zhOf = (absolute) => {
+const counterpartOf = (absolute) => {
   const resolved = path.resolve(absolute);
-  if (resolved.startsWith(path.resolve(EN_DIR) + path.sep)) {
+  if (resolved.startsWith(path.resolve(SOURCE_DIR) + path.sep)) {
     // Mirror the *relative* path, so `contributing/x.md` maps into the other
     // tree at the same subdirectory rather than collapsing to the root.
-    return path.join(ZH_DIR, path.relative(EN_DIR, resolved));
+    return path.join(TRANSLATION_DIR, path.relative(SOURCE_DIR, resolved));
   }
   return absolute.replace(/\.md$/, '.zh.md');
 };
 
-const primaryDocs = [...rootDocs, ...enDocs];
+/** Source documents: the Chinese tree plus the English root pages. */
+const primaryDocs = [...rootDocs, ...sourceDocs];
 
 /** Split a document into heading sections, skipping fenced code blocks. */
 function sections(text) {
@@ -140,9 +150,9 @@ for (const primary of primaryDocs) {
   const primaryRel = rel(primary);
   if (SINGLE_LANGUAGE.has(primaryRel)) continue;
 
-  const zh = zhOf(primary);
+  const zh = counterpartOf(primary);
   if (!existsSync(zh) || !statSync(zh).isFile()) {
-    problems.push(`${primaryRel}: missing the Chinese counterpart ${rel(zh)}`);
+    problems.push(`${primaryRel}: missing the translated counterpart ${rel(zh)}`);
     continue;
   }
 
@@ -156,22 +166,30 @@ for (const primary of primaryDocs) {
   // the page itself, which looks like a switcher and goes nowhere.
   const enBase = path.basename(primary);
   const zhBase = path.basename(zh);
-  const enRelative = path.resolve(primary).startsWith(path.resolve(EN_DIR) + path.sep)
-    ? path.relative(EN_DIR, path.resolve(primary)).split(path.sep).join('/')
+  // Path of this page relative to its own language tree, which is the same
+  // string in both trees because they mirror each other.
+  const pageRelative = path.resolve(primary).startsWith(path.resolve(SOURCE_DIR) + path.sep)
+    ? path.relative(SOURCE_DIR, path.resolve(primary)).split(path.sep).join('/')
     : path.basename(primary);
 
   // The switcher goes from this page's directory to the same page in the other
   // tree. A nested page needs one more `../` than a top-level page, so the
   // prefix is computed from the actual depth rather than assumed.
-  const depth = enRelative.split('/').length - 1;
+  const depth = pageRelative.split('/').length - 1;
   const up = depth === 0 ? '..' : Array.from({ length: depth + 1 }, () => '..').join('/');
-  const expectedOnEn = `(${up}/zh-cn/${enRelative})`;
-  const expectedOnZh = `(${up}/en/${enRelative})`;
+  // The source page links forward to the translation; the translation links
+  // back to the source. Both name the sibling tree explicitly.
+  const expectedOnSource = `(${up}/en/${pageRelative})`;
+  const expectedOnTranslation = `(${up}/zh-cn/${pageRelative})`;
 
-  const inEnglishDocs = path.resolve(primary).startsWith(path.resolve(EN_DIR) + path.sep);
-  if (inEnglishDocs) {
-    if (!enText.includes(expectedOnEn)) problems.push(`${primaryRel}: does not link to ${expectedOnEn.slice(1, -1)}`);
-    if (!zhText.includes(expectedOnZh)) problems.push(`${rel(zh)}: does not link to ${expectedOnZh.slice(1, -1)}`);
+  const inSourceDocs = path.resolve(primary).startsWith(path.resolve(SOURCE_DIR) + path.sep);
+  if (inSourceDocs) {
+    if (!enText.includes(expectedOnSource)) {
+      problems.push(`${primaryRel}: does not link to ${expectedOnSource.slice(1, -1)}`);
+    }
+    if (!zhText.includes(expectedOnTranslation)) {
+      problems.push(`${rel(zh)}: does not link to ${expectedOnTranslation.slice(1, -1)}`);
+    }
   } else {
     if (!enText.includes(`(${zhBase})`)) problems.push(`${primaryRel}: does not link to ${zhBase}`);
     if (!zhText.includes(`(${enBase})`)) problems.push(`${rel(zh)}: does not link to ${enBase}`);
@@ -203,7 +221,7 @@ for (const primary of primaryDocs) {
   const zhSections = sections(zhText);
   if (enSections.length !== zhSections.length) {
     problems.push(
-      `${primaryRel}: ${enSections.length} sections in English vs ${zhSections.length} in Chinese — ` +
+      `${primaryRel}: ${enSections.length} sections in the source vs ${zhSections.length} in the translation — ` +
         `a section was added or dropped on one side`,
     );
   } else {
@@ -212,8 +230,8 @@ for (const primary of primaryDocs) {
       const other = zhSections[index];
       if (en.level !== other.level) {
         problems.push(
-          `${primaryRel}: section ${index + 1} is H${en.level} in English ("${en.heading}") but ` +
-            `H${other.level} in Chinese ("${other.heading}")`,
+          `${primaryRel}: section ${index + 1} is H${en.level} in the source ("${en.heading}") but ` +
+            `H${other.level} in the translation ("${other.heading}")`,
         );
       }
     }

@@ -4,6 +4,7 @@ sidebar_position: 8
 tags: [reference, embodiment]
 description: "Trigger a require_approval policy by hand; the pet shows the prompt, and after the user approves,"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 07 · Embodiment interface specification

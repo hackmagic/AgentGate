@@ -4,7 +4,6 @@ sidebar_position: 9
 tags: [security, reference]
 description: "English(08-security-and-audit.md) | 中文"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 08 · 安全与审计

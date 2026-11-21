@@ -4,6 +4,7 @@ sidebar_position: 5
 tags: [reference, policy]
 description: "This document is a contract. Implementations must obey it; tests must pin these rules."
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 04 · Policy DSL specification

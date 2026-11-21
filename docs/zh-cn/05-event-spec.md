@@ -4,7 +4,6 @@ sidebar_position: 6
 tags: [reference, events]
 description: "给定一份 ActivityWatch 导出 JSON，适配器能产出合法事件序列，且 focus_block_started 的判定规则有单元测试覆盖。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 05 · 行为事件规范

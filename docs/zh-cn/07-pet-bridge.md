@@ -4,7 +4,6 @@ sidebar_position: 8
 tags: [reference, embodiment]
 description: "手工触发一条 require_approval 策略，宠物弹出引导，用户批准后审计日志记录完整链路。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 07 · 具身交互接口规范

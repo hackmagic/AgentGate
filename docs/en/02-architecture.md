@@ -4,6 +4,7 @@ sidebar_position: 3
 tags: [architecture]
 description: "This document answers one question: how does the system run. Policy semantics live in"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 02 · Runtime architecture

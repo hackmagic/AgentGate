@@ -4,6 +4,7 @@ sidebar_position: 99
 tags: [reference, glossary]
 description: "Canonical definitions for every project-specific term. All pages and all translations use these spellings."
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # Glossary

@@ -4,25 +4,30 @@ sidebar_position: 21
 tags: [contributing, i18n]
 description: "How to translate AgentGate documentation: the workflow, the boundaries, and what reviewers check."
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # Contributing translations
 
 English | [中文](../../zh-cn/contributing/translations.md)
 
-English is the single source of truth. Every other language is a localization of it. This page covers
-the workflow, the boundaries, and what a reviewer checks.
+**Chinese is the single source of truth.** Every other language, English included, is a localization of it.
+This page covers the workflow, the boundaries, and what a reviewer checks.
+
+The repository's public face is still English: `README.md` is English and `README.zh.md` is its Chinese
+copy, because GitHub visitors read English first. Inside `docs/`, the direction is reversed — Chinese is
+authored first.
 
 ## Layout
 
 ```text
 docs/
-├── en/          source of truth
-├── zh-cn/       translation, mirrors en/ page for page
+├── zh-cn/       source of truth, authored first
+├── en/          translation, mirrors zh-cn/ page for page
 └── i18n/        pairing record (generated, do not edit)
 ```
 
-Both trees use **identical filenames**. A page that exists in `docs/en/` must exist in `docs/zh-cn/`
+Both trees use **identical filenames**. A page that exists in `docs/zh-cn/` must exist in `docs/en/`
 with the same name. `npm run verify-i18n` fails when a page is missing, when a heading outline
 diverges, or when one side changed and the other did not.
 
@@ -51,18 +56,18 @@ A translation:
 - may **not** rewrite the described behaviour;
 - may **not** expand or compress the information — the meaning must be equivalent.
 
-If the English page is wrong, fix the English page. Do not fix it only in a translation: the
+If the Chinese page is wrong, fix the Chinese page. Do not fix it only in a translation: the
 translation would then be the only correct copy, and the next sync would erase the fix.
 
 ## Workflow
 
-1. **Change the English page first.** Every content change starts there.
+1. **Change the Chinese page first.** Every content change starts there.
 2. **Run the gate.** `npm run verify-i18n` reports what is out of sync.
-3. **Translate.** Update `docs/zh-cn/` with the same structure.
+3. **Translate.** Update `docs/en/` with the same structure.
 4. **Re-record.** `npm run verify-i18n -- --write` updates the pairing hashes.
-5. **One pull request.** English change and translation together, titled `docs:`.
+5. **One pull request.** Chinese change and translation together, titled `docs:`.
 
-Translations of a page that does not exist in English are rejected, not merged and fixed later. The
+Translations of a page that does not exist in Chinese are rejected, not merged and fixed later. The
 two trees must stay comparable at every commit.
 
 ## Translation status
@@ -96,12 +101,12 @@ intent.
 
 ## When not to submit a translation
 
-- **The English page is in flux.** A translation of a page being rewritten will be stale on merge.
-  Wait for the English change to land.
-- **You would have to guess.** If a term is not in the glossary and the English is ambiguous, ask on
-  the English page first. A guessed translation of a contract term is a defect that survives review.
+- **The Chinese page is in flux.** A translation of a page being rewritten will be stale on merge.
+  Wait for the Chinese change to land.
+- **You would have to guess.** If a term is not in the glossary and the Chinese is ambiguous, ask on
+  the Chinese page first. A guessed translation of a contract term is a defect that survives review.
 - **The change is a fact, not a phrasing.** Numbers, defaults, error codes and version ranges belong to
-  the English source; do not "correct" them in a translation.
+  the Chinese source; do not "correct" them in a translation.
 
 ## Machine translation
 
@@ -121,9 +126,9 @@ a subordinate clause, and translate `must` as a suggestion. All three are contra
 
 ## Adding a language
 
-1. Add the glossary first: `docs/<lang>/glossary.md`, translated from
-   [the English glossary](../glossary.md).
-2. Add the tree `docs/<lang>/` and mirror the page list.
+1. Add the glossary first: `docs/&lt;lang&gt;/glossary.md`, translated from
+   [the Chinese glossary](../glossary.md).
+2. Add the tree `docs/&lt;lang&gt;/` and mirror the page list.
 3. Extend `scripts/verify-i18n.mjs` to know the new tree — the script currently pairs `en` with
    `zh-cn` explicitly, and adding a language means adding it there.
 4. Add framework locale strings (sidebar, search, version selector) through the docs site's i18n

@@ -4,6 +4,7 @@ sidebar_position: 11
 tags: [reference, report]
 description: "This document answers one question: what does gate report compute, and what may a consumer rely on."
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 10 · Report specification
@@ -32,16 +33,16 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 | Flag | Meaning |
 | --- | --- |
 | `--policy <path>...` | Required. The policy set the report is *about*; policies with no history appear as `validated`. |
-| `--audit <file>` | JSONL audit log. Omitted means an empty log, not an error. |
+| `--audit &lt;file&gt;` | JSONL audit log. Omitted means an empty log, not an error. |
 | `--format markdown\|text\|json` | `markdown` (default) is for sharing; `text` is for a terminal; `json` is a stable machine shape. |
-| `--out <file>` | Write the report to a file and print its path, instead of stdout. |
-| `--title <heading>` | Markdown only: the document's H1. Defaults to `AgentGate report`. |
-| `--now <iso>` | Reference instant for bounded-mute expiry and `generated_at`. |
+| `--out &lt;file&gt;` | Write the report to a file and print its path, instead of stdout. |
+| `--title &lt;heading&gt;` | Markdown only: the document's H1. Defaults to `AgentGate report`. |
+| `--now &lt;iso&gt;` | Reference instant for bounded-mute expiry and `generated_at`. |
 | `--no-policies` | Drop the per-policy table, keep the summary and findings. |
-| `--archive <id>:<reason>` | Apply an operator archive before reporting. |
+| `--archive &lt;id&gt;:&lt;reason&gt;` | Apply an operator archive before reporting. |
 | `--rejection-threshold <0..1>` | When to raise `high_rejection_rate`. Default `0.5`. |
-| `--throttle-threshold <n>` | When to raise `heavily_throttled`. Default `3`. |
-| `--timezone <tz>` | IANA zone used to bucket dismissal times for suggestions. |
+| `--throttle-threshold &lt;n&gt;` | When to raise `heavily_throttled`. Default `3`. |
+| `--timezone &lt;tz&gt;` | IANA zone used to bucket dismissal times for suggestions. |
 
 Exit code is `0` whenever a report is produced. **Findings are information, not failures**: a policy
 being muted is a fact about the user, not a broken build. A malformed flag is `2`; an unreadable audit

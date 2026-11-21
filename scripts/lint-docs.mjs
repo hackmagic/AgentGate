@@ -18,7 +18,16 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
-const TREES = ['docs/en', 'docs/zh-cn'];
+/**
+ * Chinese is the source of truth; English and any future language are
+ * translations of it. The *directory* per language is still the right layout
+ * (translation platforms and docs sites both expect it) — only the direction of
+ * authorship changed.
+ */
+const SOURCE_TREE = 'docs/zh-cn';
+const SOURCE_LANG = 'zh-cn';
+const TREES = [SOURCE_TREE, 'docs/en'];
+const REQUIRED_TRANSLATIONS = ['docs/en'];
 const REQUIRED_FRONTMATTER = ['title', 'sidebar_position', 'tags', 'description', 'last_updated'];
 
 /** Files allowed to hold more than one H1: a page that quotes an artifact verbatim. */
@@ -99,15 +108,16 @@ for (const tree of TREES) {
       }
     }
 
-    // `translation_status` is a translation-only field. It must appear in every
-    // translated page and in no English page, so a reader can tell at a glance
-    // whether what they are reading has been reviewed.
+    // `translation_status` is a translation-only field. Chinese is the source of
+    // truth, so it must appear in every English page and in no Chinese page, so
+    // a reader can tell at a glance whether what they are reading has been
+    // reviewed against the original.
     const declaresStatus = /^translation_status:/m.test(frontmatter[1]);
-    if (tree === 'docs/zh-cn' && !declaresStatus) {
-      problems.push(`${file}: a translated page must declare translation_status`);
+    if (tree === SOURCE_TREE && declaresStatus) {
+      problems.push(`${file}: the source language must not declare translation_status`);
     }
-    if (tree === 'docs/en' && declaresStatus) {
-      problems.push(`${file}: an English source page must not declare translation_status`);
+    if (tree !== SOURCE_TREE && !declaresStatus) {
+      problems.push(`${file}: a translated page must declare translation_status`);
     }
     if (declaresStatus) {
       const status = /^translation_status:\s*(\S+)/m.exec(frontmatter[1])?.[1];
@@ -115,6 +125,72 @@ for (const tree of TREES) {
         problems.push(`${file}: translation_status "${status}" is not complete/partial/todo`);
       }
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Site-rendering hazards.
+//
+// A Markdown file is also a Vue template once a docs site renders it. Two things
+// that read fine as plain text break the build:
+//
+//   1. `<placeholder>` in prose. CommonMark passes it through as raw HTML and Vue
+//      rejects it with "Element is missing end tag", reported on another line.
+//   2. A relative link to a file outside the site root. It resolves on disk and
+//      fails at build time as a dead link.
+//
+// Both were found by the first `docs:build`; checking them here means the next
+// author is told by the linter, not by a stack trace.
+// ---------------------------------------------------------------------------
+
+const REAL_HTML_TAGS = new Set([
+  'a', 'b', 'i', 'u', 'em', 'strong', 'code', 'pre', 'kbd', 'samp', 'var',
+  'br', 'hr', 'p', 'div', 'span', 'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+  'table', 'thead', 'tbody', 'tr', 'th', 'td', 'blockquote',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'img', 'details', 'summary', 'sup', 'sub', 'small', 'mark', 'del', 'ins',
+  'video', 'audio', 'source', 'picture', 'figure', 'figcaption', 'iframe',
+  'svg', 'path', 'button', 'input', 'label', 'form', 'select', 'option', 'textarea',
+]);
+
+const SITE_ROOT = path.join(ROOT, 'docs');
+
+for (const tree of TREES) {
+  const absoluteTree = path.join(ROOT, tree);
+  for (const relative of walk(absoluteTree)) {
+    const file = `${tree}/${relative}`;
+    const text = readFileSync(path.join(ROOT, file), 'utf8');
+    const lines = text.split('\n');
+
+    let inFence = false;
+    lines.forEach((line, index) => {
+      if (/^\s*```/.test(line)) {
+        inFence = !inFence;
+        return;
+      }
+      if (inFence) return;
+
+      // Unescaped placeholder, not a real element.
+      for (const match of line.matchAll(/<([a-z][a-z0-9-]*)>/g)) {
+        if (!REAL_HTML_TAGS.has(match[1])) {
+          problems.push(
+            `${file}:${index + 1}: "<${match[1]}>" is a placeholder; escape it as ` +
+              `&lt;${match[1]}&gt; or the docs site fails to compile the page`,
+          );
+        }
+      }
+
+      // Relative link escaping the site root.
+      for (const match of line.matchAll(/\]\((\.\.\/[^)#\s]+)/g)) {
+        const resolved = path.resolve(path.dirname(path.join(ROOT, file)), match[1]);
+        if (!resolved.startsWith(SITE_ROOT + path.sep)) {
+          problems.push(
+            `${file}:${index + 1}: link "${match[1]}" leaves the documentation root; ` +
+              `use an absolute repository URL instead`,
+          );
+        }
+      }
+    });
   }
 }
 

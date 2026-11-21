@@ -4,7 +4,6 @@ sidebar_position: 4
 tags: [architecture, policy]
 description: "本文件回答一个问题：一条策略从写到死，经历什么。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 03 · 策略生命周期
@@ -122,4 +121,4 @@ gate lifecycle --policy packs/deep-work --audit ./audit.jsonl --now 2026-11-20T0
 3. **会静音**：连续 3 次否决后这条策略自己闭嘴，并建议你改条件——被静音不是 bug，是反馈；
 4. **可归档**：任何策略都能被操作者退役，历史审计不受影响。
 
-模板与评审标准见 [CONTRIBUTING.md](../../CONTRIBUTING.md)。
+模板与评审标准见 [CONTRIBUTING.md](https://github.com/hackmagic/AgentGate/blob/main/CONTRIBUTING.md)。

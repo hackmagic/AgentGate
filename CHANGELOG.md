@@ -11,6 +11,34 @@
 - npm 发布（`bin: gate`）
 - 策略修订建议：连续 dismiss 后给出可采纳的条件改写
 
+## [0.10.0] — 2026-11-22
+
+### 变更（方向反转）
+
+- **文档改为中文优先。** `docs/zh-cn/` 是真值源，先写这里；`docs/en/` 是逐页镜像的翻译。
+  `translation_status` 随之从中文页移到英文页。仓库根目录的 `README.md` 仍是英文（GitHub 访客先读它），
+  `verify-i18n` 对这一例外有显式说明。
+- 所有门禁的判定方向同步反转：`verify-i18n` 以中文为基准检测漂移，`lint-docs` 要求「源页不得有
+  `translation_status`、翻译页必须有」。
+
+### 新增
+
+- **文档站点（VitePress 1.6.4）**：`docs/.vitepress/config.mjs`。中文挂根路径、英文在 `/en/`，
+  侧边栏与框架文案（上一页/下一页、本页目录、搜索、主题）走 `locales` 配置而非正文。
+  新增 `npm run docs:dev` / `docs:build` / `docs:preview`。
+- `lint-docs` 新增两类站点渲染检查：未转义的 `<placeholder>` 占位符、指向文档根之外的相对链接。
+
+### 修复
+
+站点首次构建暴露的两个真实问题：
+
+- **40 处 `<placeholder>` 被当作 HTML。** CommonMark 原样透传，Vue 报 "Element is missing end tag"，
+  且错误指向无关行。已统一转义为 `&lt;...&gt;`（代码块内不动）。
+- **4 个指向 `docs/` 之外文件的相对链接**在站点上下文里是死链，已改为 GitHub 绝对 URL。
+
+### 依赖
+
+- 新增开发依赖 `vitepress@1.6.4`（仅文档站点，不影响运行时零依赖）。
 ## [0.9.0] — 2026-11-22
 
 ### 变更（破坏性：文档路径）

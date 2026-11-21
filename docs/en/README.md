@@ -4,6 +4,7 @@ sidebar_position: 0
 tags: [index]
 description: "English | 中文(README.md)"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # Documentation index
@@ -60,15 +61,42 @@ change.
 
 ## Translations
 
-Every document is a pair: `<name>.md` is English, `<name>.zh.md` is Chinese. Each page links to its
-counterpart directly under the H1. `npm run verify-i18n` enforces the pairing:
+**Chinese is the single source of truth**; English is a localization of it. The two trees are mirrored
+directories:
 
-- both sides exist, and each links to the other;
-- the heading outline matches (§-for-§), so a translation cannot quietly lose a section;
-- the recorded English/Chinese hashes in `docs/i18n/pairs.json` still match, so editing one side
-  without the other fails CI.
+```text
+docs/
+├── zh-cn/       source of truth, authored first
+├── en/          translation, mirrors zh-cn/ page for page
+└── i18n/        pairing record (generated, do not edit)
+```
 
-After a deliberate edit to either side, re-record with `npm run verify-i18n -- --write`.
+Each page links to its counterpart in the other tree directly under the H1. Three gates keep the trees
+from drifting apart:
 
-Code blocks and identifiers stay in English inside both languages: `GateSignal`, `require_approval`
-and `AGENTS.md` are proper nouns of the system, and translating them would break the contract they name.
+- `npm run verify-i18n` — both pages exist, each links to the other, the heading outlines match, and
+  the section hashes in `docs/i18n/pairs.json` still agree, so editing one side without the other
+  fails CI;
+- `npm run lint-docs` — complete frontmatter, one H1, no skipped heading level, every code fence
+  tagged, no CRLF or BOM, and `translation_status` only on translated pages;
+- `npm run docs:build` — the docs site must build, which is where an unescaped placeholder or a link
+  escaping the site root surfaces.
+
+After a deliberate edit, re-record with `npm run verify-i18n -- --write`.
+
+Code blocks and identifiers stay as written in every language: `GateSignal`, `require_approval` and
+`AGENTS.md` are proper nouns of the system, and translating them would break the contract they name.
+
+## Documentation site
+
+The site is built with VitePress. **Chinese is mounted at the root**, English under `/en/`:
+
+```bash
+npm run docs:dev      # local preview with hot reload
+npm run docs:build    # emits docs/.vitepress/dist
+npm run docs:preview  # preview the built output
+```
+
+Sidebar, language switcher, previous/next, search and other framework strings are configured in
+`locales` in `docs/.vitepress/config.mjs`. Do not write them into page bodies — there they become
+noise every translator has to handle.

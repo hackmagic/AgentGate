@@ -39,6 +39,15 @@ jobs:
       - name: Bilingual documentation pairing
         run: npm run verify-i18n
 
+      - name: Documentation lint
+        run: npm run lint-docs
+
+      - name: Documentation site builds
+        # A docs site turns unescaped `<placeholder>` into a Vue parse error and
+        # an out-of-tree link into a dead link. Both are caught here rather than
+        # by whoever next runs `docs:build` locally.
+        run: npm run docs:build
+
       - name: Tests
         run: npm test
 

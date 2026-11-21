@@ -4,7 +4,6 @@ sidebar_position: 10
 tags: [roadmap]
 description: "English(09-mvp-roadmap.md) | 中文"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 09 · 路线图与验收
@@ -88,7 +87,7 @@ translation_status: complete
 
 对齐参考 harness 的文档体系：
 
-- ✅ 每份文档都成对：`<name>.md` 英文、`<name>.zh.md` 中文，各自在 H1 下链到另一边
+- ✅ 每份文档都成对：`&lt;name&gt;.md` 英文、`&lt;name&gt;.zh.md` 中文，各自在 H1 下链到另一边
 - ✅ `npm run verify-i18n` 校验配对、互链与标题大纲一一对应
 - ✅ 分段哈希记录在 `docs/i18n/pairs.json`：只改一边而不同步另一边，CI 会红，而不是留下半翻译页面
 - ✅ `validate-specs` 额外断言文档宣称的事实仍然成立
@@ -115,7 +114,7 @@ translation_status: complete
   地方被读，而不是在终端里
 - ✅ 同一份 `Report` 对象两种渲染：`--format text` 给人看，`--format json` 给消费方
 - ✅ `docs/10-report-spec.md`，每个发现项 code 都由 `validate-specs` 把关
-- ✅ `gate lifecycle --archive <id>:<reason>`：`archived` 状态现在 CLI 可达
+- ✅ `gate lifecycle --archive &lt;id&gt;:&lt;reason&gt;`：`archived` 状态现在 CLI 可达
 
 做这个功能时修掉一个真实缺陷：引擎会累计否决次数，但**从不写 `reason: muted`**，于是引擎内部
 已静音的策略被投影成 `active`。`muted` 在 `AUDIT_REASONS` 和生命周期折叠里都有，却没有任何地方

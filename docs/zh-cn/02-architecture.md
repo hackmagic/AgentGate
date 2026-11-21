@@ -4,7 +4,6 @@ sidebar_position: 3
 tags: [architecture]
 description: "本文件回答一个问题：系统怎么跑。策略语义见 04-policy-dsl 与"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 02 · 运行时架构

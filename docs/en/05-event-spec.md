@@ -4,6 +4,7 @@ sidebar_position: 6
 tags: [reference, events]
 description: "Given an ActivityWatch export JSON, the adapter produces a valid event sequence, and the"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 05 · Behavioural event specification

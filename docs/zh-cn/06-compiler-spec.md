@@ -4,7 +4,6 @@ sidebar_position: 7
 tags: [reference, compiler]
 description: "本文件回答一个问题：一条策略凭什么能到处运行。"
 last_updated: 2026-11-22
-translation_status: complete
 ---
 
 # 06 · 编译器规范
@@ -71,7 +70,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 
 ```text
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.9.0 以编译格式 v3 从 5 条策略生成。…
+本文件由 agent-gate v0.10.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← 五条语义规则
 ## 边界               ← 执行者不是策略制定者
 ## {description}      ← 每条策略一章
@@ -79,7 +78,7 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
    ### 何时适用 / ### 行为规则 / ### 禁止事项 / ### 呈现
 ```
 
-**SKILL.md** —— 每个策略一个技能，目录 `skills/agent-gate-<policy-id>/SKILL.md`：
+**SKILL.md** —— 每个策略一个技能，目录 `skills/agent-gate-&lt;policy-id&gt;/SKILL.md`：
 
 ```yaml
 ---
@@ -126,8 +125,8 @@ README.md                         # 工具表 + 契约摘要
 
 | 事实 | 从哪读 |
 | --- | --- |
-| `policy_id` | `> 策略 \`<id>\`` / `策略 \`<id>\`` |
-| `decision` | `- 决策：\`<decision>\`` / 指令列表项 |
+| `policy_id` | `> 策略 \`&lt;id&gt;\`` / `策略 \`&lt;id&gt;\`` |
+| `decision` | `- 决策：\`&lt;decision&gt;\`` / 指令列表项 |
 | `requires_approval` | 安全性段落的第一句 |
 | `bubble_text` | 「气泡文案（固定…）：…」 |
 
@@ -181,7 +180,7 @@ gate compile --policy packs/deep-work --out out --target all
 
 ```json
 {
-  "engine_version": "0.9.0",
+  "engine_version": "0.10.0",
   "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],

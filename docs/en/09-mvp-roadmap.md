@@ -4,6 +4,7 @@ sidebar_position: 10
 tags: [roadmap]
 description: "English | 中文(09-mvp-roadmap.md)"
 last_updated: 2026-11-22
+translation_status: complete
 ---
 
 # 09 · Roadmap and acceptance
@@ -90,7 +91,7 @@ Acceptance: `tests/lifecycle.test.ts` (11 cases) + `tests/parity.test.ts` (9 cas
 
 Modelled on the reference harness's documentation system:
 
-- ✅ Every document is a pair: `<name>.md` English, `<name>.zh.md` Chinese, each linking to the other under the H1
+- ✅ Every document is a pair: `&lt;name&gt;.md` English, `&lt;name&gt;.zh.md` Chinese, each linking to the other under the H1
 - ✅ `npm run verify-i18n` checks pairing, mutual links and matching heading outlines
 - ✅ Per-section English/Chinese hashes recorded in `docs/i18n/pairs.json`, so editing one side without
       the other fails CI instead of leaving a half-translated page
@@ -120,7 +121,7 @@ Remaining:
   report is usually read where it lands rather than in a terminal
 - ✅ Two renderings from one `Report` object: `--format text` for humans, `--format json` for consumers
 - ✅ `docs/10-report-spec.md`, with every finding code gated by `validate-specs`
-- ✅ `gate lifecycle --archive <id>:<reason>`: the `archived` state is now reachable from the CLI
+- ✅ `gate lifecycle --archive &lt;id&gt;:&lt;reason&gt;`: the `archived` state is now reachable from the CLI
 
 Fixed while building it: the engine counted dismissals but **never wrote `reason: muted`**, so a policy
 the engine held muted projected as `active`. `muted` existed in `AUDIT_REASONS` and in the lifecycle
