@@ -360,3 +360,43 @@ test('every policy in the new packs is audited on first match', () => {
     }
   }
 });
+
+console.log('\n== documented example sequences ==');
+
+test('every example sequence still produces the outcome it documents', async () => {
+  // The fixtures in `examples/` record what each case is supposed to do. This
+  // replays them, so a YAML edit that changes an outcome fails here instead of
+  // leaving a stale expectation behind.
+  const { readFileSync } = await import('node:fs');
+  const files = ['examples/health-break-sequences.json', 'examples/context-switch-guard-sequences.json'];
+
+  for (const file of files) {
+    const spec = JSON.parse(readFileSync(path.join(REPO, file), 'utf8')) as {
+      pack: string;
+      timezone: string;
+      sequences: { id: string; expect: { decision: string; policy_id: string | null }; event: unknown }[];
+    };
+
+    const policies = loadPolicyDirectory(path.join(REPO, 'packs', spec.pack)).map((entry) => entry.policy);
+
+    for (const sequence of spec.sequences) {
+      const { normalizeEvent } = await import('../src/events/normalize.js');
+      const event = normalizeEvent(sequence.event);
+      const gate = new AgentGate({
+        policies,
+        audit: new MemoryAuditStore(),
+        clock: { now: () => new Date(event.timestamp) },
+        timezone: spec.timezone,
+        signal_id_factory: () => `sig-${sequence.id}`,
+      });
+
+      const outcome = gate.evaluate(event);
+      assert.equal(outcome.decision, sequence.expect.decision, `${file} ${sequence.id}: decision`);
+      assert.equal(
+        outcome.matched_policy_id ?? null,
+        sequence.expect.policy_id,
+        `${file} ${sequence.id}: matched policy`,
+      );
+    }
+  }
+});

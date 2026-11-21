@@ -1,15 +1,23 @@
 policy:
   id: context-thrash-warning
-  version: 1
-  description: 反复来回切应用时，提醒先写下一句「我到底在等什么」
+  version: 2
+  description: 在某个应用里没待多久就切走时，提醒先写下一句「我到底在等什么」
   priority: 55
   trigger:
     event: app_switch
   conditions:
     all:
+      # Both branches must require a *short* dwell. The previous version had a
+      # bare `time_window` as the second `any` branch, so any evening switch
+      # qualified — including switching back into the editor to work. A nudge
+      # that fires when you return to work is noise, not guidance.
       - any:
-          - duration_seconds: "< 120"
-          - time_window: "21:00-23:59"
+          - all:
+              - duration_seconds: "< 120"
+              - time_window: "09:00-20:00"
+          - all:
+              - duration_seconds: "< 300"
+              - time_window: "21:00-23:59"
   decision: suggest
   action:
     type: write_down_blocker
@@ -23,7 +31,7 @@ policy:
     audit_level: summary
   presentation:
     animation_hint: thinking
-    bubble_text: 切得有点碎，卡在哪了？
+    bubble_text: 这个应用只待了两分钟？
     actions:
       - label: 好，我写一句
         action_id: approve

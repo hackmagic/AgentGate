@@ -1,0 +1,67 @@
+{
+  "$comment": "Event sequences for packs/health-break. Each entry is one normalized event; feed it to gate evaluate with --now set to its timestamp. These are the cases the pack was walked through, kept as fixtures so a future edit can be re-checked the same way.",
+  "pack": "health-break",
+  "timezone": "Asia/Shanghai",
+  "sequences": [
+    {
+      "id": "daytime-one-hour-stretch",
+      "expect": { "decision": "suggest", "policy_id": "long-stretch-break" },
+      "why": "A 62-minute block ending at 10:30 is the ordinary case this policy exists for.",
+      "event": {
+        "type": "focus_block_ended",
+        "timestamp": "2026-11-20T02:30:00.000Z",
+        "source": "manual",
+        "context": { "app": "Code", "project": "agent-gate", "language": "typescript" },
+        "duration_seconds": 3700
+      }
+    },
+    {
+      "id": "three-hours-no-break",
+      "expect": { "decision": "require_approval", "policy_id": "no-break-warning" },
+      "why": "Three hours without a break outranks the one-hour nudge and asks rather than tells.",
+      "event": {
+        "type": "focus_block_ended",
+        "timestamp": "2026-11-20T07:00:00.000Z",
+        "source": "manual",
+        "context": { "app": "Code", "project": "agent-gate", "language": "typescript" },
+        "duration_seconds": 11000
+      }
+    },
+    {
+      "id": "late-evening-no-stretch-nudge",
+      "expect": { "decision": "allow", "policy_id": null },
+      "why": "Regression guard: this used to fire long-stretch-break at 22:00, where the copy reads wrong. Daytime window added in v2.",
+      "event": {
+        "type": "focus_block_ended",
+        "timestamp": "2026-11-20T14:00:00.000Z",
+        "source": "manual",
+        "context": { "app": "Code", "project": "agent-gate", "language": "typescript" },
+        "duration_seconds": 7300
+      }
+    },
+    {
+      "id": "late-night-work-asks",
+      "expect": { "decision": "require_approval", "policy_id": "late-night-work" },
+      "why": "23:30 start is the window late-night-work owns; it asks instead of deciding.",
+      "event": {
+        "type": "focus_block_started",
+        "timestamp": "2026-11-20T15:30:00.000Z",
+        "source": "manual",
+        "context": { "app": "Code", "project": "agent-gate", "language": "typescript" },
+        "duration_seconds": null
+      }
+    },
+    {
+      "id": "weekend-eyes",
+      "expect": { "decision": "suggest", "policy_id": "screen-time-eyes" },
+      "why": "Two hours on a Saturday is the weekend eye-rest case.",
+      "event": {
+        "type": "focus_block_ended",
+        "timestamp": "2026-11-21T06:00:00.000Z",
+        "source": "manual",
+        "context": { "app": "Code", "project": "agent-gate", "language": "typescript" },
+        "duration_seconds": 7300
+      }
+    }
+  ]
+}

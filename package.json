@@ -63,8 +63,9 @@
     "docs:preview": "vitepress preview docs",
     "audit-schemas": "node scripts/audit-schemas.mjs",
     "verify-integrations": "node integrations/dsh-agent-gate-pet/test/verify-host.mjs && node integrations/dsh-agent-gate-pet/test/verify-client.mjs",
-    "check": "npm run typecheck && npm run lint && npm run verify-i18n && npm run lint-docs && npm run test && npm run validate-specs && npm run audit-schemas && npm run verify-skill-fields && npm run build && npm run verify-integrations",
-    "verify-skill-fields": "node --import tsx scripts/verify-skill-fields.ts"
+    "check": "npm run typecheck && npm run lint && npm run verify-i18n && npm run lint-docs && npm run test && npm run validate-specs && npm run audit-schemas && npm run verify-skill-fields && npm run verify-examples && npm run build && npm run verify-integrations",
+    "verify-skill-fields": "node --import tsx scripts/verify-skill-fields.ts",
+    "verify-examples": "node --import tsx scripts/verify-examples.ts"
   },
   "dependencies": {
     "yaml": "^2.9.1"

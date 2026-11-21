@@ -1,13 +1,18 @@
 policy:
   id: long-stretch-break
-  version: 1
-  description: 一次专注满 60 分钟后，提醒站起来活动两分钟
+  version: 2
+  description: 白天一次专注满 60 分钟后，提醒站起来活动两分钟
   priority: 70
   trigger:
     event: focus_block_ended
   conditions:
     all:
       - duration_seconds: ">= 3600"
+      # Daytime only. Without this the reminder fired at 22:00 and 02:00 too,
+      # where "坐满一小时了，伸个懒腰？" is the wrong thing to say — the person
+      # is finishing the day, not mid-afternoon. Late-night work has its own
+      # policy (`late-night-work`) that asks a different question.
+      - time_window: "08:00-21:00"
   decision: suggest
   action:
     type: stretch_reminder
