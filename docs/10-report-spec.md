@@ -14,7 +14,9 @@ which is what makes the numbers trustworthy rather than merely persistent.
 
 ```bash
 gate report --policy packs/deep-work --audit ./audit.jsonl
+gate report --policy packs/deep-work --audit ./audit.jsonl --out report.md
 gate report --policy packs/deep-work --audit ./audit.jsonl --format json
+gate report --policy packs/deep-work --audit ./audit.jsonl --format text
 gate report --policy packs/deep-work --audit ./audit.jsonl --now 2026-11-20T05:00:00Z
 gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 ```
@@ -23,9 +25,11 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 | --- | --- |
 | `--policy <path>...` | Required. The policy set the report is *about*; policies with no history appear as `validated`. |
 | `--audit <file>` | JSONL audit log. Omitted means an empty log, not an error. |
-| `--format text\|json` | `text` (default) is for humans; `json` is a stable machine shape. |
+| `--format markdown\|text\|json` | `markdown` (default) is for sharing; `text` is for a terminal; `json` is a stable machine shape. |
+| `--out <file>` | Write the report to a file and print its path, instead of stdout. |
+| `--title <heading>` | Markdown only: the document's H1. Defaults to `AgentGate report`. |
 | `--now <iso>` | Reference instant for bounded-mute expiry and `generated_at`. |
-| `--no-policies` | Text only: drop the per-policy table, keep the summary. |
+| `--no-policies` | Drop the per-policy table, keep the summary and findings. |
 | `--archive <id>:<reason>` | Apply an operator archive before reporting. |
 | `--rejection-threshold <0..1>` | When to raise `high_rejection_rate`. Default `0.5`. |
 | `--throttle-threshold <n>` | When to raise `heavily_throttled`. Default `3`. |
@@ -34,7 +38,37 @@ Exit code is `0` whenever a report is produced. **Findings are information, not 
 being muted is a fact about the user, not a broken build. A malformed flag is `2`; an unreadable audit
 file is an error.
 
-## 2. What is counted
+### The report never writes the audit log
+
+The report is a **read-only projection**. It opens the audit file, reads it, and closes it. There is no
+path by which `gate report` appends a record.
+
+That is a hard rule rather than a tidiness preference: a command that both read and wrote the log would
+change its own next output. The second run would count the first run's lines, and the numbers would
+drift for no reason the user could see. `tests/report-render.test.ts` asserts byte equality of the audit
+file before and after a report.
+
+## 2. Format: why `markdown` is the default
+
+The report is usually read in the place it lands — an issue, a pull request comment, a run summary —
+not in a terminal scrolling past. Markdown is the format those places understand, so it is the default.
+
+Its shape follows from that:
+
+| Choice | Reason |
+| --- | --- |
+| A real `## Summary` heading | A reviewer can link to a section |
+| A table, not padded columns | A comment can be anchored to one policy's row |
+| Tables throughout | Padded columns collapse outside a monospace font |
+| No code fence around the body | Nothing inside a fence can be commented on, and it wraps badly |
+| Finding codes inline as `` `code` `` | The stable string is searchable; the prose is not |
+
+`--format text` remains for a terminal, where alignment is an advantage and Markdown is noise.
+`--format json` remains for a consumer, where neither matters.
+
+All three read the same `Report` object, so they cannot disagree about a number.
+
+## 3. What is counted
 
 Each count is derived from `AuditRecord.reason`, so there is exactly one source:
 
@@ -74,7 +108,7 @@ The consequence is that a per-policy `degraded` column can never see those lines
 The asymmetry is intentional and stated here rather than hidden. A non-zero summary with all-zero
 per-policy columns means "something failed, and the engine declined to guess which".
 
-## 3. Lifecycle distribution
+## 4. Lifecycle distribution
 
 `lifecycle` counts the five states from [03-policy-lifecycle](03-policy-lifecycle.md):
 
@@ -85,7 +119,7 @@ per-policy columns means "something failed, and the engine declined to guess whi
 The sum always equals `summary.policies`. `draft` is reachable only through the library API
 (`authoringState`), not through the CLI, because the CLI refuses invalid policies before loading them.
 
-## 4. Findings
+## 5. Findings
 
 Findings are derived, never stored. Each disappears on its own when its condition stops holding.
 
@@ -104,7 +138,7 @@ Two rules the implementation follows, both learned the hard way:
 2. **Every code the report can emit is declared in `FINDING_CODES`**, and `validate-specs` asserts that
    each one appears in this document. A new finding cannot ship undocumented.
 
-## 5. The JSON shape
+## 6. The JSON shape
 
 `--format json` prints one object. Consumers may rely on the keys below and on the ordering of
 `policies` (matching the `--policy` load order), but not on field order within an object.
@@ -154,7 +188,7 @@ Two rules the implementation follows, both learned the hard way:
 
 `window` is `null` for an empty log. `first_seen` / `last_seen` are `null` for a policy with no records.
 
-## 6. Stability promise
+## 7. Stability promise
 
 | Promise | Meaning |
 | --- | --- |
@@ -166,7 +200,7 @@ Two rules the implementation follows, both learned the hard way:
 Not promised: field **order** inside an object, and the wording of `message`. Parse `code`, which is
 stable, not the prose, which is meant to be read.
 
-## 7. What this report is not
+## 8. What this report is not
 
 - **Not a health check.** A report with findings is a normal report.
 - **Not a privacy surface.** It reads only the nine-field audit whitelist, so it cannot leak screen

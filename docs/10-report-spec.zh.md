@@ -13,7 +13,9 @@
 
 ```bash
 gate report --policy packs/deep-work --audit ./audit.jsonl
+gate report --policy packs/deep-work --audit ./audit.jsonl --out report.md
 gate report --policy packs/deep-work --audit ./audit.jsonl --format json
+gate report --policy packs/deep-work --audit ./audit.jsonl --format text
 gate report --policy packs/deep-work --audit ./audit.jsonl --now 2026-11-20T05:00:00Z
 gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 ```
@@ -22,9 +24,11 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 | --- | --- |
 | `--policy <path>...` | 必填。报告**关于**哪份策略集；没有历史的策略会作为 `validated` 出现。 |
 | `--audit <file>` | JSONL 审计日志。省略表示空日志，不是错误。 |
-| `--format text\|json` | `text`（默认）给人看；`json` 是稳定的机器形状。 |
+| `--format markdown\|text\|json` | `markdown`（默认）用于分享；`text` 用于终端；`json` 是稳定的机器形状。 |
+| `--out <file>` | 把报告写进文件并打印路径，而不是输出到 stdout。 |
+| `--title <heading>` | 仅 markdown：文档的 H1，默认 `AgentGate report`。 |
 | `--now <iso>` | 有界静音到期判定与 `generated_at` 的参考时刻。 |
-| `--no-policies` | 仅文本：去掉逐策略表，保留汇总。 |
+| `--no-policies` | 去掉逐策略表，保留汇总与发现项。 |
 | `--archive <id>:<reason>` | 报告前应用一次操作者归档。 |
 | `--rejection-threshold <0..1>` | 何时报 `high_rejection_rate`，默认 `0.5`。 |
 | `--throttle-threshold <n>` | 何时报 `heavily_throttled`，默认 `3`。 |
@@ -32,7 +36,34 @@ gate report --policy packs/deep-work --audit ./audit.jsonl --no-policies
 只要生成了报告，退出码就是 `0`。**发现项是信息，不是失败**：某条策略被静音是用户的事实，
 不是构建坏了。参数写错是 `2`；审计文件读不了才是错误。
 
-## 2. 算了什么
+### 报告从不写入审计日志
+
+报告是**只读投影**。它打开审计文件、读、关掉，没有任何一条路径能让 `gate report` 追加记录。
+
+这是硬规则而不是整洁偏好：一个既读又写的命令会改变自己下一次的输出。第二次运行会数进第一次
+写下的行，数字会漂移，而用户看不到原因。`tests/report-render.test.ts` 断言报告前后审计文件
+逐字节相同。
+
+## 2. 格式：为什么默认是 markdown
+
+报告通常在它落地的地方被读——issue、PR 评论、run summary——而不是在终端里滚过去。Markdown 正是
+这些地方认识的语言，所以它是默认值。
+
+它的形状由此决定：
+
+| 选择 | 原因 |
+| --- | --- |
+| 真正的 `## Summary` 标题 | 评审者可以链到某一节 |
+| 用表格，不用补齐空格的列 | 评论可以锚定到某条策略那一行 |
+| 全篇表格 | 补齐空格的列在非等宽字体里会散架 |
+| 正文不套代码围栏 | 围栏里的内容无法被评论，且换行难看 |
+| 发现项 code 用 `` `code` `` 内联 | 稳定字符串可搜索，散文不可 |
+
+`--format text` 留给终端——在那里对齐是优势，Markdown 是噪音。`--format json` 留给消费方——
+在那里两者都不重要。
+
+三种渲染读的是同一个 `Report` 对象，所以它们不可能在某个数字上互相矛盾。
+## 3. 算了什么
 
 每个计数都从 `AuditRecord.reason` 派生，所以只有一个事实来源：
 
@@ -70,7 +101,7 @@ rejection_rate = dismissed / (approved + dismissed)
 这个不对称是有意的，写在这里而不是藏起来。汇总非零而逐策略全零，意思是「确实有失败，而引擎
 拒绝猜是谁」。
 
-## 3. 生命周期分布
+## 4. 生命周期分布
 
 `lifecycle` 数 [03-policy-lifecycle](03-policy-lifecycle.zh.md) 里的五个状态：
 
@@ -81,7 +112,7 @@ rejection_rate = dismissed / (approved + dismissed)
 总和恒等于 `summary.policies`。`draft` 只能通过库 API（`authoringState`）到达，CLI 不可达——
 因为 CLI 在加载前就拒绝了非法策略。
 
-## 4. 发现项
+## 5. 发现项
 
 发现项是派生出来的，从不存储。条件不成立时它自己就消失了。
 
@@ -99,7 +130,7 @@ rejection_rate = dismissed / (approved + dismissed)
 2. **报告能吐出的每个 code 都必须声明在 `FINDING_CODES`**，且 `validate-specs` 会断言它出现在
    本文档里。新发现项不可能不带文档上线。
 
-## 5. JSON 形状
+## 6. JSON 形状
 
 `--format json` 打印一个对象。消费方可以依赖下面的键，以及 `policies` 的顺序（与 `--policy`
 加载顺序一致），但不要依赖对象内部的字段顺序。
@@ -149,7 +180,7 @@ rejection_rate = dismissed / (approved + dismissed)
 
 空日志时 `window` 为 `null`。没有记录的策略，`first_seen` / `last_seen` 为 `null`。
 
-## 6. 稳定性承诺
+## 7. 稳定性承诺
 
 | 承诺 | 含义 |
 | --- | --- |
@@ -160,7 +191,7 @@ rejection_rate = dismissed / (approved + dismissed)
 
 不承诺：对象内部字段**顺序**，以及 `message` 的措辞。请解析稳定的 `code`，而不是用来给人读的散文。
 
-## 7. 这份报告不是什么
+## 8. 这份报告不是什么
 
 - **不是健康检查。** 带发现项的报告就是一份正常报告。
 - **不是隐私面。** 它只读九字段审计白名单，所以从结构上就无法泄露屏幕内容——靠的是设计，不是小心。

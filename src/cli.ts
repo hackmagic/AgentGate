@@ -17,7 +17,7 @@ import { createPetServer, listen, DEFAULT_PET_PORT } from './pet/http.js';
 import { fixedClock, systemClock, type Clock } from './util/clock.js';
 import { COMPILE_FORMAT_VERSION, ENGINE_VERSION } from './version.js';
 import { buildReport } from './report/build.js';
-import { renderJson, renderText } from './report/render.js';
+import { renderJson, renderMarkdown, renderText } from './report/render.js';
 import { verifyCompilation } from './compile/verify.js';
 import { ARCHIVE_REASONS, projectLifecycle, type ArchiveReason, type ArchiveRequest } from './policy/lifecycle.js';
 
@@ -30,7 +30,8 @@ const HELP = `agent-gate v${ENGINE_VERSION}
   gate compile --policy <path>... --out <dir> [--target agents|skill|mcp|all]
   gate verify --policy <path>... [--target agents|skill|mcp|all]
   gate lifecycle --policy <path>... --audit <file> [--now <iso>] [--archive <id>:<reason>]
-  gate report --policy <path>... [--audit <file>] [--format text|json] [--now <iso>] [--no-policies]
+  gate report --policy <path>... [--audit <file>] [--format markdown|text|json] [--out <file>]
+                                                     [--title <heading>] [--now <iso>] [--no-policies]
   gate mcp --policy <path>... [--audit <file>]
   gate pet --policy <path>... [--port 3778] [--host 127.0.0.1] [--audit <file>]
   gate audit --audit <file> [--since <iso>] [--policy-id <id>] [--limit <n>]
@@ -40,7 +41,8 @@ const HELP = `agent-gate v${ENGINE_VERSION}
   compile 把同一份策略编译成 AGENTS.md / SKILL.md / MCP bundle。
   verify 校验三个目标产物是否描述同一份策略集（编译一致性）。
   lifecycle 从审计记录投影每条策略的生命周期状态。
-  report 汇总审计记录：呈现/批准/否决/限流次数、生命周期分布与问题发现。
+  report 只读投影审计记录，输出 Markdown（默认）/ text / json：呈现/批准/否决/限流次数、
+         生命周期分布与问题发现。它从不写入审计日志。
   mcp 启动无状态 stdio MCP server，供任意 Agent 调用。
   pet 启动本地 HTTP 桥，供宠物/呈现层订阅信号。
 `;
@@ -359,13 +361,33 @@ function commandReport(parsed: ParsedArgs): number {
       : { throttle_threshold: Number(flag(parsed, 'throttle-threshold')) }),
   });
 
-  const format = flag(parsed, 'format') ?? 'text';
+  const format = flag(parsed, 'format') ?? 'markdown';
+  const includePolicies = !parsed.flags.has('no-policies');
+
+  let body: string;
   if (format === 'json') {
-    process.stdout.write(renderJson(report));
+    body = renderJson(report);
   } else if (format === 'text') {
-    process.stdout.write(renderText(report, { include_policies: !parsed.flags.has('no-policies') }));
+    body = renderText(report, { include_policies: includePolicies });
+  } else if (format === 'markdown') {
+    const title = flag(parsed, 'title');
+    body = renderMarkdown(report, {
+      include_policies: includePolicies,
+      ...(title === undefined ? {} : { title }),
+    });
   } else {
-    throw new UsageError(`未知 --format: ${format}（可选 text|json）`);
+    throw new UsageError(`未知 --format: ${format}（可选 markdown|text|json）`);
+  }
+
+  // `--out` writes the report without ever touching the audit log: the report
+  // is a read-only projection, and a command that both read and appended would
+  // make its own output change the next run's numbers.
+  const out = flag(parsed, 'out');
+  if (out === undefined) {
+    process.stdout.write(body);
+  } else {
+    writeFileSync(path.resolve(out), body, 'utf8');
+    process.stdout.write(`${out}\n`);
   }
   return 0;
 }

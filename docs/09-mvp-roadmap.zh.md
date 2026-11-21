@@ -102,6 +102,8 @@
 ## M8 · 报告（已完成）
 
 - ✅ `gate report`：把 JSONL 审计日志聚合为汇总、生命周期分布、逐策略计数与发现项
+- ✅ Markdown 输出（`--format markdown`，现为默认）外加 `--out` 与 `--title`：报告通常在它落地的
+  地方被读，而不是在终端里
 - ✅ 同一份 `Report` 对象两种渲染：`--format text` 给人看，`--format json` 给消费方
 - ✅ `docs/10-report-spec.md`，每个发现项 code 都由 `validate-specs` 把关
 - ✅ `gate lifecycle --archive <id>:<reason>`：`archived` 状态现在 CLI 可达

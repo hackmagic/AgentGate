@@ -108,6 +108,8 @@ Remaining:
 
 - ✅ `gate report`: aggregates a JSONL audit log into summary, lifecycle distribution, per-policy
   counters and findings
+- ✅ Markdown output (`--format markdown`, now the default) plus `--out` and `--title`, because the
+  report is usually read where it lands rather than in a terminal
 - ✅ Two renderings from one `Report` object: `--format text` for humans, `--format json` for consumers
 - ✅ `docs/10-report-spec.md`, with every finding code gated by `validate-specs`
 - ✅ `gate lifecycle --archive <id>:<reason>`: the `archived` state is now reachable from the CLI

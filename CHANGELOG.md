@@ -11,6 +11,19 @@
 - npm 发布（`bin: gate`）
 - 策略修订建议：连续 dismiss 后给出可采纳的条件改写
 
+## [0.6.0] — 2026-11-22
+
+### 新增
+
+- **`gate report --format markdown`（新的默认格式）**，以及 `--out` 与 `--title`。报告通常落在
+  issue、PR 评论或 run summary 里，所以输出是真正的 Markdown 文档：可链接的标题、可锚定的表格、
+  不套代码围栏。`text` 与 `json` 保留给终端与消费方。
+- `tests/report-render.test.ts`（11 项）：三种渲染的数字一致、markdown 不是套壳的文本表、
+  空发现项写成 `None.`，并断言 `gate report` 前后审计文件**逐字节相同**。
+
+### 变更
+
+- `gate report` 默认格式从 `text` 改为 `markdown`；需要旧行为的脚本显式传 `--format text`。
 ## [0.5.0] — 2026-11-22
 
 ### 新增
