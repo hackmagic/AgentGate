@@ -110,7 +110,81 @@ rejection_rate = dismissed / (approved + dismissed)
 这个不对称是有意的，写在这里而不是藏起来。汇总非零而逐策略全零，意思是「确实有失败，而引擎
 拒绝猜是谁」。
 
-## 4. 生命周期分布
+## 4. 报告的字段白名单
+
+报告本身就是一份契约，所以它也有白名单：**下面这张表就是全部字段**，没有表外字段。
+新增字段必须同时改 `src/report/build.ts`、本页，以及 `tests/report.test.ts` 的形状断言。
+
+### 4.1 顶层
+
+| 字段 | 类型 | 含意 |
+| --- | --- | --- |
+| `generated_at` | string | 计算时刻。由调用方传入，不从系统时钟读取 |
+| `window` | object \| null | 审计日志实际覆盖的区间；空日志为 `null` |
+| `summary` | object | 全局汇总，见 4.2 |
+| `lifecycle` | object | 五个生命周期状态的计数，见 4.3 |
+| `policies` | array | 逐策略计数，见 4.4 |
+| `findings` | array | 派生的问题陈述，见第 7 节 |
+| `suggestions` | array | 派生的具体改法，见第 8 节 |
+
+### 4.2 `summary`
+
+| 字段 | 类型 | 含意 |
+| --- | --- | --- |
+| `policies` | number | 参与计算的策略数，含没有历史的 |
+| `policies_seen` | number | 至少有一条审计记录的策略数 |
+| `events` | number | 不同的 `event_id` 数 |
+| `presented` | number | `reason: matched` 的行数 |
+| `approved` | number | `reason: user_approved` 的行数 |
+| `dismissed` | number | `reason: user_dismissed` 的行数 |
+| `throttled` | number | `reason: rate_limited` 的行数 |
+| `degraded` | number | 日志中所有降级行（含未归因的） |
+| `approval_rate` | number \| null | `approved / (approved + dismissed)`；无人回答时 `null` |
+
+### 4.3 `lifecycle`
+
+固定五个键，值都是 number：`draft`、`validated`、`active`、`muted`、`archived`。
+五者之和恒等于 `summary.policies`。
+
+### 4.4 `policies[]`
+
+| 字段 | 类型 | 含意 |
+| --- | --- | --- |
+| `policy_id` | string | 策略 id |
+| `state` | string | 生命周期状态 |
+| `presented` | number | 该策略被呈现的次数 |
+| `approved` | number | 该策略被批准的次数 |
+| `dismissed` | number | 该策略被否决的次数 |
+| `muted_short` | number | 该策略被 `mute_1h` 静默的次数 |
+| `throttled` | number | 该策略因呈现窗口被限流的次数 |
+| `degraded` | number | **仅**日志明确归给该策略的降级行 |
+| `rejection_rate` | number \| null | `dismissed / (approved + dismissed)`；无人回答时 `null` |
+| `consecutive_dismissals` | number | 当前连续否决数 |
+| `muted_until` | string \| null | 有界静音的到期时间 |
+| `first_seen` | string \| null | 该策略最早的审计时间；无记录为 `null` |
+| `last_seen` | string \| null | 该策略最晚的审计时间；无记录为 `null` |
+
+`summary.degraded` 与 `policies[].degraded` 的口径不同，原因见 §3「降级与归因」。这不是笔误。
+
+## 5. 只读投影约束
+
+报告是审计日志的**投影**，不是存储。
+
+### 5.1 三条硬约束
+
+1. **不写入任何地方。** `gate report` 只读打开日志、读完关闭。没有任何代码路径让它追加一行。
+2. **不缓存。** 不产生中间文件、不落状态库。删掉报告文件不影响下一次运行。
+3. **可重放。** 同一份日志 + 同一个 `--now` + 同一个 `--timezone`，两次输出逐字节相同。
+
+### 5.2 为什么这值得单独成节
+
+一个既读又写的命令会改变自己下一次的输出：第二次数进第一次写的行，数字开始漂移，而用户看不到原因。
+报告的可信度全部来自「它只是一个函数」，一旦引入状态，这个性质就没了。
+
+`tests/report-render.test.ts` 断言报告前后审计文件**逐字节相同**——除了文档，这是唯一防止
+这条约束被悄悄破坏的东西。
+
+## 6. 生命周期分布
 
 `lifecycle` 数 [03-policy-lifecycle](03-policy-lifecycle.md) 里的五个状态：
 
@@ -121,7 +195,7 @@ rejection_rate = dismissed / (approved + dismissed)
 总和恒等于 `summary.policies`。`draft` 只能通过库 API（`authoringState`）到达，CLI 不可达——
 因为 CLI 在加载前就拒绝了非法策略。
 
-## 5. 发现项
+## 7. 发现项
 
 发现项是派生出来的，从不存储。条件不成立时它自己就消失了。
 
@@ -139,7 +213,7 @@ rejection_rate = dismissed / (approved + dismissed)
 2. **报告能吐出的每个 code 都必须声明在 `FINDING_CODES`**，且 `validate-specs` 会断言它出现在
    本文档里。新发现项不可能不带文档上线。
 
-## 6. 修订建议
+## 8. 修订建议
 
 **发现项**说哪里不对；**修订建议**说该改什么。两者分开，因为它们依据的证据不同，读者应当能只读其一就采取行动。
 
@@ -220,8 +294,13 @@ Caveats:
 - **从不使用白名单之外的数据。** 如果将来某个字段能让建议更好，那是
   [08](08-security-and-audit.md) 里的审计契约决策，不是这里的编译器决策。
 - **从不冒充发现项。** 「采纳建议」和「消除发现项」是两个不同后果的动作。
+- **从不调用 LLM。** 建议里的每一个字符串都是模板拼出来的：`summary`、caveats、`message` 都由
+  固定句式加上数字生成，没有任何模型参与。这不是实现细节，是契约——模型参与就意味着同样的输入
+  可能产出不同的文字，这条建议就不再可复现、不可审计。
+- **只给纯文本。** 建议不携带可执行的补丁、不写文件、不调用 `gate` 子命令。它告诉你该把
+  `time_window` 改成什么，改不改、怎么改，仍然由人完成。
 
-## 7. JSON 形状
+## 9. JSON 形状
 
 `--format json` 打印一个对象。消费方可以依赖下面的键，以及 `policies` 的顺序（与 `--policy`
 加载顺序一致），但不要依赖对象内部的字段顺序。
@@ -286,7 +365,7 @@ Caveats:
 
 空日志时 `window` 为 `null`。没有记录的策略，`first_seen` / `last_seen` 为 `null`。
 
-## 8. 稳定性承诺
+## 10. 稳定性承诺
 
 | 承诺 | 含义 |
 | --- | --- |
@@ -297,7 +376,7 @@ Caveats:
 
 不承诺：对象内部字段**顺序**，以及 `message` 的措辞。请解析稳定的 `code`，而不是用来给人读的散文。
 
-## 9. 这份报告不是什么
+## 11. 这份报告不是什么
 
 - **不是健康检查。** 带发现项的报告就是一份正常报告。
 - **不是隐私面。** 它只读九字段审计白名单，所以从结构上就无法泄露屏幕内容——靠的是设计，不是小心。

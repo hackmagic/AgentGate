@@ -1,0 +1,21 @@
+docs(report): state the report's field whitelist and read-only constraint
+
+The report spec described what each number means but never stated the
+contract: which fields exist, that the command writes nothing, and that
+suggestions are templates rather than model output. A consumer had no
+documented surface to code against.
+
+Three additions, in both languages:
+
+- §4 the field whitelist, transcribed from `Report`, `ReportSummary` and
+  `PolicyReport` rather than paraphrased;
+- §5 the read-only projection constraint, split into "writes nowhere",
+  "caches nothing", "replays";
+- §8 the LLM boundary: every suggestion string is a template, and a model in
+  the path would make the same input produce different prose, which ends
+  reproducibility and auditability.
+
+`validate-specs` now derives the documented summary and per-policy fields from
+the interfaces and fails when the doc does not name one, so a field added to
+`buildReport` without a doc change cannot ship. Verified by removing a clause
+and watching the gate fire.

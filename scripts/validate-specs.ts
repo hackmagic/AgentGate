@@ -413,6 +413,28 @@ for (const command of ['report', 'lifecycle', 'audit']) {
   check(`10-report-spec references \`gate ${command}\``, reportDoc.includes(`gate ${command}`));
 }
 
+// The documented field whitelist must equal the object the code actually emits.
+const reportSource = readFileSync(path.join(ROOT, 'src', 'report', 'build.ts'), 'utf8');
+
+const summaryBlock = /export interface ReportSummary \{([\s\S]*?)\n\}/.exec(reportSource)?.[1] ?? '';
+const summaryFields = [...summaryBlock.matchAll(/^\s{2}([a-z_]+)\s*\??:/gm)].map((match) => match[1] ?? '');
+check('ReportSummary declares fields', summaryFields.length > 0);
+for (const field of summaryFields) {
+  check(`10-report-spec documents summary.${field}`, reportDoc.includes(`\`${field}\``));
+}
+
+const policyBlock = /export interface PolicyReport \{([\s\S]*?)\n\}/.exec(reportSource)?.[1] ?? '';
+const policyFields = [...policyBlock.matchAll(/^\s{2}([a-z_]+)\s*\??:/gm)].map((match) => match[1] ?? '');
+check('PolicyReport declares fields', policyFields.length > 0);
+for (const field of policyFields) {
+  check(`10-report-spec documents policies[].${field}`, reportDoc.includes(`\`${field}\``));
+}
+
+// The three invariants section 5 and section 8 exist to state.
+check('10-report-spec states the report is a read-only projection', reportDoc.includes('read-only projection constraint'));
+check('10-report-spec forbids an LLM in suggestions', reportDoc.includes('never call an LLM'));
+check('10-report-spec forbids auto-application', reportDoc.includes('never apply themselves'));
+
 // ------------------------------------------------------------ result ---
 if (failures.length > 0) {
   console.error(`spec validation failed (${failures.length}/${checks}):\n`);

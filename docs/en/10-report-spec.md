@@ -118,7 +118,87 @@ The consequence is that a per-policy `degraded` column can never see those lines
 The asymmetry is intentional and stated here rather than hidden. A non-zero summary with all-zero
 per-policy columns means "something failed, and the engine declined to guess which".
 
-## 4. Lifecycle distribution
+## 4. The report field whitelist
+
+The report is itself a contract, so it has a whitelist too: **the tables below are the complete field
+set.** There is nothing outside them. Adding a field means changing `src/report/build.ts`, this page,
+and the shape assertion in `tests/report.test.ts` together.
+
+### 4.1 Top level
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `generated_at` | string | Instant of computation. Passed in, never read from the system clock |
+| `window` | object \| null | Range the audit log actually covers; `null` for an empty log |
+| `summary` | object | Global totals, see 4.2 |
+| `lifecycle` | object | Counts for the five lifecycle states, see 4.3 |
+| `policies` | array | Per-policy counters, see 4.4 |
+| `findings` | array | Derived problem statements, see section 7 |
+| `suggestions` | array | Derived concrete changes, see section 8 |
+
+### 4.2 `summary`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `policies` | number | Policies considered, including those with no history |
+| `policies_seen` | number | Policies with at least one audit record |
+| `events` | number | Distinct `event_id` values |
+| `presented` | number | Lines with `reason: matched` |
+| `approved` | number | Lines with `reason: user_approved` |
+| `dismissed` | number | Lines with `reason: user_dismissed` |
+| `throttled` | number | Lines with `reason: rate_limited` |
+| `degraded` | number | Every degraded line in the log, attributed or not |
+| `approval_rate` | number \| null | `approved / (approved + dismissed)`; `null` when nobody answered |
+
+### 4.3 `lifecycle`
+
+Exactly five keys, all numbers: `draft`, `validated`, `active`, `muted`, `archived`.
+Their sum always equals `summary.policies`.
+
+### 4.4 `policies[]`
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `policy_id` | string | Policy id |
+| `state` | string | Lifecycle state |
+| `presented` | number | Times this policy surfaced |
+| `approved` | number | Times this policy was approved |
+| `dismissed` | number | Times this policy was dismissed |
+| `muted_short` | number | Times this policy was muted with `mute_1h` |
+| `throttled` | number | Times this policy was rate limited |
+| `degraded` | number | Degraded lines the log attributes to **this** policy only |
+| `rejection_rate` | number \| null | `dismissed / (approved + dismissed)`; `null` when nobody answered |
+| `consecutive_dismissals` | number | Current consecutive dismissal streak |
+| `muted_until` | string \| null | Expiry of a bounded mute |
+| `first_seen` | string \| null | Earliest audit timestamp for this policy; `null` with no records |
+| `last_seen` | string \| null | Latest audit timestamp for this policy; `null` with no records |
+
+`summary.degraded` and `policies[].degraded` deliberately use different denominators; the reason is in
+section 3, "Degradation and attribution". It is not a typo.
+
+## 5. The read-only projection constraint
+
+The report is a **projection** of the audit log, not a store.
+
+### 5.1 Three hard constraints
+
+1. **It writes nowhere.** `gate report` opens the log read-only, reads it, closes it. No code path lets
+   it append a line.
+2. **It caches nothing.** No intermediate file, no state database. Deleting the report does not affect
+   the next run.
+3. **It replays.** The same log, the same `--now` and the same `--timezone` produce byte-identical
+   output.
+
+### 5.2 Why this gets its own section
+
+A command that both reads and writes would change its own next output: the second run would count the
+first run's lines, and the numbers would drift for no reason the user can see. The report's
+trustworthiness comes entirely from being a function; introduce state and that property is gone.
+
+`tests/report-render.test.ts` asserts the audit file is byte-identical before and after a report —
+besides this page, that is the only thing preventing the constraint from being broken quietly.
+
+## 6. Lifecycle distribution
 
 `lifecycle` counts the five states from [03-policy-lifecycle](03-policy-lifecycle.md):
 
@@ -129,7 +209,7 @@ per-policy columns means "something failed, and the engine declined to guess whi
 The sum always equals `summary.policies`. `draft` is reachable only through the library API
 (`authoringState`), not through the CLI, because the CLI refuses invalid policies before loading them.
 
-## 5. Findings
+## 7. Findings
 
 Findings are derived, never stored. Each disappears on its own when its condition stops holding.
 
@@ -148,7 +228,7 @@ Two rules the implementation follows, both learned the hard way:
 2. **Every code the report can emit is declared in `FINDING_CODES`**, and `validate-specs` asserts that
    each one appears in this document. A new finding cannot ship undocumented.
 
-## 6. Suggestions
+## 8. Suggestions
 
 A **finding** says something is wrong. A **suggestion** says what to change. They are separate because
 they carry different evidence, and a reader should be able to act on one without reading the other.
@@ -235,8 +315,15 @@ Caveats:
   that is an audit-contract decision in [08](08-security-and-audit.md), not a compiler decision here.
 - **They never appear as findings.** Acting on a suggestion and clearing a finding are different
   actions with different consequences.
+- **They never call an LLM.** Every string is a template: `summary`, the caveats and each `message`
+  are fixed phrasing plus numbers, with no model in the path. That is a contract, not an
+  implementation detail — a model in the loop would mean the same input could produce different prose,
+  and the suggestion would stop being reproducible and auditable.
+- **They emit plain text only.** A suggestion carries no applicable patch, writes no file and invokes
+  no `gate` subcommand. It tells you what `time_window` should become; making the change stays a human
+  action.
 
-## 7. The JSON shape
+## 9. The JSON shape
 
 `--format json` prints one object. Consumers may rely on the keys below and on the ordering of
 `policies` (matching the `--policy` load order), but not on field order within an object.
@@ -301,7 +388,7 @@ Caveats:
 
 `window` is `null` for an empty log. `first_seen` / `last_seen` are `null` for a policy with no records.
 
-## 8. Stability promise
+## 10. Stability promise
 
 | Promise | Meaning |
 | --- | --- |
@@ -313,7 +400,7 @@ Caveats:
 Not promised: field **order** inside an object, and the wording of `message`. Parse `code`, which is
 stable, not the prose, which is meant to be read.
 
-## 9. What this report is not
+## 11. What this report is not
 
 - **Not a health check.** A report with findings is a normal report.
 - **Not a privacy surface.** It reads only the nine-field audit whitelist, so it cannot leak screen
