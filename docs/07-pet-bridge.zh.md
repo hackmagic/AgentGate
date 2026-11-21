@@ -113,6 +113,22 @@ bridge 代理成仅回环可访问的路由，浏览器半边在输入区停靠�
 它**故意没有**塞进 `dsh-hackmagic-pets`：那个包渲染 3D 宠物，且不暴露气泡或动画钩子，
 把适配器写进去意味着改动它预编译的 client bundle——那换个名字就是改宿主内核。
 
+### 第二种具现层：OpenPets
+
+`src/pet/openpets-adapter/` 面向 [OpenPets](https://docs.openpets.dev)——一个桌面伴侣应用，
+有自己的一套集成契约。它是独立适配器而不是上面那个的变体，因为两个宿主在关键点上不同：
+OpenPets 用租约路由宠物、接受封闭的 reaction 枚举而不是动画提示、并把语音限制在验证池里。
+
+| 契约条款 | 这个适配器如何满足 |
+| --- | --- |
+| 配置可逆 | 带标记的条目、逐字节备份、拒绝覆盖他人文件 |
+| 运行时 fire-and-forget | `dispatch()` 从不等待、从不抛出；失败落进 `stats()` |
+| 语音始终安全 | 消息来自验证池，绝不来自 `bubble_text` |
+| 租约路由宠物 | 15s TTL、心跳与过期 id 恢复、只释放一次 |
+
+详细说明与失败状态见 `src/pet/openpets-adapter/README.md`；`tests/openpets.test.ts`
+在没有运行中的应用的情况下证明上述四条。
+
 ```bash
 node integrations/dsh-agent-gate-pet/test/verify-host.mjs
 node integrations/dsh-agent-gate-pet/test/verify-client.mjs

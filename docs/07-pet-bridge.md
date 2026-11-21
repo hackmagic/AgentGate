@@ -125,6 +125,26 @@ It is deliberately *not* grafted onto `dsh-hackmagic-pets`: that package renders
 3D pet and exposes no bubble or animation hook, so an adapter inside it would have
 meant editing its prebuilt client bundle — the host kernel by another name.
 
+### A second embodiment: OpenPets
+
+`src/pet/openpets-adapter/` targets [OpenPets](https://docs.openpets.dev), a
+desktop companion app with its own integration contract. It is a separate
+adapter rather than a variant of the one above, because the two hosts disagree
+on the important parts: OpenPets routes pets through leases, takes a closed
+reaction enum instead of animation hints, and constrains speech to curated
+pools.
+
+| Contract clause | How this adapter satisfies it |
+| --- | --- |
+| Configuration is reversible | Marked entries, byte-exact backups, refusal of foreign files |
+| Runtime is fire-and-forget | `dispatch()` never awaits or throws; failures land in `stats()` |
+| Speech is always safe | Messages come from curated pools, never from `bubble_text` |
+| Leases route the pet | 15s TTL, heartbeat with stale-id recovery, single release |
+
+Its README (`src/pet/openpets-adapter/README.md`) records the details and the
+failure states; `tests/openpets.test.ts` proves all four clauses without a
+running app.
+
 ```bash
 node integrations/dsh-agent-gate-pet/test/verify-host.mjs
 node integrations/dsh-agent-gate-pet/test/verify-client.mjs
