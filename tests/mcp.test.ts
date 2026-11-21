@@ -7,6 +7,7 @@ import { McpServer, serveStdio, TOOL_NAMES } from '../src/mcp/server.js';
 import type { JsonRpcResponse } from '../src/mcp/server.js';
 import { makeAudit, makePolicies } from './mcp-fixtures.js';
 import { NOW } from './helpers.js';
+import { ENGINE_VERSION } from '../src/version.js';
 
 function newServer() {
   const audit = makeAudit();
@@ -53,7 +54,7 @@ test('initialize advertises the protocol version and tool capability', async () 
   assert.equal(result.protocolVersion, '2026-07-28');
   assert.equal(result.capabilities.tools.listChanged, false);
   assert.equal(result.serverInfo.name, 'agent-gate');
-  assert.equal(result.serverInfo.version, '0.1.0');
+  assert.equal(result.serverInfo.version, ENGINE_VERSION);
 });
 
 test('notifications never receive a response', async () => {

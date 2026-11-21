@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { compileAllTargets, compilePolicies, COMPILE_TARGETS, writeBundle } from '../src/compile/index.js';
 import { loadPolicyDirectory } from '../src/policy/load.js';
 import { validatePolicyDocument } from '../src/policy/validate.js';
+import { ENGINE_VERSION } from '../src/version.js';
 
 const REPO = fileURLToPath(new URL('..', import.meta.url));
 const PACK = path.join(REPO, 'packs', 'deep-work');
@@ -24,7 +25,7 @@ test('one policy set compiles to all three agent surfaces', () => {
 
   for (const bundle of bundles) {
     assert.ok(bundle.files.length > 0, `${bundle.target} produced no files`);
-    assert.equal(bundle.engine_version, '0.1.0');
+    assert.equal(bundle.engine_version, ENGINE_VERSION);
   }
 });
 

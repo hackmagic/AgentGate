@@ -5,6 +5,7 @@ import { AgentGate } from '../src/gate/index.js';
 import { createPetServer, listen } from '../src/pet/http.js';
 import { makePolicies } from './mcp-fixtures.js';
 import { newAudit, NOW } from './helpers.js';
+import { ENGINE_VERSION } from '../src/version.js';
 
 async function startPet(options: { max_events_per_minute?: number } = {}) {
   const engine = new AgentGate({
@@ -37,7 +38,7 @@ test('the pet server exposes health and an empty pending queue', async (t) => {
     policy_count: number;
   };
   assert.equal(health.status, 'ok');
-  assert.equal(health.engine_version, '0.1.0');
+  assert.equal(health.engine_version, ENGINE_VERSION);
   assert.equal(health.policy_count, 1);
 
   const pending = (await (await fetch(`${pet.url()}/v1/signals/pending`)).json()) as { signals: unknown[] };

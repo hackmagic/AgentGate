@@ -1,6 +1,6 @@
 {
   "name": "agent-gate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": false,
   "description": "AgentGate — compile your personal boundaries into portable, auditable policy for any AI agent (AGENTS.md / SKILL.md / MCP).",
   "keywords": [
@@ -45,7 +45,8 @@
     "schemas",
     "packs",
     "docs",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
