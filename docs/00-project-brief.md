@@ -38,6 +38,32 @@ Where the four criteria live in the repository:
 | 3 | `src/pet/` + `tests/pet.test.ts` |
 | 4 | `src/audit/store.ts` + `tests/gate.test.ts`, `tests/contract.test.ts` |
 
+## Trade-offs against the initial vision
+
+The vision in this document has not been executed literally. Where the repository now differs, this
+table records what changed, why, and what it cost. A trade-off nobody wrote down is indistinguishable
+from drift.
+
+| Initial vision | What the repository now does | Why | Cost / status |
+| --- | --- | --- | --- |
+| The project is called `guidance-runtime`: a "personal guidance policy runtime" | It is called **AgentGate**; the CLI is `gate`, the signal is `GateSignal` | `guidance` was already taken in AI and `runtime` is a generic suffix, so the name carried none of the idea and did not search | Migration cost paid once: every import, tool name and wire noun changed. See [CHANGELOG](../CHANGELOG.md) |
+| Three layers: event adapter → policy engine → embodiment | **Four** layers: adapters → pure core → composition (`src/gate/`) → surfaces | The "three layers" existed only in the diagram; in code, evaluation, rate limiting and auditing were welded into one `engine` façade — the hardest thing to split later | One extra concept to learn. In exchange each stage is independently replaceable and testable |
+| A policy is a YAML file the engine loads | A policy also has a **lifecycle** (`draft → validated → active ⇄ muted → archived`) projected from the audit log | The vision said "refusable, auditable" but never said what happens to a policy *after* the user rejects it | One more document to read ([03](03-policy-lifecycle.md)). No second state file, so nothing new can drift |
+| One policy source compiles into three shapes | Same three shapes, plus a **verifiable consistency contract**: `source_hash` *and* facts read back from the emitted text | "Runs everywhere" is marketing unless it is checkable, and a hash alone passes a renderer that silently drops a field | Compiling now needs an artifact reader per target; adding a target means adding one |
+| Documents 00–08, Chinese only | Documents 00–10, **bilingual**, each pair enforced by `verify-i18n` | The code, the package metadata and GitHub are English; a Chinese-only README is a dead end for anyone arriving from search | Every doc edit is now two edits, checked in CI |
+| Policy semantics live in the signature and in prose | The five semantic rules are additionally pinned by tests and by the compiler's renders | Rules that exist only in prose get violated by the next contributor | Compiler changes can now fail on a semantic rule, not just on a typo |
+
+### Vision not yet delivered
+
+These are gaps, not decisions. Listing them here keeps [09-mvp-roadmap](09-mvp-roadmap.md) honest.
+
+| Vision | Reality today | What is missing |
+| --- | --- | --- |
+| Success criterion 3: "the pet completes propose → approve → execute end to end" | The protocol, the HTTP bridge and the contract tests exist; **no real pet plugin does** | A pet-side adapter (P0-1) |
+| Success criterion 1: "a **real** ActivityWatch event" | The adapter consumes an **export** (a JSON file); it never talks to a live ActivityWatch instance | A live collector, which [we deliberately do not build](05-event-spec.md) — but then "real" needs saying precisely |
+| The `draft` and `archived` lifecycle states | Both are documented and both are reachable from the library API, but **no CLI command reaches them**: `authoringState()` has no caller and nothing supplies `archives` | A `gate lifecycle --archive` path, otherwise two of the five states are documentation |
+| Distributable via `npx agent-gate` | The MCP bundle's `mcp.json` already emits `npx -y agent-gate`, but the package is **not published** to npm | A release step; until then the emitted config is aspirational |
+
 ## Core boundaries (non-negotiable)
 
 - **The engine executes nothing**: it produces a `GateSignal`; execution happens in an adapter, after user approval.
