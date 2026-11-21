@@ -1,0 +1,29 @@
+policy:
+  id: long-focus-stretch
+  version: 1
+  description: 一次专注超过 90 分钟后，提醒站起来活动五分钟
+  priority: 60
+  trigger:
+    event: focus_block_ended
+  conditions:
+    all:
+      - duration_seconds: "> 5400"
+  decision: suggest
+  action:
+    type: stretch_reminder
+    scope: [body]
+    parameters:
+      duration_minutes: 5
+  safety:
+    requires_approval: false
+    rationale: 只弹出一次本地提醒，不改动任何系统状态，用户可一键忽略
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: stretch
+    bubble_text: 起来动五分钟？
+    actions:
+      - label: 好
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss

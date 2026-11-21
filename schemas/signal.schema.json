@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guidance-runtime.dev/schemas/signal.schema.json",
+  "title": "GuidanceSignal",
+  "description": "The only payload the engine hands to an embodiment layer (pet, HUD, CLI)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "policy_id",
+    "decision",
+    "presentation",
+    "action",
+    "escalation",
+    "expires_at",
+    "created_at",
+    "trigger_event_id",
+    "audit_level"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "policy_id": { "type": "string", "minLength": 1 },
+    "decision": { "enum": ["suggest", "require_approval", "suppress"] },
+    "presentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["animation_hint", "bubble_text", "actions"],
+      "properties": {
+        "animation_hint": { "enum": ["idle_shift", "stretch", "alert", "thinking"] },
+        "bubble_text": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "action_id"],
+            "properties": {
+              "label": { "type": "string", "minLength": 1, "maxLength": 20 },
+              "action_id": { "enum": ["approve", "dismiss", "mute_1h"] }
+            }
+          },
+          "minItems": 1,
+          "maxItems": 3
+        }
+      }
+    },
+    "action": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "scope", "parameters"],
+          "properties": {
+            "type": { "type": "string", "minLength": 1 },
+            "scope": { "type": "array", "items": { "type": "string" } },
+            "parameters": { "type": "object" }
+          }
+        }
+      ]
+    },
+    "escalation": {
+      "anyOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["after_minutes", "action", "decision"],
+          "properties": {
+            "after_minutes": { "type": "number", "minimum": 1 },
+            "action": { "type": "string", "minLength": 1 },
+            "decision": { "enum": ["suggest", "require_approval", "suppress"] }
+          }
+        }
+      ]
+    },
+    "expires_at": { "type": ["string", "null"], "format": "date-time" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "trigger_event_id": { "type": "string", "minLength": 1 },
+    "audit_level": { "enum": ["full", "summary", "none"] }
+  }
+}

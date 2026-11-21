@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check (node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: ['20', '22', '24']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Architecture boundaries
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Contract / spec validation
+        run: npm run validate-specs
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test the built CLI
+        run: |
+          node dist/cli.js --version
+          node dist/cli.js validate packs/deep-work
+          node dist/cli.js list --policy packs/deep-work
+          node dist/cli.js compile --policy packs/deep-work --out out --target all
+          test -f out/AGENTS.md
+          test -f out/mcp.json
+          ls out/skills
+
+      - name: Audit whitelist never widens
+        run: |
+          node --input-type=module -e "
+            import { AUDIT_FIELD_WHITELIST } from './dist/index.js';
+            const expected = ['event_id','policy_id','decision','signal_id','user_response','timestamp','engine_version','degraded','reason'];
+            const actual = [...AUDIT_FIELD_WHITELIST].sort();
+            if (JSON.stringify(actual) !== JSON.stringify([...expected].sort())) {
+              console.error('audit whitelist changed:', actual);
+              process.exit(1);
+            }
+            console.log('audit whitelist intact:', actual.length, 'fields');
+          "
+
+  windows:
+    name: check (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run check
+        shell: pwsh

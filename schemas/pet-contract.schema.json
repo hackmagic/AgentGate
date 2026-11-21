@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guidance-runtime.dev/schemas/pet-contract.schema.json",
+  "title": "PetBridgeContract",
+  "description": "Wire contract between the guidance engine and a pet/embodiment adapter. Any of the documented request/response bodies validates here.",
+  "anyOf": [
+    { "$ref": "#/$defs/eventRequest" },
+    { "$ref": "#/$defs/responseRequest" },
+    { "$ref": "#/$defs/evaluationResponse" },
+    { "$ref": "#/$defs/pendingResponse" },
+    { "$ref": "#/$defs/healthResponse" },
+    { "$ref": "#/$defs/errorResponse" }
+  ],
+  "$defs": {
+    "eventRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["event"],
+      "properties": {
+        "event": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "timestamp"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": {
+              "enum": [
+                "focus_block_started",
+                "focus_block_ended",
+                "app_switch",
+                "idle_detected",
+                "interruption",
+                "notification_received"
+              ]
+            },
+            "timestamp": { "type": "string", "format": "date-time" },
+            "source": { "enum": ["activitywatch", "screenpipe", "manual"] },
+            "context": { "type": "object" },
+            "duration_seconds": { "type": ["number", "null"] },
+            "metrics": { "type": "object" },
+            "metadata": { "type": "object" }
+          }
+        }
+      }
+    },
+    "responseRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signal_id", "action_id", "responded_at"],
+      "properties": {
+        "signal_id": { "type": "string", "minLength": 1 },
+        "action_id": { "enum": ["approve", "dismiss", "mute_1h"] },
+        "responded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "evaluationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decision", "signal", "matched_policy_id"],
+      "properties": {
+        "decision": { "enum": ["suggest", "require_approval", "suppress", "allow"] },
+        "signal": { "type": ["object", "null"] },
+        "matched_policy_id": { "type": ["string", "null"] },
+        "degraded": { "type": "boolean" },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "pendingResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["signals"],
+      "properties": {
+        "signals": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "healthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "engine_version", "policy_count"],
+      "properties": {
+        "status": { "enum": ["ok"] },
+        "engine_version": { "type": "string" },
+        "policy_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "errorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string", "minLength": 1 },
+            "message": { "type": "string", "minLength": 1 },
+            "retry_after_seconds": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    }
+  }
+}

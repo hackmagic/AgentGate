@@ -1,0 +1,38 @@
+policy:
+  id: morning-focus-protection
+  version: 1
+  description: 工作日早上进入专注块时，先征得同意再静默非紧急通知
+  priority: 80
+  trigger:
+    event: focus_block_started
+    context:
+      app: [code, vscode, cursor, windsurf, terminal, iterm2, windows terminal]
+  conditions:
+    all:
+      - day_of_week: [mon, tue, wed, thu, fri]
+      - time_window: "09:00-12:00"
+  decision: require_approval
+  action:
+    type: suppress_notifications
+    scope: [slack, mail, im]
+    parameters:
+      duration_minutes: 50
+  escalation:
+    after_minutes: 10
+    action: remind_once
+    decision: suggest
+  safety:
+    requires_approval: true
+    rationale: 静默通知会影响沟通，必须先由用户确认
+    reversible: true
+    audit_level: full
+  presentation:
+    animation_hint: alert
+    bubble_text: 进入 50 分钟专注？
+    actions:
+      - label: 批准
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss
+      - label: 静音 1 小时
+        action_id: mute_1h

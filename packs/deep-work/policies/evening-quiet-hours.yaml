@@ -1,0 +1,28 @@
+policy:
+  id: evening-quiet-hours
+  version: 1
+  description: 工作日晚十点后静默通知，把夜晚留给休息
+  priority: 90
+  trigger:
+    event: app_switch
+  conditions:
+    all:
+      - day_of_week: [mon, tue, wed, thu, fri]
+      - time_window: "22:00-06:00"
+  decision: suppress
+  action:
+    type: mute_notifications
+    scope: [all]
+    parameters:
+      duration_minutes: 480
+  safety:
+    requires_approval: false
+    rationale: 用户已明确要求夜间不被打断；仅调整本机通知开关，且第二天 06:00 自动恢复
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: thinking
+    bubble_text: 已进入夜间静默
+    actions:
+      - label: 知道了
+        action_id: dismiss

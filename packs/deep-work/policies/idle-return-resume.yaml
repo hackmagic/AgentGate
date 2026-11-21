@@ -1,0 +1,27 @@
+policy:
+  id: idle-return-resume
+  version: 1
+  description: 离开超过十分钟后回来，提示从上次的上下文继续
+  priority: 40
+  trigger:
+    event: idle_detected
+  conditions:
+    all:
+      - duration_seconds: "> 600"
+  decision: suggest
+  action:
+    type: resume_context
+    scope: [editor]
+  safety:
+    requires_approval: false
+    rationale: 仅显示一条恢复提示，不自动打开文件或执行命令
+    reversible: true
+    audit_level: summary
+  presentation:
+    animation_hint: idle_shift
+    bubble_text: 回到刚才的工作？
+    actions:
+      - label: 恢复
+        action_id: approve
+      - label: 忽略
+        action_id: dismiss

@@ -1,0 +1,30 @@
+policy:
+  id: work-hours-notification-batch
+  version: 1
+  description: 工作时间把 Slack / Teams 通知合并到 30 分钟后
+  priority: 70
+  trigger:
+    event: notification_received
+    context:
+      app: [slack, teams]
+  conditions:
+    time_window: "09:00-18:00"
+  decision: require_approval
+  action:
+    type: batch_notifications
+    scope: [slack, teams]
+    parameters:
+      duration_minutes: 30
+  safety:
+    requires_approval: true
+    rationale: 延迟通知可能错过紧急消息，必须由用户确认
+    reversible: true
+    audit_level: full
+  presentation:
+    animation_hint: alert
+    bubble_text: 把通知合并 30 分钟？
+    actions:
+      - label: 合并
+        action_id: approve
+      - label: 不用
+        action_id: dismiss

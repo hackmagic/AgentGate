@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guidance-runtime.dev/schemas/audit.schema.json",
+  "title": "GuidanceAuditRecord",
+  "description": "Content-free audit line. Every field is whitelisted; window titles, screenshots, clipboard payloads and keystrokes are forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "policy_id",
+    "decision",
+    "signal_id",
+    "user_response",
+    "timestamp",
+    "engine_version",
+    "degraded",
+    "reason"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "minLength": 1 },
+    "policy_id": { "type": "string", "minLength": 1 },
+    "decision": { "enum": ["suggest", "require_approval", "suppress", "allow", "error"] },
+    "signal_id": { "type": ["string", "null"] },
+    "user_response": { "type": ["string", "null"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "engine_version": { "type": "string", "minLength": 1 },
+    "degraded": { "type": "boolean" },
+    "reason": {
+      "enum": ["matched", "degraded", "muted", "rate_limited", "user_approved", "user_dismissed", "user_muted"]
+    }
+  }
+}

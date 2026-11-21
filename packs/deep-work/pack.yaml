@@ -1,0 +1,14 @@
+name: deep-work
+version: 1
+description: 深度工作保护包：专注时段静默、夜间免打扰、久坐提醒与上下文恢复
+author: guidance-runtime contributors
+policies:
+  - morning-focus-protection
+  - evening-quiet-hours
+  - long-focus-stretch
+  - idle-return-resume
+  - work-hours-notification-batch
+notes: |
+  这个包只做「少打扰」这件事，不接管任何系统级权限。
+  每条策略都写明 requires_approval 与理由；夜间静默因为可逆且用户显式要求，
+  允许不逐次批准，但仍会写入审计。

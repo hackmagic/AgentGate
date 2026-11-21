@@ -1,0 +1,65 @@
+{
+  "name": "guidance-runtime",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Personal guidance policy runtime: compile your working boundaries into portable guidance for any AI agent (AGENTS.md / SKILL.md / MCP).",
+  "keywords": [
+    "ai-agent",
+    "mcp",
+    "policy-engine",
+    "guidance",
+    "activitywatch",
+    "focus",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "hackmagic",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp/server.d.ts",
+      "default": "./dist/mcp/server.js"
+    },
+    "./pet": {
+      "types": "./dist/pet/bridge.d.ts",
+      "default": "./dist/pet/bridge.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "guidance": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "packs",
+    "docs",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node scripts/check-boundaries.mjs",
+    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "validate-specs": "node --import tsx scripts/validate-specs.ts",
+    "check": "npm run typecheck && npm run lint && npm run test && npm run validate-specs && npm run build"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

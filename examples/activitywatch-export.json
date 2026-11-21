@@ -1,0 +1,98 @@
+[
+  {
+    "id": "aw-watcher-window_hackmagic-pc",
+    "type": "currentwindow",
+    "client": "aw-watcher-window",
+    "hostname": "hackmagic-pc",
+    "created": "2026-11-20T00:55:00Z",
+    "events": [
+      {
+        "timestamp": "2026-11-20T01:00:00Z",
+        "duration": 600,
+        "data": {
+          "app": "Code",
+          "title": "policy.ts - guidance-runtime - Visual Studio Code"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T01:10:00Z",
+        "duration": 600,
+        "data": {
+          "app": "Code",
+          "title": "evaluate.ts - guidance-runtime - Visual Studio Code"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T01:20:00Z",
+        "duration": 600,
+        "data": {
+          "app": "Code",
+          "title": "conditions.ts - guidance-runtime - Visual Studio Code"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T01:30:00Z",
+        "duration": 600,
+        "data": {
+          "app": "Code",
+          "title": "engine.ts - guidance-runtime - Visual Studio Code"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T01:40:00Z",
+        "duration": 900,
+        "data": {
+          "app": "Terminal",
+          "title": "npm test — ~/guidance-runtime"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T01:55:00Z",
+        "duration": 900,
+        "data": {
+          "app": "Code",
+          "title": "cli.ts - guidance-runtime - Visual Studio Code"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T02:10:00Z",
+        "duration": 900,
+        "data": {
+          "app": "Code",
+          "title": "mcp/server.ts - guidance-runtime - Visual Studio Code"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T02:25:00Z",
+        "duration": 900,
+        "data": {
+          "app": "Code",
+          "title": "pet/bridge.ts - guidance-runtime - Visual Studio Code"
+        }
+      }
+    ]
+  },
+  {
+    "id": "aw-watcher-afk_hackmagic-pc",
+    "type": "afkstatus",
+    "client": "aw-watcher-afk",
+    "hostname": "hackmagic-pc",
+    "created": "2026-11-20T00:55:00Z",
+    "events": [
+      {
+        "timestamp": "2026-11-20T01:00:00Z",
+        "duration": 7200,
+        "data": {
+          "status": "not-afk"
+        }
+      },
+      {
+        "timestamp": "2026-11-20T03:00:00Z",
+        "duration": 1200,
+        "data": {
+          "status": "afk"
+        }
+      }
+    ]
+  }
+]

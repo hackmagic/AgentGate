@@ -1,0 +1,12 @@
+node_modules/
+dist/
+out/
+tmp/
+*.log
+.DS_Store
+Thumbs.db
+coverage/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+audit.jsonl
