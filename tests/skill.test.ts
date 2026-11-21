@@ -271,3 +271,40 @@ test('an approval-required policy says so even when its decision is suggest', ()
   const description = /^description: (.+)$/m.exec(frontmatter)?.[1] ?? '';
   assert.ok(description.includes('必须先取得用户批准'), 'a gated suggestion must still advertise the gate');
 });
+
+console.log('\n== clause 8: no policy field is dropped silently ==');
+
+/** Every field §6.3 marks as "must appear", checked against real artifacts. */
+test('every field the spec marks as required is present in the generated skill', () => {
+  const required = (policy: Policy, body: string): Record<string, boolean> => ({
+    'trigger.event': body.includes(`\`${policy.trigger.event}\``),
+    'trigger.context': (policy.trigger.context?.app ?? []).every((app) => body.includes(app)),
+    decision: body.includes(`\`${policy.decision}\``),
+    'requires_approval': body.includes(
+      policy.safety.requires_approval ? '需要用户明确批准' : '不需要逐次批准',
+    ),
+    'audit_level': body.includes(`审计级别：${policy.safety.audit_level}`),
+    'bubble_text': policy.presentation?.bubble_text === undefined
+      ? true
+      : body.includes(policy.presentation.bubble_text),
+    'action_ids': (policy.presentation?.actions ?? []).every((action) => body.includes(`\`${action.action_id}\``)),
+    'action.type': policy.action === undefined ? true : body.includes(`\`${policy.action.type}\``),
+    'escalation': policy.escalation === undefined
+      ? true
+      : body.includes(`${policy.escalation.after_minutes} 分钟`),
+  });
+
+  for (const { policy } of everyPolicy) {
+    const body = compilePolicies([policy], 'skill').files[0]!.content;
+    const checks = required(policy, body);
+    const missing = Object.entries(checks).filter(([, ok]) => !ok).map(([name]) => name);
+    assert.deepEqual(missing, [], `${policy.id} silently dropped: ${missing.join(', ')}`);
+  }
+});
+
+test('priority is deliberately absent, because evaluation order is not the reader business', () => {
+  for (const { policy } of everyPolicy) {
+    const body = compilePolicies([policy], 'skill').files[0]!.content;
+    assert.equal(/优先级/.test(body), false, `${policy.id}: priority leaks into the skill`);
+  }
+});

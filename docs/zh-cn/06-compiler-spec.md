@@ -260,6 +260,49 @@ gate compile --policy packs/deep-work --out out --target all
 描述的是系统并不具备的能力。所以 skill 里写的是 `POST /v1/signals/{id}/respond`，并指示模型
 在没有桥时报告「未回执」，而不是假定用户同意了。
 
+#### 触发条件必须可见，且字段不得静默丢弃
+
+前一张表讲「读者必须能做什么」。这一张讲**渲染器不许悄悄省掉什么**——两者的区别是：前者缺了会
+让模型猜，后者缺了会让人根本不知道有东西被省了。
+
+| 策略字段 | 必须出现在 SKILL.md 里 | 为什么 |
+| --- | --- | --- |
+| `trigger.event` | 是，连同原始事件名 | 模型要先知道「哪个事件会触发」才谈得上求值 |
+| `trigger.context` | 是，逐项列出 | 少列一个应用，模型就会在别的应用里误触发 |
+| `conditions` | 是，人类可读但不省略任何分支 | 省略一个叶子，读者会以为策略比自己宽 |
+| `decision` | 是，字面值 | 模型必须知道自己站在哪个分支上 |
+| `safety.requires_approval` | 是，且与 decision 分开表述 | 立场与决策是两个事实，合并会误导 |
+| `safety.audit_level` | 是 | 决定这条引导会不会被记录 |
+| `presentation.bubble_text` | 是，原文 | 改一个标点就破坏了它与审计记录的对应 |
+| `presentation.actions` | 是，每个 `action_id` 都要有 | 用户只能用信号提供的动作回答 |
+| `action.type` / `scope` / `parameters` | 是 | 执行者据此知道「批准之后会做什么」 |
+| `escalation` | 是，若声明了 | 不说，模型就不会在到期后升级 |
+| `priority` | **否** | 求值顺序由引擎负责，模型不需要知道；强行列出会让它以为可以自行排序 |
+
+**「不可静默丢弃」的判定方式不是读代码，是比对。** `tests/skill.test.ts` 为 deep-work 包里每一条
+策略生成 SKILL.md，然后逐字段核对上表：任何一个「必须出现」的字段没在产物里出现，测试就红。
+这条测试的价值在于，它不关心渲染器**怎么**写，只关心**有没有漏**。
+
+#### 对照检查：deep-work 包的实际产物
+
+用 `packs/deep-work`（5 条策略）生成 SKILL.md 并逐条核对，结论如下：
+
+| 检查项 | 结果 |
+| --- | --- |
+| 5 条策略各生成一个 skill | ✅ 通过 |
+| `name` 全部 kebab-case、≤ 64、等于目录名 | ✅ 通过（最长 `agent-gate-work-hours-notification-batch`，40 字符） |
+| `description` 全部 ≤ 1024、无 XML 标签、含审批立场且只陈述一次 | ✅ 通过 |
+| `trigger.event` 与 `context` 逐条出现 | ✅ 通过 |
+| 每一个 `conditions` 叶子都能在正文里找到 | ✅ 通过（`day_of_week` 与 `time_window` 均以可读句式出现） |
+| `decision` 字面值出现 | ✅ 通过 |
+| 全部 `action_id` 出现，且不含枚举外的 id | ✅ 通过（受 `approve` / `dismiss` / `mute_1h` 三项限制） |
+| 回执路径指向真实端点，且写明无桥时的做法 | ✅ 通过 |
+| `escalation` 出现（`morning-focus-protection` 声明了它） | ✅ 通过 |
+| `priority` 未出现 | ✅ 符合上表（故意不列） |
+
+**唯一一处刻意不呈现**：`metadata` 与 `metrics` 里的任意键（如 `focus_score`）只以条件原文出现，
+不展开成键值对——它们是求值输入，不是给执行者读的指令。
+
 #### 如何对照宿主契约验证
 
 这些限制由 `tests/skill.test.ts` 固定，不靠 review。因为坏产物来自合法输入，测试直接用 schema

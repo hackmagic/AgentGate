@@ -276,6 +276,52 @@ A skill that says "send the answer back through the tool you called" is describi
 system does not have. The skill therefore names `POST /v1/signals/{id}/respond`, and instructs the
 model to report "no receipt" rather than assume consent when no bridge is running.
 
+#### Trigger conditions must be visible, and no field may be dropped silently
+
+The previous table covers what a reader must be able to *do*. This one covers what the renderer is
+forbidden to *omit* — the difference is that the first failure makes a model guess, while the second
+leaves a human unaware that anything was left out.
+
+| Policy field | Must appear in SKILL.md | Why |
+| --- | --- | --- |
+| `trigger.event` | Yes, with the raw event name | The model cannot evaluate a policy before knowing which event starts it |
+| `trigger.context` | Yes, every entry | Omit one app and the model mis-fires in the others |
+| `conditions` | Yes, readable but with no branch removed | Drop a leaf and the reader believes the policy is broader than it is |
+| `decision` | Yes, the literal value | The model must know which branch it is on |
+| `safety.requires_approval` | Yes, stated separately from the decision | Stance and decision are two facts; merging them misleads |
+| `safety.audit_level` | Yes | It decides whether this guidance is recorded at all |
+| `presentation.bubble_text` | Yes, verbatim | Changing a punctuation mark breaks its correspondence with the audit trail |
+| `presentation.actions` | Yes, every `action_id` | The user can only answer with an action the signal offered |
+| `action.type` / `scope` / `parameters` | Yes | The executor needs to know what approval would actually do |
+| `escalation` | Yes, when declared | Omitted, the model never escalates when it expires |
+| `priority` | **No** | Evaluation order belongs to the engine; listing it invites the model to re-sort |
+
+**"Not silently dropped" is checked by comparison, not by reading the renderer.** `tests/skill.test.ts`
+generates a SKILL.md for every policy in the deep-work pack and checks each row above: if any field
+marked "Yes" is absent from the artifact, the test fails. Its value is that it does not care *how* the
+renderer writes, only *whether something went missing*.
+
+#### Worked check: the deep-work pack
+
+Generated SKILL.md for `packs/deep-work` (5 policies) and compared each row. Verdict:
+
+| Check | Result |
+| --- | --- |
+| One skill generated per policy | ✅ pass |
+| Every `name` is kebab-case, ≤ 64, equals its directory | ✅ pass (longest is `agent-gate-work-hours-notification-batch`, 40 chars) |
+| Every `description` ≤ 1024, no XML tags, states approval stance exactly once | ✅ pass |
+| `trigger.event` and `context` present item by item | ✅ pass |
+| Every `conditions` leaf findable in the body | ✅ pass (`day_of_week` and `time_window` both rendered as readable clauses) |
+| `decision` literal present | ✅ pass |
+| Every `action_id` present, and no id outside the enum | ✅ pass (limited to `approve` / `dismiss` / `mute_1h`) |
+| Receipt path names a real endpoint and explains the no-bridge case | ✅ pass |
+| `escalation` present (`morning-focus-protection` declares one) | ✅ pass |
+| `priority` absent | ✅ expected, per the table above |
+
+**One deliberate omission:** arbitrary keys in `metadata` and `metrics` (such as `focus_score`) appear
+only inside the rendered condition text, never expanded into a key/value list. They are evaluation
+inputs, not instructions for an executor.
+
 #### Verifying against the host contract
 
 The limits are pinned by `tests/skill.test.ts`, not by review. Because a broken artifact comes from

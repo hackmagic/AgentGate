@@ -1,0 +1,27 @@
+docs(skill): state which fields may never be dropped, and check it against output
+
+§6.3 covered host frontmatter limits and what a reader must be able to *do*.
+It did not cover what the renderer is forbidden to *omit* — and that gap was
+real: the renderer drops `priority`, `escalation` and unphraseable condition
+leaves, and nothing noticed.
+
+Two requirements added, in both languages:
+
+- trigger conditions must be visible: the event, every context entry, every
+  condition branch, with no leaf removed;
+- no field may be silently dropped, with a per-field table saying which must
+  appear and which must not (`priority` is deliberately absent, because
+  evaluation order is not the reader's business).
+
+The check is a comparison against generated artifacts, not a reading of the
+renderer, because a renderer can be correct about the fields it writes and
+wrong about what it skips.
+
+Worked verification is now a check rather than a paragraph:
+`scripts/verify-skill-fields.ts` generates all five deep-work skills and
+asserts 14 facts per policy — 5 policies, 0 failures, longest name 40 chars
+against a limit of 64. Wired into `npm run check`.
+
+Verified the check itself by removing `safetyLines()` from the renderer: it
+reported `audit_level` missing on all five policies and `requires_approval` on
+the two that ask for approval. Restored, clean.
