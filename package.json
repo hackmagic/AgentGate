@@ -50,7 +50,7 @@
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "node scripts/check-boundaries.mjs",
-    "test": "node --import tsx --test \"tests/**/*.test.ts\"",
+    "test": "node scripts/run-tests.mjs",
     "validate-specs": "node --import tsx scripts/validate-specs.ts",
     "check": "npm run typecheck && npm run lint && npm run test && npm run validate-specs && npm run build"
   },
