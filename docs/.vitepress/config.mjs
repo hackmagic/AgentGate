@@ -61,15 +61,12 @@ export default defineConfig({
     outline: { level: [2, 3] },
     search: { provider: 'local' },
 
-    // Framework strings are configured here rather than written into page
-    // bodies, so switching them is one edit and translators never touch them.
-    nav: [
-      { text: '概览', link: '/00-project-brief' },
-      { text: '架构', link: '/02-architecture' },
-      { text: '策略 DSL', link: '/04-policy-dsl' },
-      { text: '参考', link: '/10-report-spec' },
-    ],
-
+    // `nav` is intentionally NOT set at this level.
+    //
+    // A root `nav` wins over the one inside `locales.<lang>.themeConfig`, so a
+    // Chinese nav here leaks onto every English page — the header reads
+    // "概览 / 架构 / 策略 DSL" and links into the Chinese tree. Each locale below
+    // supplies its own.
     sidebar: {
       '/': [
         {

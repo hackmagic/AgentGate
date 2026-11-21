@@ -240,6 +240,28 @@ if (existsSync(CONFIG)) {
         `the site serves the index at "/" because rewrites map README to index`,
     );
   }
+
+  // A root-level `nav` in `themeConfig` overrides the per-locale one, so it
+  // silently puts one language's header on every page. This shipped once: the
+  // English site showed "概览 / 架构 / 策略 DSL" and every link led into the
+  // Chinese tree. Navigation must live in `locales.<lang>.themeConfig`.
+  const rootNav = /themeConfig:\s*\{[\s\S]*?^\s{4}nav:\s*\[/m.test(config);
+  if (rootNav) {
+    problems.push(
+      'docs/.vitepress/config.mjs: `nav` at the root of themeConfig overrides every ' +
+        'locale; define it under `locales.<lang>.themeConfig` instead',
+    );
+  }
+
+  // A `/en/` page must not link into the Chinese tree, and vice versa.
+  const enBlock = /en:\s*\{[\s\S]*?nav:\s*\[([\s\S]*?)\]/.exec(config)?.[1] ?? '';
+  for (const match of enBlock.matchAll(/link:\s*'(\/[^']*)'/g)) {
+    if (!match[1].startsWith('/en/')) {
+      problems.push(
+        `docs/.vitepress/config.mjs: English nav entry "${match[1]}" leaves the /en/ tree`,
+      );
+    }
+  }
 }
 
 // The two trees must hold exactly the same page set.
