@@ -1,6 +1,14 @@
+---
+title: "09 · Roadmap and acceptance"
+sidebar_position: 10
+tags: [roadmap]
+description: "English | 中文(09-mvp-roadmap.md)"
+last_updated: 2026-11-22
+---
+
 # 09 · Roadmap and acceptance
 
-English | [中文](09-mvp-roadmap.zh.md)
+English | [中文](../zh-cn/09-mvp-roadmap.md)
 
 Status: the **kernel** of M0–M6 has landed (v0.3.0). The table marks real progress with ✅ / ⬜, not
 aspiration.
@@ -149,7 +157,7 @@ Ordered by "can the community contribute", not by technical interest:
 
 ## Acceptance checklist (copy into a pull request)
 
-```
+```text
 [ ] npm run check is green
 [ ] New or changed policy: npm run validate-specs passes
 [ ] Engine change: the five semantic rule tests still pass (tests/gate.test.ts)

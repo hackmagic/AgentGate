@@ -1,6 +1,14 @@
+---
+title: "05 · Behavioural event specification"
+sidebar_position: 6
+tags: [reference, events]
+description: "Given an ActivityWatch export JSON, the adapter produces a valid event sequence, and the"
+last_updated: 2026-11-22
+---
+
 # 05 · Behavioural event specification
 
-English | [中文](05-event-spec.zh.md)
+English | [中文](../zh-cn/05-event-spec.md)
 
 This is the contract for the source-data layer. It does not invent a new capture format; it defines a
 semantic superset that stays compatible with existing ActivityWatch and screenpipe fields.

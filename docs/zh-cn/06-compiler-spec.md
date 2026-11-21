@@ -1,9 +1,18 @@
+---
+title: "06 · 编译器规范"
+sidebar_position: 7
+tags: [reference, compiler]
+description: "本文件回答一个问题：一条策略凭什么能到处运行。"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 06 · 编译器规范
 
-[English](06-compiler-spec.md) | 中文
+[English](../en/06-compiler-spec.md) | 中文
 
 > 本文件回答一个问题：**一条策略凭什么能到处运行**。
-> 运行时架构见 [02-architecture](02-architecture.zh.md)；生命周期见 [03-policy-lifecycle](03-policy-lifecycle.zh.md)。
+> 运行时架构见 [02-architecture](02-architecture.md)；生命周期见 [03-policy-lifecycle](03-policy-lifecycle.md)。
 
 一条策略源，编译成三种目标形态：`AGENTS.md` 片段、`SKILL.md` 技能、MCP bundle。
 参考 transskill 的适配器模式：**源格式 → 目标适配器 → 输出**，不手写多份。
@@ -60,9 +69,9 @@ compilePolicies(policies: readonly Policy[], target: CompileTarget): Compilation
 
 **AGENTS.md** —— 一章一策略，便于把策略变更 diff 到 Agent 契约上：
 
-```
+```text
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.8.0 以编译格式 v3 从 5 条策略生成。…
+本文件由 agent-gate v0.9.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← 五条语义规则
 ## 边界               ← 执行者不是策略制定者
 ## {description}      ← 每条策略一章
@@ -84,7 +93,7 @@ description: 工作日早上进入专注块时…（个人引导策略 morning-f
 
 **MCP bundle**：
 
-```
+```text
 mcp.json                          # 可直接合并进 MCP 客户端配置
 agent-gate-policies/<id>.yaml     # 策略副本（可被 CLI 重新加载）
 README.md                         # 工具表 + 契约摘要
@@ -172,7 +181,7 @@ gate compile --policy packs/deep-work --out out --target all
 
 ```json
 {
-  "engine_version": "0.8.0",
+  "engine_version": "0.9.0",
   "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],
@@ -274,7 +283,7 @@ gate compile --policy packs/deep-work --out out --target all
 
 - **不规定散文长度。** 三条条件的策略和三十条条件的策略本就该长度不同，凑字数只会变成噪音。
 - **不本地化 skill 正文。** 系统名词（`GateSignal`、`require_approval`、`action_id`）是契约词汇，
-  在任何语言里都保持英文，见[文档索引](README.zh.md#翻译)。
+  在任何语言里都保持英文，见[文档索引](README.md#翻译)。
 - **不要求截图或动画素材。** 呈现是契约不是素材包；美术由具现层自己提供。
 
 ## 7. 版本兼容承诺

@@ -1,9 +1,18 @@
+---
+title: "03 · 策略生命周期"
+sidebar_position: 4
+tags: [architecture, policy]
+description: "本文件回答一个问题：一条策略从写到死，经历什么。"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 03 · 策略生命周期
 
-[English](03-policy-lifecycle.md) | 中文
+[English](../en/03-policy-lifecycle.md) | 中文
 
 > 本文件回答一个问题：**一条策略从写到死，经历什么**。
-> 语义规则见 [04-policy-dsl](04-policy-dsl.zh.md)；编译产物见 [06-compiler-spec](06-compiler-spec.zh.md)。
+> 语义规则见 [04-policy-dsl](04-policy-dsl.md)；编译产物见 [06-compiler-spec](06-compiler-spec.md)。
 
 策略引擎和普通规则引擎的区别不在「能不能匹配」，而在**匹配之后用户能不能反悔**。
 这条链路的每一环都必须可观测，否则社区不敢贡献策略——没人愿意提交一条自己看不见
@@ -56,7 +65,7 @@ projectLifecycle(policies, auditRecords, now, { archives })
 | `user_muted`（`mute_1h`） | → `muted`，开一个 60 分钟窗口；**不改计数** |
 | `muted`（阈值静音） | → `muted`，无到期时间 |
 
-`user_muted` 不改计数这条容易写错，所以它是 [04-policy-dsl](04-policy-dsl.zh.md) 规则 5 的一部分，
+`user_muted` 不改计数这条容易写错，所以它是 [04-policy-dsl](04-policy-dsl.md) 规则 5 的一部分，
 由 `tests/lifecycle.test.ts` 固定。
 
 ## 静音的两种形态
@@ -113,4 +122,4 @@ gate lifecycle --policy packs/deep-work --audit ./audit.jsonl --now 2026-11-20T0
 3. **会静音**：连续 3 次否决后这条策略自己闭嘴，并建议你改条件——被静音不是 bug，是反馈；
 4. **可归档**：任何策略都能被操作者退役，历史审计不受影响。
 
-模板与评审标准见 [CONTRIBUTING.md](../CONTRIBUTING.zh.md)。
+模板与评审标准见 [CONTRIBUTING.md](../../CONTRIBUTING.md)。

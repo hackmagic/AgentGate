@@ -1,6 +1,14 @@
+---
+title: "03 · Policy lifecycle"
+sidebar_position: 4
+tags: [architecture, policy]
+description: "This document answers one question: what happens to a policy from first write to retirement."
+last_updated: 2026-11-22
+---
+
 # 03 · Policy lifecycle
 
-English | [中文](03-policy-lifecycle.zh.md)
+English | [中文](../zh-cn/03-policy-lifecycle.md)
 
 > This document answers one question: **what happens to a policy from first write to retirement**.
 > Semantic rules live in [04-policy-dsl](04-policy-dsl.md); compiled artifacts live in
@@ -119,4 +127,4 @@ because the answer to "why is this policy muted now" has to be data, not a debug
 3. **It will mute itself**: three consecutive rejections silence the policy and suggest changing the condition — being muted is feedback, not a bug.
 4. **It can always be archived**: an operator can retire any policy, and the audit history is unaffected.
 
-Templates and review criteria are in [CONTRIBUTING.md](../CONTRIBUTING.md).
+Templates and review criteria are in [CONTRIBUTING.md](../../CONTRIBUTING.md).

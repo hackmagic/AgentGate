@@ -1,6 +1,14 @@
+---
+title: "Documentation index"
+sidebar_position: 0
+tags: [index]
+description: "English | 中文(README.md)"
+last_updated: 2026-11-22
+---
+
 # Documentation index
 
-English | [中文](README.zh.md)
+English | [中文](../zh-cn/README.md)
 
 Three documents each answer one question; the rest are contract appendices.
 
@@ -17,6 +25,8 @@ Three documents each answer one question; the rest are contract appendices.
 | [08 · Security and audit](08-security-and-audit.md) | Permission levels and the audit boundary | Anything touching privacy or execution |
 | [09 · Roadmap and acceptance](09-mvp-roadmap.md) | What is done and what comes next | Looking for a place to contribute |
 | [10 · Report specification](10-report-spec.md) | What `gate report` computes and what a consumer may rely on | Building on the report output |
+| [Glossary](glossary.md) | Canonical spelling and meaning of every project term | Writing any page, or translating one |
+| [Contributing translations](contributing/translations.md) | Translation workflow, boundaries, and review criteria | Changing a translated page |
 
 ## Why three documents are bold
 

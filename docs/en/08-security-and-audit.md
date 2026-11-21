@@ -1,6 +1,14 @@
+---
+title: "08 · Security and audit"
+sidebar_position: 9
+tags: [security, reference]
+description: "English | 中文(08-security-and-audit.md)"
+last_updated: 2026-11-22
+---
+
 # 08 · Security and audit
 
-English | [中文](08-security-and-audit.zh.md)
+English | [中文](../zh-cn/08-security-and-audit.md)
 
 ## Permission levels (four, defaulting to the most conservative)
 
@@ -16,7 +24,7 @@ must not use `audit_level: none` (`missing_rationale` / `unaudited_autonomy`).
 
 ## Audit records (whitelist, nine fields)
 
-```
+```text
 event_id  policy_id  decision  signal_id  user_response
 timestamp  engine_version  degraded  reason
 ```

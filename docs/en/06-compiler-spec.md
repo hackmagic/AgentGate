@@ -1,6 +1,14 @@
+---
+title: "06 · Compiler specification"
+sidebar_position: 7
+tags: [reference, compiler]
+description: "This document answers one question: what makes one policy runnable everywhere."
+last_updated: 2026-11-22
+---
+
 # 06 · Compiler specification
 
-English | [中文](06-compiler-spec.zh.md)
+English | [中文](../zh-cn/06-compiler-spec.md)
 
 > This document answers one question: **what makes one policy runnable everywhere**.
 > Runtime architecture is in [02-architecture](02-architecture.md); lifecycle is in
@@ -66,9 +74,9 @@ appears in the emitted artifacts.
 
 **AGENTS.md** — one chapter per policy, so a policy change diffs cleanly against the agent contract:
 
-```
+```text
 # 个人引导策略（由 AgentGate 编译，请勿手改）
-本文件由 agent-gate v0.8.0 以编译格式 v3 从 5 条策略生成。…
+本文件由 agent-gate v0.9.0 以编译格式 v3 从 5 条策略生成。…
 ## 通用求值规则       ← the five semantic rules
 ## 边界               ← the executor is not the policy author
 ## {description}      ← one chapter per policy
@@ -90,7 +98,7 @@ verbatim → send back `signal_id` / `action_id`.
 
 **MCP bundle**:
 
-```
+```text
 mcp.json                          # merge straight into an MCP client config
 agent-gate-policies/<id>.yaml     # policy copies, reloadable by the CLI
 README.md                         # tool table plus the contract summary
@@ -181,7 +189,7 @@ Writes `out/compile-manifest.json`:
 
 ```json
 {
-  "engine_version": "0.8.0",
+  "engine_version": "0.9.0",
   "format_version": "3",
   "source_hash": "…",
   "targets": ["agents", "skill", "mcp"],

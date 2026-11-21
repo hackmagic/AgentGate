@@ -1,10 +1,19 @@
+---
+title: "10 · 报告规范"
+sidebar_position: 11
+tags: [reference, report]
+description: "本文件回答一个问题：gate report 到底算了什么，消费方可以依赖什么。"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 10 · 报告规范
 
-[English](10-report-spec.md) | 中文
+[English](../en/10-report-spec.md) | 中文
 
 > 本文件回答一个问题：**`gate report` 到底算了什么，消费方可以依赖什么**。
-> 它读取的审计日志见 [08-security-and-audit](08-security-and-audit.zh.md)；生命周期状态见
-> [03-policy-lifecycle](03-policy-lifecycle.zh.md)。
+> 它读取的审计日志见 [08-security-and-audit](08-security-and-audit.md)；生命周期状态见
+> [03-policy-lifecycle](03-policy-lifecycle.md)。
 
 报告是**审计日志的投影**，与生命周期用的是同一套方法，本身不保存任何状态。它打印的每一个数字，
 都能用同一份日志加同一个 `now` 重新算出来——这才是这些数字可信的原因，而不只是被持久化过。
@@ -104,7 +113,7 @@ rejection_rate = dismissed / (approved + dismissed)
 
 ## 4. 生命周期分布
 
-`lifecycle` 数 [03-policy-lifecycle](03-policy-lifecycle.zh.md) 里的五个状态：
+`lifecycle` 数 [03-policy-lifecycle](03-policy-lifecycle.md) 里的五个状态：
 
 ```json
 { "draft": 0, "validated": 4, "active": 1, "muted": 0, "archived": 0 }
@@ -199,7 +208,7 @@ rejection_rate = dismissed / (approved + dismissed)
 
 ```yaml
 time_window: "10:00-12:00"   # was: 09:00-12:00
-```
+```text
 
 Caveats:
 
@@ -210,7 +219,7 @@ Caveats:
 
 - **从不自动套用。** 建议是文本；改策略仍然是人的编辑。
 - **从不使用白名单之外的数据。** 如果将来某个字段能让建议更好，那是
-  [08](08-security-and-audit.zh.md) 里的审计契约决策，不是这里的编译器决策。
+  [08](08-security-and-audit.md) 里的审计契约决策，不是这里的编译器决策。
 - **从不冒充发现项。** 「采纳建议」和「消除发现项」是两个不同后果的动作。
 
 ## 7. JSON 形状

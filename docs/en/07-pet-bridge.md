@@ -1,6 +1,14 @@
+---
+title: "07 · Embodiment interface specification"
+sidebar_position: 8
+tags: [reference, embodiment]
+description: "Trigger a require_approval policy by hand; the pet shows the prompt, and after the user approves,"
+last_updated: 2026-11-22
+---
+
 # 07 · Embodiment interface specification
 
-English | [中文](07-pet-bridge.zh.md)
+English | [中文](../zh-cn/07-pet-bridge.md)
 
 The pet is not the agent's skin. It is the embodiment layer for a `GateSignal`. The interface is
 defined between the engine and the pet runtime, decoupled from any specific implementation

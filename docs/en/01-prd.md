@@ -1,6 +1,14 @@
+---
+title: "01 · Product requirements"
+sidebar_position: 2
+tags: [product]
+description: "English | 中文(01-prd.md)"
+last_updated: 2026-11-22
+---
+
 # 01 · Product requirements
 
-English | [中文](01-prd.zh.md)
+English | [中文](../zh-cn/01-prd.md)
 
 ## Target user
 

@@ -121,7 +121,7 @@ policy:
     audit_level: full
 ```
 
-五条语义规则（写在 [docs/04-policy-dsl.md](docs/04-policy-dsl.zh.md)，由测试固定）：
+五条语义规则（写在 [docs/04-policy-dsl.md](docs/zh-cn/04-policy-dsl.md)，由测试固定）：
 
 1. `decision: suppress` + `requires_approval: true` 只能产出审批请求，**引擎不执行**
 2. `requires_approval: false` 必须写明 `rationale`，并且不能 `audit_level: none`
@@ -146,17 +146,17 @@ MCP 版本 `2026-07-28`，无状态核心：`server/discover` 自描述，不需
 **1. 组合层是可替换的中间件链，不是一个门面。**
 求值是纯函数；速率闸、在途队列、审计是三个独立的 stage，按注册顺序跑。
 `gate.pipeline` 把顺序暴露出来，`stages: [...]` 能把整条链换掉。详见
-[docs/02-architecture.md](docs/02-architecture.zh.md)。
+[docs/02-architecture.md](docs/zh-cn/02-architecture.md)。
 
 **2. 策略有生命周期，且从审计日志投影出来。**
 `draft → validated → active ⇄ muted → archived`。没有第二份状态文件可与实际行为漂移；
 给定审计日志与 `now`，任何时刻都能重建当时的状态。详见
-[docs/03-policy-lifecycle.md](docs/03-policy-lifecycle.zh.md)。
+[docs/03-policy-lifecycle.md](docs/zh-cn/03-policy-lifecycle.md)。
 
 **3. 编译一致性是可执行的检查，不是承诺。**
 `source_hash` 只证明三份产物来自同一输入；`gate verify` 还会把产物**当文本读回来**，
 逐条比对 decision / 审批立场 / 文案。丢字段的渲染器能通过 hash 检查，但过不了这一关。
-详见 [docs/06-compiler-spec.md](docs/06-compiler-spec.zh.md)。
+详见 [docs/06-compiler-spec.md](docs/zh-cn/06-compiler-spec.md)。
 
 ## 审计边界
 

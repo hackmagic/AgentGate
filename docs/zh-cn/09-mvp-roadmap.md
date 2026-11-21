@@ -1,6 +1,15 @@
+---
+title: "09 · 路线图与验收"
+sidebar_position: 10
+tags: [roadmap]
+description: "English(09-mvp-roadmap.md) | 中文"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 09 · 路线图与验收
 
-[English](09-mvp-roadmap.md) | 中文
+[English](../en/09-mvp-roadmap.md) | 中文
 
 状态：M0–M6 的**内核部分已落地**（v0.3.0）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
 
@@ -142,7 +151,7 @@
 
 ## 验收清单（可复制进 PR 描述）
 
-```
+```text
 [ ] npm run check 全绿
 [ ] 新增/修改策略：npm run validate-specs 通过
 [ ] 改动引擎：五条语义规则测试仍绿（tests/gate.test.ts）

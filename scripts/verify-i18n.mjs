@@ -29,9 +29,15 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const RECORD = path.join(ROOT, 'docs', 'i18n', 'pairs.json');
 const WRITE = process.argv.includes('--write');
 
-/** Document roots to walk; `docs/` is walked recursively. */
+/**
+ * Layout: `docs/en/` is the source of truth, `docs/zh-cn/` mirrors it page for
+ * page with identical filenames. Repository-root pages keep the sibling form
+ * (`README.md` / `README.zh.md`) because they are read by tools and hosts that
+ * expect them at the root, not under `docs/`.
+ */
 const ROOTS = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md'];
-const DOCS_DIR = path.join(ROOT, 'docs');
+const EN_DIR = path.join(ROOT, 'docs', 'en');
+const ZH_DIR = path.join(ROOT, 'docs', 'zh-cn');
 
 /** Docs that are English-only by design, with the reason recorded here. */
 const SINGLE_LANGUAGE = new Set([
@@ -42,23 +48,43 @@ const SINGLE_LANGUAGE = new Set([
 
 const SWITCHER = /^\[English\]\([^)]*\) \| 中文$|^English \| \[中文\]\([^)]*\)$/;
 
-function walkDocs(dir, out = []) {
+/** List `.md` files under `dir`, recursively, with paths relative to `dir`. */
+function listMarkdown(dir, base = dir, out = []) {
+  if (!existsSync(dir)) return [];
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const absolute = path.join(dir, entry.name);
     if (entry.isDirectory()) {
-      if (entry.name === 'i18n') continue;
-      walkDocs(absolute, out);
-    } else if (entry.name.endsWith('.md') && !entry.name.endsWith('.zh.md')) {
-      out.push(absolute);
+      listMarkdown(absolute, base, out);
+    } else if (entry.name.endsWith('.md')) {
+      out.push(path.relative(base, absolute).split(path.sep).join('/'));
     }
   }
-  return out;
+  return out.sort();
 }
 
-const primaryDocs = [...ROOTS.map((name) => path.join(ROOT, name)).filter((p) => existsSync(p)), ...walkDocs(DOCS_DIR)];
+const rootDocs = ROOTS.map((name) => path.join(ROOT, name)).filter((p) => existsSync(p));
+const enDocs = listMarkdown(EN_DIR).map((name) => path.join(EN_DIR, name));
+const zhDocs = listMarkdown(ZH_DIR).map((name) => path.join(ZH_DIR, name));
 
 const rel = (absolute) => path.relative(ROOT, absolute).split(path.sep).join('/');
-const zhOf = (absolute) => absolute.replace(/\.md$/, '.zh.md');
+
+/**
+ * The counterpart of a primary document.
+ *
+ * Root pages pair as siblings; `docs/en/x.md` pairs with `docs/zh-cn/x.md`.
+ * A missing counterpart is reported by the caller, not guessed here.
+ */
+const zhOf = (absolute) => {
+  const resolved = path.resolve(absolute);
+  if (resolved.startsWith(path.resolve(EN_DIR) + path.sep)) {
+    // Mirror the *relative* path, so `contributing/x.md` maps into the other
+    // tree at the same subdirectory rather than collapsing to the root.
+    return path.join(ZH_DIR, path.relative(EN_DIR, resolved));
+  }
+  return absolute.replace(/\.md$/, '.zh.md');
+};
+
+const primaryDocs = [...rootDocs, ...enDocs];
 
 /** Split a document into heading sections, skipping fenced code blocks. */
 function sections(text) {
@@ -124,10 +150,32 @@ for (const primary of primaryDocs) {
   const zhText = readFileSync(zh, 'utf8');
 
   // 2. Each side must link to the other.
+  //
+  // Under `docs/en/` + `docs/zh-cn/` the two files share a filename, so the
+  // link must be a path into the other tree. A bare filename would resolve to
+  // the page itself, which looks like a switcher and goes nowhere.
   const enBase = path.basename(primary);
   const zhBase = path.basename(zh);
-  if (!enText.includes(`(${zhBase})`)) problems.push(`${primaryRel}: does not link to ${zhBase}`);
-  if (!zhText.includes(`(${enBase})`)) problems.push(`${rel(zh)}: does not link to ${enBase}`);
+  const enRelative = path.resolve(primary).startsWith(path.resolve(EN_DIR) + path.sep)
+    ? path.relative(EN_DIR, path.resolve(primary)).split(path.sep).join('/')
+    : path.basename(primary);
+
+  // The switcher goes from this page's directory to the same page in the other
+  // tree. A nested page needs one more `../` than a top-level page, so the
+  // prefix is computed from the actual depth rather than assumed.
+  const depth = enRelative.split('/').length - 1;
+  const up = depth === 0 ? '..' : Array.from({ length: depth + 1 }, () => '..').join('/');
+  const expectedOnEn = `(${up}/zh-cn/${enRelative})`;
+  const expectedOnZh = `(${up}/en/${enRelative})`;
+
+  const inEnglishDocs = path.resolve(primary).startsWith(path.resolve(EN_DIR) + path.sep);
+  if (inEnglishDocs) {
+    if (!enText.includes(expectedOnEn)) problems.push(`${primaryRel}: does not link to ${expectedOnEn.slice(1, -1)}`);
+    if (!zhText.includes(expectedOnZh)) problems.push(`${rel(zh)}: does not link to ${expectedOnZh.slice(1, -1)}`);
+  } else {
+    if (!enText.includes(`(${zhBase})`)) problems.push(`${primaryRel}: does not link to ${zhBase}`);
+    if (!zhText.includes(`(${enBase})`)) problems.push(`${rel(zh)}: does not link to ${enBase}`);
+  }
 
   // 2b. Every relative link must resolve. A translation carries its own set of
   // link targets (`foo.zh.md`), and those rot independently of the English

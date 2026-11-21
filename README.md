@@ -119,7 +119,7 @@ policy:
     audit_level: full
 ```
 
-Five semantic rules, specified in [docs/04-policy-dsl.md](docs/04-policy-dsl.md) and pinned by tests:
+Five semantic rules, specified in [docs/04-policy-dsl.md](docs/en/04-policy-dsl.md) and pinned by tests:
 
 1. `decision: suppress` with `requires_approval: true` may only produce an approval request — **the engine does not execute**
 2. `requires_approval: false` must state a `rationale`, and must not use `audit_level: none`
@@ -142,13 +142,13 @@ MCP revision `2026-07-28`, stateless core: `server/discover` is self-describing,
 This is what separates the project from a pile of `if` statements.
 
 **1. The composition layer is a replaceable middleware chain, not a façade.**
-Evaluation is a pure function; the rate limiter, the in-flight queue and the audit sink are three independent stages that run in registration order. `gate.pipeline` exposes that order and `stages: [...]` swaps the whole chain. See [docs/02-architecture.md](docs/02-architecture.md).
+Evaluation is a pure function; the rate limiter, the in-flight queue and the audit sink are three independent stages that run in registration order. `gate.pipeline` exposes that order and `stages: [...]` swaps the whole chain. See [docs/02-architecture.md](docs/en/02-architecture.md).
 
 **2. Policies have a lifecycle, projected from the audit log.**
-`draft → validated → active ⇄ muted → archived`. There is no second state file to drift from behaviour; given the audit log and a `now`, you can reconstruct the state at any past instant. See [docs/03-policy-lifecycle.md](docs/03-policy-lifecycle.md).
+`draft → validated → active ⇄ muted → archived`. There is no second state file to drift from behaviour; given the audit log and a `now`, you can reconstruct the state at any past instant. See [docs/03-policy-lifecycle.md](docs/en/03-policy-lifecycle.md).
 
 **3. Compile consistency is an executable check, not a promise.**
-`source_hash` only proves the three artifacts came from the same input. `gate verify` also reads the artifacts **back as text** and compares decision, approval stance and copy field by field. A renderer that drops a field passes the hash check and fails this one. See [docs/06-compiler-spec.md](docs/06-compiler-spec.md).
+`source_hash` only proves the three artifacts came from the same input. `gate verify` also reads the artifacts **back as text** and compares decision, approval stance and copy field by field. A renderer that drops a field passes the hash check and fails this one. See [docs/06-compiler-spec.md](docs/en/06-compiler-spec.md).
 
 ## Audit boundary
 

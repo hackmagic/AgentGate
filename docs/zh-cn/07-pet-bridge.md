@@ -1,6 +1,15 @@
+---
+title: "07 · 具身交互接口规范"
+sidebar_position: 8
+tags: [reference, embodiment]
+description: "手工触发一条 require_approval 策略，宠物弹出引导，用户批准后审计日志记录完整链路。"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 07 · 具身交互接口规范
 
-[English](07-pet-bridge.md) | 中文
+[English](../en/07-pet-bridge.md) | 中文
 
 宠物不是 Agent 的皮肤，是 `GateSignal` 的具身呈现层。接口定义在引擎和宠物运行时之间，与具体宠物实现（dsh-pet / OpenPets / 其他）解耦。
 

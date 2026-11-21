@@ -1,6 +1,15 @@
+---
+title: "08 · 安全与审计"
+sidebar_position: 9
+tags: [security, reference]
+description: "English(08-security-and-audit.md) | 中文"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 08 · 安全与审计
 
-[English](08-security-and-audit.md) | 中文
+[English](../en/08-security-and-audit.md) | 中文
 
 ## 权限分级（四级，默认最保守）
 
@@ -15,7 +24,7 @@
 
 ## 审计记录（白名单，九字段）
 
-```
+```text
 event_id  policy_id  decision  signal_id  user_response
 timestamp  engine_version  degraded  reason
 ```
@@ -47,7 +56,7 @@ timestamp  engine_version  degraded  reason
 - 自动 `mute`（连续 3 次 `dismiss`）；
 - 向用户建议修订条件。
 
-否决还会投影成策略的**生命周期状态**（[03-policy-lifecycle](03-policy-lifecycle.zh.md)）：
+否决还会投影成策略的**生命周期状态**（[03-policy-lifecycle](03-policy-lifecycle.md)）：
 用户一次点击不仅否决了这一次，还改变了这条策略之后的可见性与审计解释。
 
 这是「AI 引导」区别于「AI 监控」的关键分界线：监控只收集行为，引导允许用户用一次点击否掉整个规则。

@@ -11,6 +11,32 @@
 - npm 发布（`bin: gate`）
 - 策略修订建议：连续 dismiss 后给出可采纳的条件改写
 
+## [0.9.0] — 2026-11-22
+
+### 变更（破坏性：文档路径）
+
+- **文档目录改为 `docs/en/` + `docs/zh-cn/`**，两棵树页数、文件名、章节顺序完全一致。
+  英文仍是唯一真值源。旧布局（同级 `foo.md` / `foo.zh.md`）在功能上等价，但不兼容 Crowdin / Weblate
+  的目录约定，也无法被文档站点的多语言路由直接使用。
+- 每页新增 frontmatter：`title`、`sidebar_position`、`tags`、`description`、`last_updated`；
+  翻译页额外声明 `translation_status`（`complete` / `partial` / `todo`）。
+- 语言切换从「同目录同名文件」改为「跨树相对路径」。
+
+### 新增
+
+- `docs/en/glossary.md` + 中文：术语表，统一 40 余个专有名词的写法与含义，并列出不翻译的标识符。
+- `docs/en/contributing/translations.md` + 中文：翻译贡献指南，含流程、边界、评审清单、机翻规则。
+- `docs-checklist.md`：文档 PR 人工审核清单，与机械门禁分工明确。
+- **`npm run lint-docs`**（`scripts/lint-docs.mjs`）与 `npm run check` 联动，强制：frontmatter 完整性、
+  单一 H1、标题不跳级、代码块必须有语言标注、无 CRLF / BOM、图片必须有 alt 文本、
+  两棵树页码一致、`translation_status` 只在翻译页出现且取值合法。
+- `validate-specs` 现在额外校验每页 frontmatter 字段与两树镜像。
+
+### 修复
+
+- 12 处代码块缺少语言标注（`text` / `bash` / `json` 等），已补。
+- 3 个文件因编辑工具写入了 CRLF，已统一为 LF。
+- 迁移后 4 个跨目录相对链接（指向 `CHANGELOG.md`、`CONTRIBUTING.md`）少了一层 `../`，已修正。
 ## [0.8.0] — 2026-11-22
 
 ### 新增

@@ -1,6 +1,15 @@
+---
+title: "01 · 产品需求"
+sidebar_position: 2
+tags: [product]
+description: "English(01-prd.md) | 中文"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 01 · 产品需求
 
-[English](01-prd.md) | 中文
+[English](../en/01-prd.md) | 中文
 
 ## 目标用户
 

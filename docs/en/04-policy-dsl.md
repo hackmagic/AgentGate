@@ -1,6 +1,14 @@
+---
+title: "04 · Policy DSL specification"
+sidebar_position: 5
+tags: [reference, policy]
+description: "This document is a contract. Implementations must obey it; tests must pin these rules."
+last_updated: 2026-11-22
+---
+
 # 04 · Policy DSL specification
 
-English | [中文](04-policy-dsl.zh.md)
+English | [中文](../zh-cn/04-policy-dsl.md)
 
 > This document is a contract. Implementations must obey it; tests must pin these rules.
 

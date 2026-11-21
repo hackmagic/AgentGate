@@ -1,6 +1,15 @@
+---
+title: "05 · 行为事件规范"
+sidebar_position: 6
+tags: [reference, events]
+description: "给定一份 ActivityWatch 导出 JSON，适配器能产出合法事件序列，且 focus_block_started 的判定规则有单元测试覆盖。"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 05 · 行为事件规范
 
-[English](05-event-spec.md) | 中文
+[English](../en/05-event-spec.md) | 中文
 
 这是源数据层的契约。不发明新捕获格式，只定义语义超集，兼容 ActivityWatch 和 screenpipe 的现有字段。
 

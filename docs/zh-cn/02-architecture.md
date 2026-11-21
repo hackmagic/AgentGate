@@ -1,9 +1,18 @@
+---
+title: "02 · 运行时架构"
+sidebar_position: 3
+tags: [architecture]
+description: "本文件回答一个问题：系统怎么跑。策略语义见 04-policy-dsl 与"
+last_updated: 2026-11-22
+translation_status: complete
+---
+
 # 02 · 运行时架构
 
-[English](02-architecture.md) | 中文
+[English](../en/02-architecture.md) | 中文
 
-> 本文件回答一个问题：**系统怎么跑**。策略语义见 [04-policy-dsl](04-policy-dsl.zh.md) 与
-> [03-policy-lifecycle](03-policy-lifecycle.zh.md)；编译产物见 [06-compiler-spec](06-compiler-spec.zh.md)。
+> 本文件回答一个问题：**系统怎么跑**。策略语义见 [04-policy-dsl](04-policy-dsl.md) 与
+> [03-policy-lifecycle](03-policy-lifecycle.md)；编译产物见 [06-compiler-spec](06-compiler-spec.md)。
 
 ## 一次求值的完整路径
 
@@ -119,7 +128,7 @@ const replay = new AgentGate({ policies, audit, stages: [auditStage({ store, eng
 
 ## 数据流：一次事件
 
-```
+```text
 AgentEvent
    │ gate.evaluate(event, now)
    ▼

@@ -1,6 +1,14 @@
+---
+title: "02 · Runtime architecture"
+sidebar_position: 3
+tags: [architecture]
+description: "This document answers one question: how does the system run. Policy semantics live in"
+last_updated: 2026-11-22
+---
+
 # 02 · Runtime architecture
 
-English | [中文](02-architecture.zh.md)
+English | [中文](../zh-cn/02-architecture.md)
 
 > This document answers one question: **how does the system run**. Policy semantics live in
 > [04-policy-dsl](04-policy-dsl.md) and [03-policy-lifecycle](03-policy-lifecycle.md); compiled
@@ -124,7 +132,7 @@ cannot reproduce a decision.
 
 ## Data flow: one event
 
-```
+```text
 AgentEvent
    │ gate.evaluate(event, now)
    ▼

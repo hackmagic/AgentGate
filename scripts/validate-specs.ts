@@ -263,7 +263,13 @@ check('the bundled packs ship policies', totalPolicies > 0);
  * deliberately narrow: they verify that the *facts* docs claim about the
  * system are still true, not that prose is unchanged.
  */
-const docsDirectory = path.join(ROOT, 'docs');
+/**
+ * Layout: `docs/en/` is the source of truth and `docs/zh-cn/` mirrors it with
+ * the same filenames. This gate reads the English tree, because a fact check
+ * against a translation would be checking a copy.
+ */
+const docsDirectory = path.join(ROOT, 'docs', 'en');
+const zhDocsDirectory = path.join(ROOT, 'docs', 'zh-cn');
 const readDoc = (name: string): string => readFileSync(path.join(docsDirectory, name), 'utf8');
 
 /**
@@ -284,21 +290,49 @@ const EXPECTED_DOCS = [
   '08-security-and-audit',
   '09-mvp-roadmap',
   '10-report-spec',
+  'glossary',
+  'contributing/translations',
   'README',
 ];
-const presentDocs = readdirSync(docsDirectory)
-  .filter((name) => name.endsWith('.md'))
-  .sort();
-
-for (const base of EXPECTED_DOCS) {
-  check(`docs/${base}.md exists`, presentDocs.includes(`${base}.md`));
-  check(`docs/${base}.zh.md exists`, presentDocs.includes(`${base}.zh.md`));
+/** Every `.md` under a tree, as paths relative to that tree. Nested pages keep their subdirectory. */
+function listDocs(tree: string, base: string = tree, out: string[] = []): string[] {
+  for (const entry of readdirSync(tree, { withFileTypes: true })) {
+    const absolute = path.join(tree, entry.name);
+    if (entry.isDirectory()) listDocs(absolute, base, out);
+    else if (entry.name.endsWith('.md')) out.push(path.relative(base, absolute).split(path.sep).join('/'));
+  }
+  return out.sort();
 }
 
-// Every `.md` in docs/ must belong to an indexed pair; a stray page escapes review.
-const expectedSet = new Set(EXPECTED_DOCS.flatMap((base) => [`${base}.md`, `${base}.zh.md`]));
+const presentDocs = listDocs(docsDirectory);
+const presentZhDocs = listDocs(zhDocsDirectory);
+
+for (const base of EXPECTED_DOCS) {
+  check(`docs/en/${base}.md exists`, presentDocs.includes(`${base}.md`), `found: ${presentDocs.join(", ")}`);
+  check(`docs/zh-cn/${base}.md exists`, presentZhDocs.includes(`${base}.md`));
+}
+
+// The two trees must hold the same pages. A translation that is missing a page
+// is invisible to a reader who only browses the English site.
+check(
+  'docs/zh-cn/ mirrors docs/en/ page for page',
+  JSON.stringify(presentDocs) === JSON.stringify(presentZhDocs),
+  `en=${JSON.stringify(presentDocs)} zh=${JSON.stringify(presentZhDocs)}`,
+);
+
+// Every `.md` must belong to an indexed page; a stray page escapes review.
+const expectedSet = new Set(EXPECTED_DOCS.map((base) => `${base}.md`));
 const strays = presentDocs.filter((name) => !expectedSet.has(name));
-check('docs/ contains no unindexed document', strays.length === 0, `strays=${JSON.stringify(strays)}`);
+check('docs/en/ contains no unindexed document', strays.length === 0, `strays=${JSON.stringify(strays)}`);
+
+// Every page carries the frontmatter a docs site needs.
+for (const base of EXPECTED_DOCS) {
+  const text = readDoc(`${base}.md`);
+  const header = /^---\n([\s\S]*?)\n---/.exec(text)?.[1] ?? '';
+  for (const field of ['title', 'sidebar_position', 'description']) {
+    check(`docs/en/${base}.md declares frontmatter "${field}"`, new RegExp(`^${field}:`, 'm').test(header));
+  }
+}
 
 // The architecture doc must name every layer the boundary checker enforces.
 const architecture = readDoc('02-architecture.md');
