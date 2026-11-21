@@ -16,6 +16,7 @@ Three documents each answer one question; the rest are contract appendices.
 | [07 · Embodiment interface](07-pet-bridge.md) | How a signal reaches the user | Building a pet or a HUD |
 | [08 · Security and audit](08-security-and-audit.md) | Permission levels and the audit boundary | Anything touching privacy or execution |
 | [09 · Roadmap and acceptance](09-mvp-roadmap.md) | What is done and what comes next | Looking for a place to contribute |
+| [10 · Report specification](10-report-spec.md) | What `gate report` computes and what a consumer may rely on | Building on the report output |
 
 ## Why three documents are bold
 

@@ -18,6 +18,7 @@ import { COMPILE_FORMAT_VERSION, ENGINE_VERSION } from '../src/version.js';
 import { EVENT_SOURCES, EVENT_TYPES, type AgentEvent } from '../src/events/types.js';
 import { matchesTimeWindow } from '../src/policy/conditions.js';
 import { LIFECYCLE_STATES } from '../src/policy/lifecycle.js';
+import { FINDING_CODES } from '../src/report/build.js';
 import { loadPolicies } from '../src/policy/load.js';
 import {
   ACTION_IDS,
@@ -282,6 +283,7 @@ const EXPECTED_DOCS = [
   '07-pet-bridge',
   '08-security-and-audit',
   '09-mvp-roadmap',
+  '10-report-spec',
   'README',
 ];
 const presentDocs = readdirSync(docsDirectory)
@@ -356,6 +358,24 @@ for (const doc of presentDocs) {
       `expected ${ENGINE_VERSION}`,
     );
   }
+}
+
+// Every finding code the report can emit must be documented, so a new finding
+// cannot ship without a reader-facing explanation.
+const reportDoc = readDoc('10-report-spec.md');
+check('10-report-spec defines at least one finding code', FINDING_CODES.length > 0);
+for (const code of FINDING_CODES) {
+  check(`10-report-spec documents finding code "${code}"`, reportDoc.includes(`\`${code}\``));
+}
+
+// The report's CLI surface is documented in its own doc and in the help text.
+const cliHelp = readFileSync(path.join(ROOT, 'src', 'cli.ts'), 'utf8');
+check('the CLI advertises the report command', cliHelp.includes('gate report --policy'));
+
+// Every command the help text lists that takes an `--audit` log should be
+// mentioned in the doc that specifies audit-derived output.
+for (const command of ['report', 'lifecycle', 'audit']) {
+  check(`10-report-spec references \`gate ${command}\``, reportDoc.includes(`gate ${command}`));
 }
 
 // ------------------------------------------------------------ result ---

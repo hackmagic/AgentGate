@@ -88,6 +88,7 @@ Modelled on the reference harness's documentation system:
       the other fails CI instead of leaving a half-translated page
 - ✅ `validate-specs` additionally asserts that the facts docs claim still hold
 
+
 ## M7 · Open-source release (in progress)
 
 Done:
@@ -103,6 +104,17 @@ Remaining:
 - ⬜ npm release (`bin: gate`)
 - ⬜ Revision suggestions: after repeated dismissals, propose a concrete condition change
 
+## M8 · Reporting (done)
+
+- ✅ `gate report`: aggregates a JSONL audit log into summary, lifecycle distribution, per-policy
+  counters and findings
+- ✅ Two renderings from one `Report` object: `--format text` for humans, `--format json` for consumers
+- ✅ `docs/10-report-spec.md`, with every finding code gated by `validate-specs`
+- ✅ `gate lifecycle --archive <id>:<reason>`: the `archived` state is now reachable from the CLI
+
+Fixed while building it: the engine counted dismissals but **never wrote `reason: muted`**, so a policy
+the engine held muted projected as `active`. `muted` existed in `AUDIT_REASONS` and in the lifecycle
+fold with nothing emitting it. There is now a regression test that builds a real log through a real gate.
 ## Next priorities
 
 Ordered by "can the community contribute", not by technical interest:

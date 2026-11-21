@@ -57,7 +57,7 @@
 | --- | --- | --- |
 | 成功标准 3：「宠物完成 提出 → 批准 → 执行 全链路」 | 协议、HTTP 桥、客户端与一个已交付的 DSH 适配器都在；**「执行」这一步仍归适配器所有者**，且尚未在真实宿主里做过视觉验证 | 桌面通知面，以及一次真实宿主里的渲染走查 |
 | 成功标准 1：「一条**真实**的 ActivityWatch 事件」 | 适配器吃的是**导出文件**（一段 JSON），从不连接运行中的 ActivityWatch | 实时采集器——而那是我们[刻意不做的](05-event-spec.zh.md)；但「真实」需要说清楚 |
-| 生命周期里的 `draft` 与 `archived` | 两者都有文档、都能从库 API 到达，但**没有任何 CLI 命令能到达**：`authoringState()` 没有调用方，也没有任何东西提供 `archives` | `gate lifecycle --archive` 之类；否则五个状态里有两个只是文档 |
+| 生命周期里的 `draft` 与 `archived` | `archived` 现在 CLI 可达（`gate lifecycle --archive`）；**`draft` 仍然只有库 API**，因为 CLI 在能报告它之前就拒绝了非法策略 | `draft` 不需要补：它描述的是「从未加载成功的文件」，读不了它的 CLI 也报不出它 |
 | 可用 `npx agent-gate` 分发 | MCP bundle 的 `mcp.json` 已经在发 `npx -y agent-gate`，但包**尚未发布**到 npm | 一个发布步骤；在那之前这份生成的配置只是愿望 |
 
 ## 核心边界（不可交易）

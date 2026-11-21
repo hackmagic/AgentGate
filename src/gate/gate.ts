@@ -173,6 +173,27 @@ export class AgentGate {
       },
     );
 
+    // Crossing the dismissal threshold is its own transition, and it needs its
+    // own audit line. The `muted` reason existed in AUDIT_REASONS and in the
+    // lifecycle projection, but nothing ever wrote it — so the projection could
+    // only ever see `user_dismissed` and reported a muted policy as `active`.
+    // The projection is only as honest as the log it folds.
+    if (applied.muted_now) {
+      append(
+        { store: this.auditStore, engine_version: this.engineVersion },
+        {
+          event_id: signal.trigger_event_id,
+          policy_id: signal.policy_id,
+          decision: signal.decision,
+          signal_id: signal.id,
+          reason: 'muted',
+          degraded: false,
+          now,
+          user_response: response.action_id,
+        },
+      );
+    }
+
     return {
       signal,
       muted_now: applied.muted_now,

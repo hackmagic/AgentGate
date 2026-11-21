@@ -16,8 +16,10 @@ import type { Policy } from './policy/types.js';
 import { createPetServer, listen, DEFAULT_PET_PORT } from './pet/http.js';
 import { fixedClock, systemClock, type Clock } from './util/clock.js';
 import { COMPILE_FORMAT_VERSION, ENGINE_VERSION } from './version.js';
+import { buildReport } from './report/build.js';
+import { renderJson, renderText } from './report/render.js';
 import { verifyCompilation } from './compile/verify.js';
-import { projectLifecycle } from './policy/lifecycle.js';
+import { ARCHIVE_REASONS, projectLifecycle, type ArchiveReason, type ArchiveRequest } from './policy/lifecycle.js';
 
 const HELP = `agent-gate v${ENGINE_VERSION}
 
@@ -27,7 +29,8 @@ const HELP = `agent-gate v${ENGINE_VERSION}
   gate evaluate --policy <path>... --event <json|file> [--now <iso>] [--timezone <tz>]
   gate compile --policy <path>... --out <dir> [--target agents|skill|mcp|all]
   gate verify --policy <path>... [--target agents|skill|mcp|all]
-  gate lifecycle --policy <path>... --audit <file> [--now <iso>]
+  gate lifecycle --policy <path>... --audit <file> [--now <iso>] [--archive <id>:<reason>]
+  gate report --policy <path>... [--audit <file>] [--format text|json] [--now <iso>] [--no-policies]
   gate mcp --policy <path>... [--audit <file>]
   gate pet --policy <path>... [--port 3778] [--host 127.0.0.1] [--audit <file>]
   gate audit --audit <file> [--since <iso>] [--policy-id <id>] [--limit <n>]
@@ -37,6 +40,7 @@ const HELP = `agent-gate v${ENGINE_VERSION}
   compile 把同一份策略编译成 AGENTS.md / SKILL.md / MCP bundle。
   verify 校验三个目标产物是否描述同一份策略集（编译一致性）。
   lifecycle 从审计记录投影每条策略的生命周期状态。
+  report 汇总审计记录：呈现/批准/否决/限流次数、生命周期分布与问题发现。
   mcp 启动无状态 stdio MCP server，供任意 Agent 调用。
   pet 启动本地 HTTP 桥，供宠物/呈现层订阅信号。
 `;
@@ -122,6 +126,8 @@ function main(argv: string[]): number {
       return commandVerify(parsed);
     case 'lifecycle':
       return commandLifecycle(parsed);
+    case 'report':
+      return commandReport(parsed);
     case 'mcp':
       return commandMcp(parsed);
     case 'pet':
@@ -287,7 +293,8 @@ function commandLifecycle(parsed: ParsedArgs): number {
   const now = nowArg === undefined ? new Date() : new Date(nowArg);
   if (Number.isNaN(now.getTime())) throw new UsageError(`--now 不是合法时间: ${String(nowArg)}`);
 
-  const projected = projectLifecycle(policies, records, now);
+  const archives = parseArchives(parsed);
+  const projected = projectLifecycle(policies, records, now, { archives });
   process.stdout.write(
     `${JSON.stringify(
       projected.map((entry) => ({
@@ -301,6 +308,65 @@ function commandLifecycle(parsed: ParsedArgs): number {
       2,
     )}\n`,
   );
+  return 0;
+}
+
+/**
+ * `--archive <policy-id>:<reason>` makes the `archived` lifecycle state
+ * reachable from the CLI. Until now it was documented and reachable from the
+ * library, which meant two of five states were prose.
+ */
+function parseArchives(parsed: ParsedArgs): ArchiveRequest[] {
+  const now = flag(parsed, 'now') ?? new Date().toISOString();
+  const requests: ArchiveRequest[] = [];
+
+  for (const raw of flagValues(parsed, 'archive')) {
+    const separator = raw.lastIndexOf(':');
+    if (separator <= 0 || separator === raw.length - 1) {
+      throw new UsageError(`--archive 需要 <policy-id>:<reason>，收到: ${raw}`);
+    }
+    const policyId = raw.slice(0, separator);
+    const reason = raw.slice(separator + 1);
+    if (!(ARCHIVE_REASONS as readonly string[]).includes(reason)) {
+      throw new UsageError(`归档原因必须是 ${ARCHIVE_REASONS.join('|')}），收到: ${reason}`);
+    }
+    requests.push({ policy_id: policyId, reason: reason as ArchiveReason, at: now });
+  }
+
+  return requests;
+}
+
+function commandReport(parsed: ParsedArgs): number {
+  const policies = loadPolicyFiles(parsed);
+
+  const auditFile = flag(parsed, 'audit');
+  // A report over no history is still a useful report: it says "nothing has
+  // happened", which is different from "I could not read the log".
+  const records = auditFile === undefined ? [] : new JsonlAuditStore(path.resolve(auditFile)).query();
+
+  const nowArg = flag(parsed, 'now');
+  const now = nowArg === undefined ? new Date() : new Date(nowArg);
+  if (Number.isNaN(now.getTime())) throw new UsageError(`--now 不是合法时间: ${String(nowArg)}`);
+
+  const report = buildReport(policies, records, {
+    now,
+    archives: parseArchives(parsed),
+    ...(flag(parsed, 'rejection-threshold') === undefined
+      ? {}
+      : { rejection_threshold: Number(flag(parsed, 'rejection-threshold')) }),
+    ...(flag(parsed, 'throttle-threshold') === undefined
+      ? {}
+      : { throttle_threshold: Number(flag(parsed, 'throttle-threshold')) }),
+  });
+
+  const format = flag(parsed, 'format') ?? 'text';
+  if (format === 'json') {
+    process.stdout.write(renderJson(report));
+  } else if (format === 'text') {
+    process.stdout.write(renderText(report, { include_policies: !parsed.flags.has('no-policies') }));
+  } else {
+    throw new UsageError(`未知 --format: ${format}（可选 text|json）`);
+  }
   return 0;
 }
 

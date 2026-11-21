@@ -99,6 +99,17 @@
 - ⬜ npm 发布（`bin: gate`）
 - ⬜ 策略修订建议：连续 dismiss 后给出「是不是条件太宽」的具体改法
 
+## M8 · 报告（已完成）
+
+- ✅ `gate report`：把 JSONL 审计日志聚合为汇总、生命周期分布、逐策略计数与发现项
+- ✅ 同一份 `Report` 对象两种渲染：`--format text` 给人看，`--format json` 给消费方
+- ✅ `docs/10-report-spec.md`，每个发现项 code 都由 `validate-specs` 把关
+- ✅ `gate lifecycle --archive <id>:<reason>`：`archived` 状态现在 CLI 可达
+
+做这个功能时修掉一个真实缺陷：引擎会累计否决次数，但**从不写 `reason: muted`**，于是引擎内部
+已静音的策略被投影成 `active`。`muted` 在 `AUDIT_REASONS` 和生命周期折叠里都有，却没有任何地方
+发出它。现在有一个回归测试，用真实 gate 构建真实日志。
+
 ## 下一步优先级
 
 按「社区能不能贡献」排序，而不是按技术趣味：

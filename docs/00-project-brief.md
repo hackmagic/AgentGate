@@ -61,7 +61,7 @@ These are gaps, not decisions. Listing them here keeps [09-mvp-roadmap](09-mvp-r
 | --- | --- | --- |
 | Success criterion 3: "the pet completes propose → approve → execute end to end" | The protocol, the HTTP bridge, a client and a shipped DSH adapter all exist; **the execute step is still the adapter owner's job**, and nothing has been visually verified in a real host | A desktop-notification surface and a rendered walkthrough in a live host |
 | Success criterion 1: "a **real** ActivityWatch event" | The adapter consumes an **export** (a JSON file); it never talks to a live ActivityWatch instance | A live collector, which [we deliberately do not build](05-event-spec.md) — but then "real" needs saying precisely |
-| The `draft` and `archived` lifecycle states | Both are documented and both are reachable from the library API, but **no CLI command reaches them**: `authoringState()` has no caller and nothing supplies `archives` | A `gate lifecycle --archive` path, otherwise two of the five states are documentation |
+| The `draft` and `archived` lifecycle states | `archived` is now reachable (`gate lifecycle --archive`); **`draft` is still library-only**, because the CLI refuses an invalid policy before it can be reported | Nothing, for `draft`: it describes a file that never loaded, so a CLI that cannot read it cannot report it |
 | Distributable via `npx agent-gate` | The MCP bundle's `mcp.json` already emits `npx -y agent-gate`, but the package is **not published** to npm | A release step; until then the emitted config is aspirational |
 
 ## Core boundaries (non-negotiable)
