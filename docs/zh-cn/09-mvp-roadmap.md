@@ -2,7 +2,7 @@
 title: "09 · 路线图与验收"
 sidebar_position: 10
 tags: [roadmap]
-description: "English(09-mvp-roadmap.md) | 中文"
+description: "按里程碑记录真实进度（✅/⬜），含验收清单；不写愿景。"
 last_updated: 2026-11-22
 ---
 
@@ -10,7 +10,7 @@ last_updated: 2026-11-22
 
 中文 | [English](/en/09-mvp-roadmap)
 
-状态：M0–M6 的**内核部分已落地**（v0.3.0）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
+状态：M0–M9 的**内核部分已落地**（v0.11.3）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
 
 ## M0 · 规范先行（已完成）
 
@@ -105,7 +105,7 @@ last_updated: 2026-11-22
 
 - ✅ 又两个策略包：`packs/health-break`、`packs/context-switch-guard`
 - ⬜ npm 发布（`bin: gate`）
-- ⬜ 策略修订建议：连续 dismiss 后给出「是不是条件太宽」的具体改法
+- ✅ 策略修订建议：连续否决后给出具体的 `time_window` 收窄，连同证据与 caveats（见 M8 与 `docs/10` §8）
 
 ## M8 · 报告（已完成）
 

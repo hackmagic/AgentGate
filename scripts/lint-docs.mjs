@@ -66,6 +66,28 @@ for (const tree of TREES) {
       }
     }
 
+    // Shape, not just presence. A `description` holding the language switcher is
+    // how a generator that took "the first paragraph" without skipping the
+    // switcher shows up: the field exists, is non-empty, and describes nothing.
+    // Eight pages shipped with `English(x.md) | 中文` as their SEO summary
+    // before this rule existed.
+    const descriptionMatch = /^description:\s*"?([^"\n]*)/m.exec(frontmatter[1]);
+    const description = descriptionMatch?.[1] ?? '';
+    if (description === '') {
+      problems.push(`${file}: description is empty`);
+    }
+    if (/English/.test(description) || /\|\s*中文/.test(description)) {
+      problems.push(
+        `${file}: description looks like a language switcher ("${description.slice(0, 48)}"), not a summary`,
+      );
+    }
+    if (/\.md\)/.test(description) || /\]\(/.test(description)) {
+      problems.push(`${file}: description contains a markdown link`);
+    }
+    if (/^\d+ · /.test(description)) {
+      problems.push(`${file}: description repeats the page title instead of summarizing`);
+    }
+
     const body = text.slice(frontmatter[0].length);
     const h1Count = [...body.matchAll(/^#\s/gm)].length;
     if (h1Count !== 1 && !MULTI_H1_ALLOWED.has(file)) {

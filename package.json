@@ -1,6 +1,6 @@
 {
   "name": "agent-gate",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "private": false,
   "description": "AgentGate — compile your personal boundaries into portable, auditable policy for any AI agent (AGENTS.md / SKILL.md / MCP).",
   "keywords": [
@@ -63,10 +63,11 @@
     "docs:preview": "vitepress preview docs",
     "audit-schemas": "node scripts/audit-schemas.mjs",
     "verify-integrations": "node integrations/dsh-agent-gate-pet/test/verify-host.mjs && node integrations/dsh-agent-gate-pet/test/verify-client.mjs",
-    "check": "npm run typecheck && npm run lint && npm run lint-docs && npm run verify-i18n && npm run verify-ci-coverage && npm run test && npm run validate-specs && npm run audit-schemas && npm run verify-skill-fields && npm run verify-examples && npm run build && npm run verify-integrations",
+    "check": "npm run typecheck && npm run lint && npm run lint-docs && npm run verify-i18n && npm run verify-ci-coverage && npm run test && npm run validate-specs && npm run audit-schemas && npm run verify-skill-fields && npm run verify-examples && npm run verify-roadmap && npm run build && npm run verify-integrations",
     "verify-skill-fields": "node --import tsx scripts/verify-skill-fields.ts",
     "verify-examples": "node --import tsx scripts/verify-examples.ts",
-    "verify-ci-coverage": "node --import tsx scripts/verify-ci-coverage.ts"
+    "verify-ci-coverage": "node --import tsx scripts/verify-ci-coverage.ts",
+    "verify-roadmap": "node --import tsx scripts/verify-roadmap.ts"
   },
   "dependencies": {
     "yaml": "^2.9.1"

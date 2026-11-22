@@ -2,7 +2,7 @@
 title: "09 · Roadmap and acceptance"
 sidebar_position: 10
 tags: [roadmap]
-description: "English | 中文(09-mvp-roadmap.md)"
+description: "Real progress per milestone marked done or open, with an acceptance checklist; no aspiration."
 last_updated: 2026-11-22
 translation_status: complete
 ---
@@ -11,7 +11,7 @@ translation_status: complete
 
 [中文](/09-mvp-roadmap) | English
 
-Status: the **kernel** of M0–M6 has landed (v0.3.0). The table marks real progress with ✅ / ⬜, not
+Status: the **kernel** of M0–M9 has landed (v0.11.3). The table marks real progress with ✅ / ⬜, not
 aspiration.
 
 ## M0 · Specifications first (done)
@@ -111,7 +111,8 @@ Remaining:
 
 - ✅ Two more packs: `packs/health-break`, `packs/context-switch-guard`
 - ⬜ npm release (`bin: gate`)
-- ✅ Revision suggestions: after repeated dismissals, propose a concrete `time_window` narrowing, with the\n  evidence and the caveats that limit it (see `docs/10-report-spec.md` §6)
+- ✅ Revision suggestions: after repeated dismissals, propose a concrete `time_window` narrowing, with the
+  evidence and the caveats that limit it (see `docs/10-report-spec.md` §6)
 
 ## M8 · Reporting (done)
 
@@ -154,7 +155,8 @@ Ordered by "can the community contribute", not by technical interest:
 
 1. **Grow the policy template library** — contributing one YAML policy is far cheaper than contributing a capture engine;
 2. **A real pet adapter** — get the first chain running on a real desktop;
-3. ~~**Revision suggestions**~~ — delivered; the remaining idea is suggestions for a scattered pattern,\n   which would need audit data the whitelist does not carry.
+3. ~~**Revision suggestions**~~ — delivered; the remaining idea is suggestions for a scattered pattern,
+   which would need audit data the whitelist does not carry.
 
 ## Acceptance checklist (copy into a pull request)
 

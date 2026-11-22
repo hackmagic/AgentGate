@@ -2,7 +2,7 @@
 title: "00 · Project brief"
 sidebar_position: 1
 tags: [overview]
-description: "English | 中文(00-project-brief.md)"
+description: "What we build, what we refuse, the success criteria, and a table of trade-offs against the initial vision."
 last_updated: 2026-11-22
 translation_status: complete
 ---

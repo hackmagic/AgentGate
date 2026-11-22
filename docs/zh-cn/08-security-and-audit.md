@@ -2,7 +2,7 @@
 title: "08 · 安全与审计"
 sidebar_position: 9
 tags: [security, reference]
-description: "English(08-security-and-audit.md) | 中文"
+description: "权限分级、九字段审计白名单、否决权机制、威胁模型与明确不做的安全承诺。"
 last_updated: 2026-11-22
 ---
 

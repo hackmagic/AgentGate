@@ -7,9 +7,35 @@
 
 ### 计划
 
-- 更多策略包（`packs/late-night`、`packs/meeting-heavy`）
-- npm 发布（`bin: gate`）
-- 策略修订建议：连续 dismiss 后给出可采纳的条件改写
+- npm 发布（`bin: gate`）：需要 registry 凭据，`mcp.json` 里发出的 `npx -y agent-gate`
+  在发布之前无法工作
+- OpenPets 桌面端联调：mock IPC 无法证明的三项（窗口路由、租约到期销毁、App 端枚举校验）
+  需要真机验证，见 `tests/pet-e2e-openpets.test.ts` 的 skip 说明
+- 真实宿主里的渲染走查：`integrations/dsh-agent-gate-pet` 的结构验证已过，视觉验证未做
+
+## [0.11.3] — 2026-11-22
+
+### 修复
+
+- **8 个页面的 frontmatter `description` 是语言切换行，不是摘要。**
+  迁移脚本把「H1 之后的第一段」当描述提取，而有些页面 H1 后第一行就是
+  `中文 | [English](…)`，于是 00/01/08/09 四个页面（双语共 8 个）的 SEO 摘要与
+  搜索快照变成了 `English(01-prd.md) | 中文`。字段检查只看「是否存在」，全部通过——
+  存在不等于形状正确。已逐页改写为真实摘要。
+- **英文 roadmap 两行含字面量 `\n`。** 旧的 shell 替换残留，渲染后会把
+  "…with the\n  evidence…" 当正文显示。已还原为真实换行。
+- **roadmap 状态行落后两个大版本。** 还写着「M0–M6（v0.3.0）」，同一份文档的表格
+  已经到 M9 / v0.11.2；同时 M7 待办里「策略修订建议」仍标 ⬜，而 M8 与优先级小节
+  都记录它已交付。同一文档对同一功能给出两种结论。
+- `lint-docs` 新增 `description` 形状规则（切换行、markdown 链接、复读标题都报错），
+  已注入违规验证会拦。
+- 新增 `npm run verify-roadmap`：roadmap 状态行的版本号必须等于 `ENGINE_VERSION`，
+  声称覆盖到的里程碑必须与正文一致，⬜ 条目不得与 ✅ 条目撞车。已验证改旧版本号会红。
+
+### 变更
+
+- `npm run check` 从 12 项门禁增至 13 项（verify-roadmap）；`verify-ci-coverage`
+  已确认 CI 矩阵 job 全部执行。
 
 ## [0.11.2] — 2026-11-22
 

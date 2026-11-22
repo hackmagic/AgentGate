@@ -2,7 +2,7 @@
 title: "08 · Security and audit"
 sidebar_position: 9
 tags: [security, reference]
-description: "English | 中文(08-security-and-audit.md)"
+description: "Permission levels, the nine-field audit whitelist, the right of refusal, the threat model, and the security promises we deliberately do not make."
 last_updated: 2026-11-22
 translation_status: complete
 ---

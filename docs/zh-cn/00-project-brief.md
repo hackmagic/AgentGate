@@ -2,7 +2,7 @@
 title: "00 · 一页纸立项"
 sidebar_position: 1
 tags: [overview]
-description: "English(00-project-brief.md) | 中文"
+description: "做什么、不做什么、成功标准，以及当前仓库与初始愿景的取舍对照表。"
 last_updated: 2026-11-22
 ---
 

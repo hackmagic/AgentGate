@@ -68,6 +68,9 @@ jobs:
       - name: Example sequences still produce their documented outcome
         run: npm run verify-examples
 
+      - name: Roadmap status line matches the shipped version
+        run: npm run verify-roadmap
+
       - name: Build
         run: npm run build
 

@@ -2,7 +2,7 @@
 title: "01 · Product requirements"
 sidebar_position: 2
 tags: [product]
-description: "English | 中文(01-prd.md)"
+description: "Target users, the three core user stories, functional boundaries and the key quality attributes."
 last_updated: 2026-11-22
 translation_status: complete
 ---
