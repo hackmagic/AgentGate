@@ -80,7 +80,7 @@ const rel = (absolute) => path.relative(ROOT, absolute).split(path.sep).join('/'
 /**
  * The counterpart of a primary document.
  *
- * Root pages pair as siblings; `docs/en/x.md` pairs with `docs/zh-cn/x.md`.
+ * Root pages pair as siblings; `docs/en/<page>.md` pairs with `docs/zh-cn/<page>.md`.
  * A missing counterpart is reported by the caller, not guessed here.
  */
 const counterpartOf = (absolute) => {
@@ -163,8 +163,8 @@ for (const primary of primaryDocs) {
   //
   // Three kinds of page exist, and each links back differently:
   //
-  //   docs source page   `docs/zh-cn/x.md`  -> `/en/x`   (served at the root)
-  //   docs translated    `docs/en/x.md`     -> `/x`
+  //   docs source page   `docs/zh-cn/<page>.md`  -> `/en/x`   (served at the root)
+  //   docs translated    `docs/en/<page>.md`     -> `/x`
   //   repository root    `README.md`        -> `README.en.md` (sibling file)
   //
   // The docs index is special: `rewrites` serves `README.md` as the directory

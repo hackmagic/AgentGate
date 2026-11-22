@@ -9,6 +9,6 @@ export const ENGINE_VERSION = '0.11.4';
  * verify` command) can then tell "same policies, new format" from "same
  * policies, older compiler", which the source hash alone cannot express.
  *
- * Contract: docs/06-compiler-spec.md.
+ * Contract: docs/zh-cn/06-compiler-spec.md.
  */
 export const COMPILE_FORMAT_VERSION = '3';

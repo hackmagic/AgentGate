@@ -36,7 +36,7 @@ export interface CompilationBundle {
 
 /**
  * Compile the same policy set into different agent surfaces. The mapping from
- * policy fields to artifact sections is fixed (docs/06-compiler-spec.md), so
+ * policy fields to artifact sections is fixed (docs/zh-cn/06-compiler-spec.md), so
  * two agents reading two artifacts obey the same rule.
  */
 export function compilePolicies(policies: readonly Policy[], target: CompileTarget): CompilationBundle {

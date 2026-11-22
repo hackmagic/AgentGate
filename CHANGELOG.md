@@ -5,6 +5,21 @@
 
 ## [Unreleased]
 
+### 修复
+
+- **源码里的 11 处文档引用全部指向不存在的路径。** 目录迁移到 `docs/en/` + `docs/zh-cn/` 后，
+  `src/` 与 `scripts/` 的注释仍写着 `docs/02-architecture.md` 之类的旧扁平路径；其中两处
+  （`03-policy-dsl`、`04-compiler-spec`）在迁移前就是错的页码——从没有人核对过一条注释引用的
+  文件是否存在。路径引用不会让任何东西变红，所以它只惩罚下一个按引用去读文档的人。
+  现统一指向 `docs/zh-cn/`（真值源；翻译树按同名镜像，引用不丢语义）。
+
+### 新增
+
+- **`validate-specs` 新增文档引用门禁**（225 → 235 项检查）：扫描 `src/`、`scripts/`、
+  `integrations/` 内所有 `docs/*.md` 引用，路径不解析即失败。已验证：注入一条
+  `docs/99-nonexistent-spec.md` 引用会使检查变红。规则同时要求「至少扫到一条引用」，
+  防止扫描器本身坏掉时门禁空转通过。
+
 ### 计划
 
 - npm 发布（`bin: gate`）：需要 registry 凭据，`mcp.json` 里发出的 `npx -y agent-gate`

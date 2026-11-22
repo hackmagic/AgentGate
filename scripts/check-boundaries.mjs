@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Architecture guard for the layered contract (docs/02-architecture.md):
+ * Architecture guard for the layered contract (docs/zh-cn/02-architecture.md):
  *
  *   events (adapters) → policy + signal + audit (pure core) → gate (composition)
  *                                                          → pet / mcp / compile (surfaces)

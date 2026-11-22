@@ -29,7 +29,7 @@ import {
  * It owns no decision logic of its own. Evaluation is pure
  * (`policy/evaluate.ts`); throttling, inbox bookkeeping and auditing are
  * `GateStage` instances composed in `stages` and replaceable through
- * `GateOptions.stages`. See docs/02-architecture.md.
+ * `GateOptions.stages`. See docs/zh-cn/02-architecture.md.
  *
  * It never executes an action — it records the decision and lets the adapter
  * (pet, CLI, MCP host) act after the user answers.

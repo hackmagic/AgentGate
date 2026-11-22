@@ -442,6 +442,57 @@ check('10-report-spec states the report is a read-only projection', reportDoc.in
 check('10-report-spec forbids an LLM in suggestions', reportDoc.includes('never call an LLM'));
 check('10-report-spec forbids auto-application', reportDoc.includes('never apply themselves'));
 
+// ---------------------------------------------------- code ↔ doc cites ---
+/**
+ * Comments in `src/` and `scripts/` cite specifications as contracts, and a
+ * citation to a path that does not exist is a dead end for the reader who
+ * follows it. Unlike a wrong number, a wrong path breaks nothing — so it
+ * survives every other gate. Ten such citations accumulated before this rule
+ * existed (the directory migration moved every doc, and two of the ten cited
+ * filenames that never existed even before it).
+ */
+function sourceFiles(dir: string, out: string[] = []): string[] {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === 'dist' || entry.name === '.vitepress') continue;
+    const absolute = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      sourceFiles(absolute, out);
+      continue;
+    }
+    if (/\.(ts|js|mjs)$/.test(entry.name)) out.push(absolute);
+  }
+  return out;
+}
+
+const cited = new Map<string, string[]>();
+for (const dir of ['src', 'scripts', 'integrations']) {
+  for (const file of sourceFiles(path.join(ROOT, dir))) {
+    const body = readFileSync(file, 'utf8');
+    for (const match of body.matchAll(/docs\/[a-z0-9./-]+\.md/g)) {
+      const target = match[0];
+      const bucket = cited.get(target);
+      if (bucket === undefined) cited.set(target, [file]);
+      else bucket.push(file);
+    }
+  }
+}
+
+check('source files cite at least one doc', cited.size > 0, 'nothing was scanned — the rule would pass vacuously');
+for (const [citation, files] of cited) {
+  const exists = (() => {
+    try {
+      return readFileSync(path.join(ROOT, citation), 'utf8').length > 0;
+    } catch {
+      return false;
+    }
+  })();
+  check(
+    `doc citation ${citation} resolves`,
+    exists,
+    `cited by ${files.map((f) => path.relative(ROOT, f).split(path.sep).join('/')).join(', ')}`,
+  );
+}
+
 // ------------------------------------------------------------ result ---
 if (failures.length > 0) {
   console.error(`spec validation failed (${failures.length}/${checks}):\n`);

@@ -11,7 +11,7 @@ import { suggestRevisions, type PolicySuggestion } from './suggest.js';
  * recomputed from the log at any time, which is what makes the numbers
  * trustworthy rather than merely persistent.
  *
- * Contract: docs/10-report-spec.md.
+ * Contract: docs/zh-cn/10-report-spec.md.
  */
 
 /** One policy's line in the report. */

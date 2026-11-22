@@ -4,7 +4,7 @@ import type { CompilationBundle } from './index.js';
 
 /**
  * Compilation parity: read the emitted artifacts back and prove they still
- * describe the same policy set. See docs/04-compiler-spec.md.
+ * describe the same policy set. See docs/zh-cn/06-compiler-spec.md.
  *
  * Two different guarantees, both needed:
  *

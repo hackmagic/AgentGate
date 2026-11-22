@@ -2,7 +2,7 @@ import type { AuditRecord } from '../audit/store.js';
 import type { Policy } from '../policy/types.js';
 
 /**
- * Lifecycle states, per docs/03-policy-lifecycle.md.
+ * Lifecycle states, per docs/zh-cn/03-policy-lifecycle.md.
  *
  *   draft → validated → active ⇄ muted → archived
  *                          └──────────────↑
@@ -131,7 +131,7 @@ function projectOne(
       }
       case 'user_muted': {
         // `mute_1h` opens a bounded window and never changes the count
-        // (docs/03-policy-dsl.md, rule 5).
+        // (docs/zh-cn/04-policy-dsl.md, rule 5).
         mutedUntil = new Date(Date.parse(record.timestamp) + MUTE_WINDOW_MS).toISOString();
         move('muted', record.reason, record.timestamp);
         break;

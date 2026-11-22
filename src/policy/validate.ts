@@ -20,7 +20,7 @@ export interface PolicyValidationResult {
 
 /**
  * Validate a policy document against the JSON Schema *and* the semantic rules
- * from docs/04-policy-dsl.md. Schema alone cannot express rules such
+ * from docs/zh-cn/04-policy-dsl.md. Schema alone cannot express rules such
  * as "a policy without approval needs a rationale".
  */
 export function validatePolicyDocument(input: unknown, source = 'policy'): PolicyValidationResult {

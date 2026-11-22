@@ -18,7 +18,7 @@ export interface CompiledSkill {
 /**
  * Compile one policy into an Agent Skill (SKILL.md).
  *
- * Shape is governed by docs/06-compiler-spec.md §6, which states the minimum
+ * Shape is governed by docs/zh-cn/06-compiler-spec.md §6, which states the minimum
  * for a *usable* skill: a reader must be able to discover it, know when it
  * applies, parse every offered action id, and know what to do when the tool is
  * unreachable. See that section before changing any line here — several of the
