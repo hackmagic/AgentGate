@@ -14,4 +14,13 @@ audit.jsonl
 # VitePress build output and cache
 docs/.vitepress/dist/
 docs/.vitepress/cache/
-.msg.txt
+# Scratch: dot-prefixed one-shot scripts and commit-message files.
+# Exact names were listed four times and failed four times (each commit added
+# a *new* .mN.txt); the pattern is the fix. Dot-prefix matters: the repo's
+# real sources live under scripts/*.mjs with no leading dot.
+.*.mjs
+.*.txt
+scratch-*
+.msg*.txt
+.cm.txt
+.m*.txt
