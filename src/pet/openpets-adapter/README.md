@@ -4,7 +4,7 @@
 reaction and speech bubble. It is a **consumer** of OpenPets: it never modifies
 the app, its plugins, or any pet package.
 
-Read this alongside [docs/07](../docs/07-pet-bridge.md), which specifies the
+Read this alongside [docs/07](../../docs/en/07-pet-bridge.md), which specifies the
 embodiment contract in general; this file records only what the OpenPets
 integration contract adds.
 
@@ -133,6 +133,13 @@ The token is never included in an error message or a log line.
 - **It does not drive the pet while idle.** No reaction means no animation
   request; the app's own idle behaviour is untouched.
 - **It does not speak policy copy.** See above.
+- **It does not consume `animation_hint`.** OpenPets owns the reaction→animation
+  mapping: `pet.react` takes a closed enum, and the sprite a reaction plays is
+  user-overridable in Control Center. The published contract defines no
+  hint→reaction translation, so inventing one here would fight that ownership.
+  Embodiments that own their presentation render the hint — the DSH composer
+  surface shows a static marker keyed by it. The omission here is stated in
+  `map.ts` rather than silent.
 - **It does not verify rendering.** The adapter is tested against a fake
   transport, not against a running app; see the limitation note in
-  [docs/07](../docs/07-pet-bridge.md).
+  [docs/07](../../docs/en/07-pet-bridge.md).

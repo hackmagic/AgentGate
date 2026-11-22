@@ -11,6 +11,17 @@ window.__ModuleLoader__.load({
     /** Never re-render a prompt for a signal answered in this page. */
     const answered = new Set()
 
+    /**
+     * Static markers for the policy's `animation_hint`.
+     *
+     * A closed four-entry map keyed to the enum in the contract — not an
+     * animation asset and not model output. `animation_hint` is a policy fact
+     * that travels in every signal; a surface that drops it treats half of
+     * `presentation` as optional. An unknown value falls back to the neutral
+     * marker rather than rendering nothing.
+     */
+    const HINT_GLYPH = { idle_shift: '🌙', stretch: '🧘', alert: '⚠️', thinking: '💭' }
+
     async function request(path, init) {
       const response = await fetch(`${BASE}${path}`, {
         ...init,
@@ -160,6 +171,15 @@ window.__ModuleLoader__.load({
                 background: 'color-mix(in srgb, currentcolor 6%, transparent)',
               },
             },
+            h(
+              'span',
+              {
+                'aria-hidden': true,
+                'data-animation': signal.presentation.animation_hint ?? 'alert',
+                style: { fontSize: 12, opacity: 0.85 },
+              },
+              HINT_GLYPH[signal.presentation.animation_hint] ?? HINT_GLYPH.alert,
+            ),
             h('span', { style: { flex: '1 1 auto', fontSize: 12 } }, signal.presentation.bubble_text),
             signal.presentation.actions.map((action) =>
               h(

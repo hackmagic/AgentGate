@@ -11,7 +11,7 @@ translation_status: complete
 
 [中文](/09-mvp-roadmap) | English
 
-Status: the **kernel** of M0–M9 has landed (v0.11.3). The table marks real progress with ✅ / ⬜, not
+Status: the **kernel** of M0–M9 has landed (v0.11.4). The table marks real progress with ✅ / ⬜, not
 aspiration.
 
 ## M0 · Specifications first (done)
@@ -57,11 +57,22 @@ Done:
 - ✅ Anti-nuisance constraints: rate limiting, no retry after dismiss, `require_approval` always offers a refusal
 - ✅ Contract tests covering the full "present → approve → audit" chain
 - ✅ Ephemeral ports no longer land on fetch-forbidden ports (where Node's own `fetch` refuses to connect)
+- ✅ Two real host adapters: `integrations/dsh-agent-gate-pet` (a DSH bundle with host and
+  browser halves, 42 + 23 = 65 offline checks) and `src/pet/openpets-adapter` (built against the
+  published OpenPets contract, verified end-to-end against a mock IPC). This line said ⬜ while both
+  had shipped for three rounds.
+- ✅ End-to-end contract tests: `tests/pet-e2e-openpets.test.ts` (12) +
+  `tests/pet-e2e-dsh.test.ts` (11), with 5 marked `skip` and their reason named
+- ✅ The DSH half of `animation_hint`: the composer renders a static marker keyed by the enum,
+  asserted by verify-client
 
 Not done:
 
-- ⬜ A real dsh-pet plugin (needs the host repository; the documentation gives the adapter shape)
-- ⬜ Pet-side animation asset mapping
+- ⬜ The 3D pet's animation pool: `dsh-hackmagic-pets` ships a prebuilt client bundle with no
+  bubble or animation hook, so wiring into it means editing its kernel — a package this repository
+  does not own. OpenPets deliberately does not consume the hint; see docs/07 constraint 5.
+- ⬜ A rendered walkthrough in a live host, and the desktop-notification surface: see the
+  not-yet-delivered table in docs/00. Mock verification is not a substitute.
 
 ## M4 · Layer refactor (done)
 
@@ -106,13 +117,14 @@ Done:
 - ✅ CI (typecheck / architecture / tests / spec validation / compile parity / build)
 - ✅ MIT License
 - ✅ CONTRIBUTING with a policy template
+- ✅ Two more packs: `packs/health-break`, `packs/context-switch-guard`
+- ✅ Revision suggestions: after repeated dismissals, propose a concrete `time_window` narrowing, with the
+  evidence and the caveats that limit it (see `docs/10-report-spec.md` §6)
 
 Remaining:
 
-- ✅ Two more packs: `packs/health-break`, `packs/context-switch-guard`
-- ⬜ npm release (`bin: gate`)
-- ✅ Revision suggestions: after repeated dismissals, propose a concrete `time_window` narrowing, with the
-  evidence and the caveats that limit it (see `docs/10-report-spec.md` §6)
+- ⬜ npm release (`bin: gate`) — needs registry credentials; until then the `npx -y agent-gate`
+  emitted into `mcp.json` cannot work
 
 ## M8 · Reporting (done)
 

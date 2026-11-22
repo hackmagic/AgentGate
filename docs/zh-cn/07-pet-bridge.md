@@ -67,6 +67,13 @@ responded_at: ISO8601
 
 约束 1 与 2 由 `AgentGate` 的速率闸与 `mute` 状态机实现；约束 4 由 `validateSignal`；约束 5 由「信号里根本没有生成入口」保证。
 
+约束 5 的「来自策略」在两个具现层里的兑现方式不同，且这是刻意的：
+
+- **DSH 输入区**把 `animation_hint` 呈现为一个按枚举取值的静态标记（四个 Unicode 字形，`data-animation` 键入），由 `verify-client.mjs` 断言它渲染、取值正确、且对读屏隐藏；
+- **OpenPets** *不*消费 `animation_hint`：`pet.react` 收的是封闭的 reaction 枚举，而某个 reaction 播放哪段精灵动画属于桌面 App 所有、用户可在控制面板改。契约没有定义「hint→reaction」的翻译，硬造一个只会与宿主的呈现权打架。该立场写在 `map.ts` 与适配器 README，而不是悄悄丢掉。
+
+换句话说：**字段绝不静默丢弃**——要么呈现，要么公开声明「此处不适用」。
+
 ## HTTP 桥（`gate pet`）
 
 默认监听 `127.0.0.1:3778`，只绑回环地址。

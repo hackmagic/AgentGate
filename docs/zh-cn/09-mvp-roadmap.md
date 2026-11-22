@@ -10,7 +10,7 @@ last_updated: 2026-11-22
 
 中文 | [English](/en/09-mvp-roadmap)
 
-状态：M0–M9 的**内核部分已落地**（v0.11.3）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
+状态：M0–M9 的**内核部分已落地**（v0.11.4）。下表用 ✅ / ⬜ 标注真实进度，不写愿景。
 
 ## M0 · 规范先行（已完成）
 
@@ -55,11 +55,18 @@ last_updated: 2026-11-22
 - ✅ 防骚扰约束：速率闸、dismiss 不重试、require_approval 必有拒绝动作
 - ✅ 契约测试覆盖完整「呈现 → 批准 → 审计」链路
 - ✅ 临时端口不再落在 fetch 禁用端口上（否则 Node 自己的 `fetch` 会拒绝连接）
+- ✅ 真实宿主适配器两份：`integrations/dsh-agent-gate-pet`（DSH bundle，宿主/浏览器两半，
+  离线验证 42 + 23 = 65 项检查）与 `src/pet/openpets-adapter`（按 OpenPets 发布契约实现，
+  mock IPC 端到端验证）。此前这条写 ⬜ 是过时的——适配器已存在近三轮。
+- ✅ 端到端契约测试：`tests/pet-e2e-openpets.test.ts`（12）+ `tests/pet-e2e-dsh.test.ts`（11），
+  其中 5 项标 skip 并写明缺真机/真宿主
+- ✅ `animation_hint` 的 DSH 侧兑现：输入区按枚举渲染静态标记，verify-client 断言其存在与取值
 
 未完成：
 
-- ⬜ 真实 dsh-pet 插件（需宿主仓库；文档给的是适配器形状）
-- ⬜ 宠物侧动画资源映射
+- ⬜ 3D 宠物的动画池映射：`dsh-hackmagic-pets` 的 client bundle 是预编译的、不暴露气泡/动画钩子，
+  接入它等于改宿主内核（该包不是本仓库所有）。OpenPets 依契约不消费该字段（见 `docs/07` 约束 5）。
+- ⬜ 真实宿主内的渲染走查与桌面通知面：见 `docs/00` 未交付表；mock 验证替代不了真机。
 
 ## M4 · 分层重构（已完成）
 
@@ -100,12 +107,13 @@ last_updated: 2026-11-22
 - ✅ CI（typecheck / 架构检查 / 测试 / 规范校验 / 编译一致性 / 构建）
 - ✅ MIT License
 - ✅ CONTRIBUTING 与策略贡献模板（双语）
+- ✅ 又两个策略包：`packs/health-break`、`packs/context-switch-guard`
+- ✅ 策略修订建议：连续否决后给出具体的 `time_window` 收窄，连同证据与 caveats（见 M8 与 `docs/10` §8）
 
 待办：
 
-- ✅ 又两个策略包：`packs/health-break`、`packs/context-switch-guard`
-- ⬜ npm 发布（`bin: gate`）
-- ✅ 策略修订建议：连续否决后给出具体的 `time_window` 收窄，连同证据与 caveats（见 M8 与 `docs/10` §8）
+- ⬜ npm 发布（`bin: gate`）——需要 registry 凭据；在此之前 `mcp.json` 里发出的
+  `npx -y agent-gate` 无法工作
 
 ## M8 · 报告（已完成）
 

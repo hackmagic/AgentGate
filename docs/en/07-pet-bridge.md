@@ -74,6 +74,21 @@ Constraints 1 and 2 are implemented by the `AgentGate` rate limiter and `mute` s
 constraint 4 by `validateSignal`; constraint 5 by there being no generation entry point in a signal at
 all.
 
+How constraint 5's "from the policy" is honoured differs between the two embodiment surfaces, and
+that split is deliberate:
+
+- **The DSH composer** renders `animation_hint` as a static marker keyed by the enum (four Unicode
+  glyphs, set through `data-animation`); `verify-client.mjs` asserts it renders, carries the policy's
+  value, and stays hidden from screen readers.
+- **OpenPets** does *not* consume `animation_hint`: `pet.react` takes a closed reaction enum, and
+  which sprite a reaction plays belongs to the desktop app, user-overridable in Control Center. The
+  published contract defines no hint→reaction translation, so inventing one would fight that
+  ownership. The stance is recorded in `map.ts` and the adapter README instead of dropping the field
+  silently.
+
+In other words: **a contract field is never dropped in silence** — either it is rendered, or the
+surface states that it does not apply.
+
 ## HTTP bridge (`gate pet`)
 
 Listens on `127.0.0.1:3778` by default and binds loopback only.

@@ -295,6 +295,16 @@ check(
   'bubble text is rendered verbatim; the adapter never re-words policy copy',
 )
 
+// `presentation.animation_hint` is a contract field. A surface that drops it
+// treats half of `presentation` as optional, which no other check would see.
+const hintMarks = findElements(second, (element) => element.props?.['data-animation'] !== undefined)
+check(hintMarks.length === 1, `exactly one animation-hint marker renders (saw ${hintMarks.length})`)
+check(
+  hintMarks[0]?.props?.['data-animation'] === SIGNAL.presentation.animation_hint,
+  'the marker is keyed by the policy hint, not by a guess',
+)
+check(hintMarks[0]?.props?.['aria-hidden'] === true, 'the decorative marker is hidden from screen readers')
+
 drainCleanups()
 
 console.log('\n== answering ==')

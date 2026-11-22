@@ -18,6 +18,21 @@ export interface Dispatch {
 }
 
 /**
+ * Note on `presentation.animation_hint`: this adapter deliberately does not
+ * consume it, and that is a contract position, not an oversight.
+ *
+ * OpenPets takes a *closed reaction enum* and maps reactions to sprite
+ * animations inside the app, where the user can override the mapping. The
+ * published contract defines no hint→reaction translation, so inventing one
+ * ("stretch" → what? "idle_shift" → what?) would fight the host's ownership of
+ * appearance and produce reactions the app is free to re-map anyway.
+ *
+ * The hint is therefore honoured by embodiments that own their own presentation
+ * (the DSH composer row shows a static marker keyed by it) and ignored here —
+ * stated in the README rather than dropped silently.
+ */
+
+/**
  * A signal is present: the engine wants the user's attention.
  *
  * `require_approval` waits (a decision is blocked on the user); `suggest` and

@@ -54,6 +54,47 @@ for (const file of FILES) {
     const shadowed = done.some((entry) => entry.includes(keyword));
     if (shadowed) problems.push(`${file}: "${item.slice(0, 40)}…" is open, yet a ✅ line mentions the same subject`);
   }
+
+  // Item-level scope. Inside each milestone, progress bullets sit under a bare
+  // marker line (`已完成：`, `待办：`, `Not done:`, …), which is not a heading —
+  // splitting on `##` cannot see it (an earlier version of this rule matched
+  // headings, passed, and caught nothing; the injection test exposed that).
+  // The real corpus also proved the marker list too narrow: `待办` and
+  // `Remaining` hide delivered items in exactly the way `未完成` does, and they
+  // were hiding two of them when this rule was written.
+  //
+  // The marker vocabulary is an explicit allowlist. Anything that merely
+  // contains the word "done" must not flip the bucket.
+  const DONE_MARKER = /^(已完成|完成|Done|Delivered)[:：]?\s*$/;
+  const OPEN_MARKER = /^(未完成|待办|Not done|Remaining|To do|TODO)[:：]?\s*$/;
+  let bucket: 'done' | 'open' | null = null;
+  let section = '';
+  for (const line of text.split('\n')) {
+    if (line.startsWith('## ')) {
+      section = line.slice(3).trim();
+      bucket = null;
+      continue;
+    }
+    if (DONE_MARKER.test(line.trim())) {
+      bucket = 'done';
+      continue;
+    }
+    if (OPEN_MARKER.test(line.trim())) {
+      bucket = 'open';
+      continue;
+    }
+    if (bucket === null) continue;
+    if (bucket === 'open' && /^- (✅|\[x\]) /.test(line)) {
+      problems.push(
+        `${file}: a ✅ item sits under "open" inside "${section}" — move it under the done marker`,
+      );
+    }
+    if (bucket === 'done' && /^- ⬜ /.test(line)) {
+      problems.push(
+        `${file}: an open ⬜ item sits under "done" inside "${section}" — move it under the open marker`,
+      );
+    }
+  }
 }
 
 if (problems.length > 0) {

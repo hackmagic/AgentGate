@@ -1,0 +1,37 @@
+fix(pet): honour animation_hint where the surface owns presentation
+
+The field was a contract member that traveled in every signal, was compiled
+into AGENTS.md and SKILL.md, and docs/07 promised animations come from the
+policy — yet neither adapter consumed it, and no gate noticed. This closes the
+gap along the principle stated in docs/07: a contract field is never dropped
+in silence; it is either rendered or the surface says why it does not apply.
+
+- The DSH composer renders the hint as a static marker: a closed four-entry
+  glyph map keyed by the enum, `data-animation` carrying the policy value and
+  `aria-hidden` on the decoration. Neutral fallback for unknown values.
+  verify-client gained three assertions (renders, keyed correctly, hidden
+  from screen readers).
+- OpenPets deliberately does not consume it: `pet.react` takes a closed
+  reaction enum and the reaction→sprite mapping belongs to the desktop app,
+  user-overridable. No hint→reaction translation exists in the published
+  contract; inventing one would fight that ownership. Recorded in `map.ts`
+  and the adapter README.
+
+Roadmap corrections this surfaced:
+
+- M7's Remaining/待办 buckets held two ✅ items left over from rounds that
+  changed the marker without moving the line — exactly the kind of stale
+  bookkeeping the roadmap exists to prevent.
+- M3's "real dsh-pet plugin ⬜" was two rounds out of date: both adapters
+  shipped, with 65 offline checks and 23 e2e cases between them.
+- One number I had written from memory ("53 checks") is now the measured
+  42 + 23; the counts are the point of this document.
+
+`verify-roadmap` gained a bucket rule (no ✅ under open markers, no ⬜ under
+done markers). Writing it took two passes: the first matched headings when
+the markers are bare lines and caught nothing — the injection test exposed
+that; the first marker list omitted 待办/Remaining, which were hiding both
+real violations. Also fixed two broken links in the OpenPets README left by
+the docs/ migration.
+
+Version 0.11.4.
